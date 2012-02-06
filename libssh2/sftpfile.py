@@ -17,86 +17,48 @@
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
-
-from sftpfile import SftpFile
-from sftpdir import SftpDir
-
 """
 Abstraction for libssh2 L{Sftp} object
 """
 
-class SftpException(Exception):
+class SftpFileException(Exception):
     """
     Exception raised when L{Sftp} actions fails.
     """
     pass
 
-class Sftp(object):
+class SftpFile(object):
     """
     Sftp object
     """
-    def __init__(self, _sftp):
+    def __init__(self, _handle):
         """
         Create a new Sftp object.
         """
-        self._sftp = _sftp
+        self._handle = _handle
 
     def close(self):
         """
         """
-        _sftp.close()
+        self._handle.close()
 
-    def opendir(self, path):
+    def read(self, maxlen=4096):
         """
         """
-        return SftpDir(_sftp.opendir(path))
+        return self._handle.read(maxlen)
 
-    def open(self, path):
+    def write(self, message):
         """
         """
-        return SftpFile(_sftp.open(path))
+        return self._handle.write(message, len(message))
 
-    def shutdown(self):
+    def tell(self):
         """
         """
-        _sftp.close()
+        return self._handle.tell()
 
-    def unlink(self, path):
+    def seek(self, offset):
         """
         """
-        _sftp.unlink(path)
+        self._handle.seek(offset)
 
-    def rename(self, old_path, new_path):
-        """
-        """
-        _sftp.rename(old_path, new_path)
-
-    def mkdir(self, path, mode):
-        """
-        """
-        _sftp.mkdir(path, mode)
-
-    def rmdir(self, path):
-        """
-        """
-        _sftp.rmdir()
-
-    def realpath(self, path, pathlen, type):
-        """
-        """
-        return _sftp.realpath(path, pathlen, type)
-
-    def symlink(self, path, target):
-        """
-        """
-        _sftp.symlink()
-
-    def getstat(self, path, pathlen, type):
-        """
-        """
-        return _sftp.opendir(path, pathlen, type)
-
-    def setstat(self, path, attrs):
-        """
-        """
-        _sftp.setstat(path, attrs)

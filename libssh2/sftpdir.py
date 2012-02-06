@@ -17,37 +17,37 @@
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
-__doc__ = """Python binding for libssh2 library"""
+"""
+Abstraction for libssh2 L{Sftp} object
+"""
 
-from version import *
+class SftpFileException(Exception):
+    """
+    Exception raised when L{Sftp} actions fails.
+    """
+    pass
 
-from channel import ChannelException, Channel
-from session import SessionException, Session
-from sftp import SftpException, Sftp
-from sftpfile import SftpFileException, SftpFile
-from sftpdir import SftpDirException, SftpDir
+class SftpFile(object):
+    """
+    Sftp object
+    """
+    def __init__(self, _handle):
+        """
+        Create a new Sftp object.
+        """
+        self._handle = _handle
 
-__all__ = [
-    'Channel',
-    'ChannelException',
-    'Session',
-    'SessionException',
-    'Sftp',
-    'SftpException'
-    'SftpFile',
-    'SftpExceptionFile'
-    'SftpDir',
-    'SftpExceptionDir'
-]
+    def close(self):
+        """
+        """
+        self._handle.close()
 
-LIBSSH2_TRACE_TRANS = 1 << 1
-LIBSSH2_TRACE_KEX = 1 << 2
-LIBSSH2_TRACE_AUTH = 1 << 3
-LIBSSH2_TRACE_CONN = 1 << 4
-LIBSSH2_TRACE_SCP = 1 << 5
-LIBSSH2_TRACE_SFTP = 1 << 6
-LIBSSH2_TRACE_ERROR = 1 << 7
-LIBSSH2_TRACE_PUBLICKEY = 1 << 8
-LIBSSH2_TRACE_SOCKET = 1 << 9
+    def read(self):
+        """
+        """
+        return self._handle.read()
 
-LIBSSH2_CALLBACK_X11 = 4
+    def list(self):
+        """
+        """
+        return self._handle.read()

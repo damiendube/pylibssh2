@@ -67,9 +67,8 @@ PYLIBSSH2_Sftpfile_read(PYLIBSSH2_SFTP *self, PyObject *args)
     int rc;
     int buffer_maxlen;
     PyObject *buffer;
-    PYLIBSSH2_SFTPFILE *handle;
 
-    if (!PyArg_ParseTuple(args, "Oi:read", &handle, &buffer_maxlen)) {
+    if (!PyArg_ParseTuple(args, "i:read", &buffer_maxlen)) {
         PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
@@ -81,7 +80,7 @@ PYLIBSSH2_Sftpfile_read(PYLIBSSH2_SFTP *self, PyObject *args)
     }
 
     Py_BEGIN_ALLOW_THREADS
-    rc = libssh2_sftp_read(handle->handle, PyString_AsString(buffer),
+    rc = libssh2_sftp_read(self->handle, PyString_AsString(buffer),
                            buffer_maxlen);
     Py_END_ALLOW_THREADS
 
@@ -114,15 +113,14 @@ PYLIBSSH2_Sftpfile_write(PYLIBSSH2_SFTP *self, PyObject *args)
 {
     int rc, buffer_len;
     char *buffer;
-    PYLIBSSH2_SFTPFILE *handle;
 
-    if (!PyArg_ParseTuple(args, "Os#:write", &handle, &buffer, &buffer_len)) {
+    if (!PyArg_ParseTuple(args, "s#:write", &buffer, &buffer_len)) {
         PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
     Py_BEGIN_ALLOW_THREADS
-    rc = libssh2_sftp_write(handle->handle, buffer, buffer_len);
+    rc = libssh2_sftp_write(self->handle, buffer, buffer_len);
     Py_END_ALLOW_THREADS
 
     if (rc < 0) {
@@ -148,14 +146,7 @@ Returns:\n\
 static PyObject *
 PYLIBSSH2_Sftpfile_tell(PYLIBSSH2_SFTP *self, PyObject *args)
 {
-    PYLIBSSH2_SFTPFILE *handle;
-
-    if (!PyArg_ParseTuple(args, "O:tell", &handle)) {
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
-        return NULL;
-    }
-
-    return PyInt_FromLong(libssh2_sftp_tell64(handle->handle));
+    return PyInt_FromLong(libssh2_sftp_tell64(self->handle));
 }
 /* }}} */
 
@@ -171,16 +162,15 @@ Returns:\n\
 void
 PYLIBSSH2_Sftpfile_seek(PYLIBSSH2_SFTP *self, PyObject *args)
 {
-    PYLIBSSH2_SFTPFILE *handle;
     unsigned long offset=0;
 
-    if (!PyArg_ParseTuple(args, "Ok:seek", &handle, &offset)) {
+    if (!PyArg_ParseTuple(args, "k:seek", &offset)) {
         PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return;
     }
 
     Py_BEGIN_ALLOW_THREADS
-    libssh2_sftp_seek64(handle->handle, offset);
+    libssh2_sftp_seek64(self->handle, offset);
     Py_END_ALLOW_THREADS
 }
 /* }}} */

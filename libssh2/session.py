@@ -24,6 +24,7 @@ Abstraction for libssh2 L{Session} object
 import _libssh2
 
 from channel import Channel
+from sftp import Sftp
 
 class SessionException(Exception):
     """
@@ -215,7 +216,7 @@ class Session(object):
         @return: new Sftp channel opened
         @rtype: L{Sftp}
         """
-        raise NotImplementedError()
+        return Sftp(self._session.sftp_init())
 
     def startup(self, sock):
         """
