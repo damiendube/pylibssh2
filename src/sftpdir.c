@@ -24,6 +24,34 @@
 
 
 
+/* {{{ PYLIBSSH2_Sftpdir_close
+ */
+static char PYLIBSSH2_Sftpdir_close_doc[] = "\n\
+myfunction(name, value) -> returnType \n\
+\n\
+Arguments:\n\
+\n\
+Returns:\n\
+";
+
+void
+PYLIBSSH2_Sftpdir_close(PYLIBSSH2_SFTPFILE *self, PyObject *args)
+{
+    int rc;
+
+    Py_BEGIN_ALLOW_THREADS
+    rc = libssh2_sftp_close_handle(self->handle);
+    Py_END_ALLOW_THREADS
+
+    if (rc) {
+        /* CLEAN: PYLIBSSH2_SFTPFILE_CANT_CLOSE_MSG */
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to close sftp handle.");
+        return;
+    }
+
+}
+/* }}} */
+
 /* {{{ PYLIBSSH2_Sftpdir_readdir
  */
 static char PYLIBSSH2_Sftpdir_read_doc[] = "\n\
@@ -49,7 +77,7 @@ PYLIBSSH2_Sftpdir_read(PYLIBSSH2_SFTPDIR *self, PyObject *args)
     }
 
     Py_BEGIN_ALLOW_THREADS
-    buffer_maxlen = libssh2_sftp_readdir(self->sftpdir, PyString_AsString(buffer),
+    buffer_maxlen = libssh2_sftp_readdir(self->handle, PyString_AsString(buffer),
                                          longentry_maxlen, &attrs);
     Py_END_ALLOW_THREADS
 
@@ -104,7 +132,7 @@ PYLIBSSH2_Sftpdir_list(PYLIBSSH2_SFTPDIR *self, PyObject *args)
         }
 
         Py_BEGIN_ALLOW_THREADS
-        buffer_maxlen = libssh2_sftp_readdir(self->sftpdir,
+        buffer_maxlen = libssh2_sftp_readdir(self->handle,
             PyString_AsString(buffer), longentry_maxlen, &attrs);
         Py_END_ALLOW_THREADS
 
@@ -142,6 +170,7 @@ PYLIBSSH2_Sftpdir_list(PYLIBSSH2_SFTPDIR *self, PyObject *args)
 
 static PyMethodDef PYLIBSSH2_Sftpdir_methods[] =
 {
+    ADD_METHOD(close),
     ADD_METHOD(read),
     ADD_METHOD(list),
     { NULL, NULL }
@@ -149,7 +178,7 @@ static PyMethodDef PYLIBSSH2_Sftpdir_methods[] =
 #undef ADD_METHOD
 
 PYLIBSSH2_SFTPDIR *
-PYLIBSSH2_Sftpdir_New(LIBSSH2_SFTP_HANDLE *sftpdir, int dealloc)
+PYLIBSSH2_Sftpdir_New(LIBSSH2_SFTP_HANDLE *handle, int dealloc)
 {
     PYLIBSSH2_SFTPDIR *self;
 
@@ -158,7 +187,7 @@ PYLIBSSH2_Sftpdir_New(LIBSSH2_SFTP_HANDLE *sftpdir, int dealloc)
         return NULL;
     }
 
-    self->sftpdir = sftpdir;
+    self->handle = handle;
     self->dealloc = dealloc;
 
     return self;

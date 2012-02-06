@@ -32,7 +32,7 @@ extern PyTypeObject PYLIBSSH2_Sftpdir_Type;
 
 typedef struct {
     PyObject_HEAD
-    LIBSSH2_SFTP_HANDLE *sftpdir;
+    LIBSSH2_SFTP_HANDLE *handle;
     int dealloc;
 } PYLIBSSH2_SFTPDIR;
 

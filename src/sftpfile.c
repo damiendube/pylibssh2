@@ -23,7 +23,6 @@
 #include "pylibssh2.h"
 
 
-
 /* {{{ PYLIBSSH2_Sftpfile_close
  */
 static char PYLIBSSH2_Sftpfile_close_doc[] = "\n\
@@ -35,18 +34,12 @@ Returns:\n\
 ";
 
 void
-PYLIBSSH2_Sftpfile_close(PYLIBSSH2_SFTP *self, PyObject *args)
+PYLIBSSH2_Sftpfile_close(PYLIBSSH2_SFTPFILE *self, PyObject *args)
 {
     int rc;
-    PYLIBSSH2_SFTPFILE *handle;
-
-    if (!PyArg_ParseTuple(args, "O:close", &handle)) {
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
-        return;
-    }
 
     Py_BEGIN_ALLOW_THREADS
-    rc = libssh2_sftp_close_handle(handle->sftpfile);
+    rc = libssh2_sftp_close_handle(self->handle);
     Py_END_ALLOW_THREADS
 
     if (rc) {
@@ -88,7 +81,7 @@ PYLIBSSH2_Sftpfile_read(PYLIBSSH2_SFTP *self, PyObject *args)
     }
 
     Py_BEGIN_ALLOW_THREADS
-    rc = libssh2_sftp_read(handle->sftpfile, PyString_AsString(buffer),
+    rc = libssh2_sftp_read(handle->handle, PyString_AsString(buffer),
                            buffer_maxlen);
     Py_END_ALLOW_THREADS
 
@@ -129,7 +122,7 @@ PYLIBSSH2_Sftpfile_write(PYLIBSSH2_SFTP *self, PyObject *args)
     }
 
     Py_BEGIN_ALLOW_THREADS
-    rc = libssh2_sftp_write(handle->sftpfile, buffer, buffer_len);
+    rc = libssh2_sftp_write(handle->handle, buffer, buffer_len);
     Py_END_ALLOW_THREADS
 
     if (rc < 0) {
@@ -162,7 +155,7 @@ PYLIBSSH2_Sftpfile_tell(PYLIBSSH2_SFTP *self, PyObject *args)
         return NULL;
     }
 
-    return PyInt_FromLong(libssh2_sftp_tell64(handle->sftpfile));
+    return PyInt_FromLong(libssh2_sftp_tell64(handle->handle));
 }
 /* }}} */
 
@@ -187,7 +180,7 @@ PYLIBSSH2_Sftpfile_seek(PYLIBSSH2_SFTP *self, PyObject *args)
     }
 
     Py_BEGIN_ALLOW_THREADS
-    libssh2_sftp_seek64(handle->sftpfile, offset);
+    libssh2_sftp_seek64(handle->handle, offset);
     Py_END_ALLOW_THREADS
 }
 /* }}} */
@@ -212,7 +205,7 @@ static PyMethodDef PYLIBSSH2_Sftpfile_methods[] =
 #undef ADD_METHOD
 
 PYLIBSSH2_SFTPFILE *
-PYLIBSSH2_Sftpfile_New(LIBSSH2_SFTP_HANDLE *sftpfile, int dealloc)
+PYLIBSSH2_Sftpfile_New(LIBSSH2_SFTP_HANDLE *handle, int dealloc)
 {
     PYLIBSSH2_SFTPFILE *self;
 
@@ -221,7 +214,7 @@ PYLIBSSH2_Sftpfile_New(LIBSSH2_SFTP_HANDLE *sftpfile, int dealloc)
         return NULL;
     }
 
-    self->sftpfile = sftpfile;
+    self->handle = handle;
     self->dealloc = dealloc;
 
     return self;
