@@ -527,12 +527,12 @@ PYLIBSSH2_Session_scp_send(PYLIBSSH2_SESSION *self, PyObject *args)
     unsigned long filesize;
     LIBSSH2_CHANNEL *channel;
 
-    if (!PyArg_ParseTuple(args, "s:scp_send", &path)) {
+    if (!PyArg_ParseTuple(args, "s:scp_send", &path, &mode, &filesize)) {
         PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
-    channel = libssh2_scp_send64(self->session, path, statBuf.st_mode, statBuf.st_size, 0, 0);
+    channel = libssh2_scp_send64(self->session, path, mode, filesize, 0, 0);
     if (channel == NULL) {
         char *errmsg;
         int errlen;

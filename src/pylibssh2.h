@@ -30,7 +30,8 @@
 #include "channel.h"
 #include "listener.h"
 #include "sftp.h"
-#include "sftphandle.h"
+#include "sftpfile.h"
+#include "sftpdir.h"
 #include "session.h"
 #include "util.h"
 
@@ -64,22 +65,27 @@ extern PyObject *PYLIBSSH2_Error;
 #define PYLIBSSH2_Sftp_New_RETURN        PYLIBSSH2_SFTP *
 #define PYLIBSSH2_Sftp_New_PROTO         (LIBSSH2_SFTP *, int)
 
-#define PYLIBSSH2_Sftphandle_New_NUM     3
-#define PYLIBSSH2_Sftphandle_New_RETURN  PYLIBSSH2_SFTPHANDLE *
-#define PYLIBSSH2_Sftphandle_New_PROTO   (LIBSSH2_SFTP_HANDLE *, int)
+#define PYLIBSSH2_Sftpfile_New_NUM       3
+#define PYLIBSSH2_Sftpfile_New_RETURN    PYLIBSSH2_SFTPFILE *
+#define PYLIBSSH2_Sftpfile_New_PROTO     (LIBSSH2_SFTP_HANDLE *, int)
 
-#define PYLIBSSH2_Listener_New_NUM       4
+#define PYLIBSSH2_Sftpdir_New_NUM        4
+#define PYLIBSSH2_Sftpdir_New_RETURN     PYLIBSSH2_SFTPDIR *
+#define PYLIBSSH2_Sftpdir_New_PROTO      (LIBSSH2_SFTP_HANDLE *, int)
+
+#define PYLIBSSH2_Listener_New_NUM       5
 #define PYLIBSSH2_Listener_New_RETURN    PYLIBSSH2_LISTENER *
 #define PYLIBSSH2_Listener_New_PROTO     (LIBSSH2_LISTENER *, int)
 
-#define PYLIBSSH2_API_pointers           5
+#define PYLIBSSH2_API_pointers           6
 
 #ifdef PYLIBSSH2_MODULE
 
 extern PYLIBSSH2_Session_New_RETURN     PYLIBSSH2_Session_New   PYLIBSSH2_Session_New_PROTO;
 extern PYLIBSSH2_Channel_New_RETURN     PYLIBSSH2_Channel_New   PYLIBSSH2_Channel_New_PROTO;
 extern PYLIBSSH2_Sftp_New_RETURN        PYLIBSSH2_Sftp_New      PYLIBSSH2_Sftp_New_PROTO;
-extern PYLIBSSH2_Sftphandle_New_RETURN  PYLIBSSH2_Sftphandle_New   PYLIBSSH2_Sftphandle_New_PROTO;
+extern PYLIBSSH2_Sftpfile_New_RETURN  PYLIBSSH2_Sftpfile_New   PYLIBSSH2_Sftpfile_New_PROTO;
+extern PYLIBSSH2_Sftpdir_New_RETURN  PYLIBSSH2_Sftpdir_New   PYLIBSSH2_Sftpdir_New_PROTO;
 extern PYLIBSSH2_Listener_New_RETURN    PYLIBSSH2_Listener_New  PYLIBSSH2_Listener_New_PROTO;
 
 #else
@@ -89,7 +95,8 @@ extern void **PYLIBSSH2_API;
 /*#define PYLIBSSH2_Session_New  (*(PYLIBSSH2_Session_New_RETURN (*)PYLIBSSH2_Session_New_PROTO) PYLIBSSH2_API[PYLIBSSH2_Session_New_NUM])
 #define PYLIBSSH2_Channel_New (*(PYLIBSSH2_Channel_New_RETURN (*)PYLIBSSH2_Channel_New_PROTO) PYLIBSSH2_API[PYLIBSSH2_Channel_New_NUM])
 #define PYLIBSSH2_Sftp_New (*(PYLIBSSH2_Sftp_New_RETURN (*)PYLIBSSH2_Sftp_New_PROTO) PYLIBSSH2_API[PYLIBSSH2_Sftp_New_NUM])
-#define PYLIBSSH2_Sftphandle_New (*(PYLIBSSH2_Sftphandle_New_RETURN (*)PYLIBSSH2_Sftphandle_New_PROTO) PYLIBSSH2_API[PYLIBSSH2_Sftphandle_New_NUM])
+#define PYLIBSSH2_Sftpfile_New (*(PYLIBSSH2_Sftpfile_New_RETURN (*)PYLIBSSH2_Sftpfile_New_PROTO) PYLIBSSH2_API[PYLIBSSH2_Sftpfile_New_NUM])
+#define PYLIBSSH2_Sftpdir_New (*(PYLIBSSH2_Sftpdir_New_RETURN (*)PYLIBSSH2_Sftpdir_New_PROTO) PYLIBSSH2_API[PYLIBSSH2_Sftpdir_New_NUM])
 #define PYLIBSSH2_Listener_New (*(PYLIBSSH2_Listener_New_RETURN (*)PYLIBSSH2_Listener_New_PROTO) PYLIBSSH2_API[PYLIBSSH2_Listener_New_NUM])*/
 
 #define import_PYLIBSSH2() \

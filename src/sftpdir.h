@@ -18,8 +18,8 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
-#ifndef _PYLIBSSH2_SFTPDIRHANDLE_H_
-#define _PYLIBSSH2_SFTPDIRHANDLE_H_
+#ifndef _PYLIBSSH2_SFTPDIR_H_
+#define _PYLIBSSH2_SFTPDIR_H_
 
 #include <Python.h>
 #include <libssh2.h>
@@ -32,10 +32,10 @@ extern PyTypeObject PYLIBSSH2_Sftpdirhandle_Type;
 
 typedef struct {
     PyObject_HEAD
-    LIBSSH2_SFTP_HANDLE *sftpdirhandle;
+    LIBSSH2_SFTP_HANDLE *sftpdir;
     int dealloc;
-} PYLIBSSH2_SFTPHANDLE;
+} PYLIBSSH2_SFTPDIR;
 
-PYLIBSSH2_SFTPHANDLE * PYLIBSSH2_Sftpdirhandle_New(LIBSSH2_SFTP_HANDLE *, int);
+PYLIBSSH2_SFTPDIR * PYLIBSSH2_Sftpdirhandle_New(LIBSSH2_SFTP_HANDLE *, int);
 
-#endif /* _PYLIBSSH2_SFTPDIRHANDLE_H_ */
+#endif /* _PYLIBSSH2_SFTPDIR_H_ */

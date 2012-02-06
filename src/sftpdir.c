@@ -24,57 +24,57 @@
 
 /*
  * ADD_METHOD(name) expands to a correct PyMethodDef declaration
- *   {  'name', (PyCFunction)PYLIBSSH2_Sftphandle_name, METH_VARARGS }
+ *   {  'name', (PyCFunction)PYLIBSSH2_Sftpdirhandle_name, METH_VARARGS }
  * for convenience
  */
 #define ADD_METHOD(name) \
-{ #name, (PyCFunction)PYLIBSSH2_Sftphandle_##name, METH_VARARGS, PYLIBSSH2_Sftphandle_##name##_doc }
+{ #name, (PyCFunction)PYLIBSSH2_Sftpdirhandle_##name, METH_VARARGS, PYLIBSSH2_Sftpdirhandle_##name##_doc }
 
-static PyMethodDef PYLIBSSH2_Sftphandle_methods[] =
+static PyMethodDef PYLIBSSH2_Sftpdirhandle_methods[] =
 {
     { NULL, NULL }
 };
 
-PYLIBSSH2_SFTPHANDLE *
-PYLIBSSH2_Sftphandle_New(LIBSSH2_SFTP_HANDLE *sftphandle, int dealloc)
+PYLIBSSH2_SFTPDIR *
+PYLIBSSH2_Sftpdirhandle_New(LIBSSH2_SFTP_HANDLE *sftpdir, int dealloc)
 {
-    PYLIBSSH2_SFTPHANDLE *self;
+    PYLIBSSH2_SFTPDIR *self;
 
-    self = PyObject_New(PYLIBSSH2_SFTPHANDLE, &PYLIBSSH2_Sftphandle_Type);
+    self = PyObject_New(PYLIBSSH2_SFTPDIR, &PYLIBSSH2_Sftpdirhandle_Type);
     if (self == NULL) {
         return NULL;
     }
 
-    self->sftphandle = sftphandle;
+    self->sftpdir = sftpdir;
     self->dealloc = dealloc;
 
     return self;
 }
 
 static void
-PYLIBSSH2_Sftphandle_dealloc(PYLIBSSH2_SFTPHANDLE *self)
+PYLIBSSH2_Sftpdirhandle_dealloc(PYLIBSSH2_SFTPDIR *self)
 {
     PyObject_Del(self);
 }
 
 static PyObject *
-PYLIBSSH2_Sftphandle_getattr(PYLIBSSH2_SFTPHANDLE *self, char *name)
+PYLIBSSH2_Sftpdirhandle_getattr(PYLIBSSH2_SFTPDIR *self, char *name)
 {
-    return Py_FindMethod(PYLIBSSH2_Sftphandle_methods, (PyObject *)self, name);
+    return Py_FindMethod(PYLIBSSH2_Sftpdirhandle_methods, (PyObject *)self, name);
 }
 
 /*
  * see /usr/include/python2.5/object.c line 261
  */
-PyTypeObject PYLIBSSH2_Sftphandle_Type = {
+PyTypeObject PYLIBSSH2_Sftpdirhandle_Type = {
     PyObject_HEAD_INIT(NULL)
     0,                                     /* ob_size */
-    "Sftphandle",                          /* tp_name */
-    sizeof(PYLIBSSH2_SFTPHANDLE),               /* tp_basicsize */
+    "Sftpdirhandle",                          /* tp_name */
+    sizeof(PYLIBSSH2_SFTPDIR),               /* tp_basicsize */
     0,                                     /* tp_itemsize */
-    (destructor)PYLIBSSH2_Sftphandle_dealloc,    /* tp_dealloc */
+    (destructor)PYLIBSSH2_Sftpdirhandle_dealloc,    /* tp_dealloc */
     0,                                     /* tp_print */
-    (getattrfunc)PYLIBSSH2_Sftphandle_getattr,  /* tp_getattr */
+    (getattrfunc)PYLIBSSH2_Sftpdirhandle_getattr,  /* tp_getattr */
     0,                                     /* tp_setattr */
     0,                                     /* tp_compare */
     0,                                     /* tp_repr */
@@ -88,15 +88,15 @@ PyTypeObject PYLIBSSH2_Sftphandle_Type = {
     0,                                     /* tp_setattro */
     0,                                     /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT,                    /* tp_flags */
-    "Sftphandle objects",                  /* tp_doc */
+    "Sftpdirhandle objects",                  /* tp_doc */
 };
 
 int
-init_libssh2_Sftphandle(PyObject *dict)
+init_libssh2_Sftpdirhandle(PyObject *dict)
 {
-    PYLIBSSH2_Sftphandle_Type.ob_type = &PyType_Type;
-    Py_INCREF(&PYLIBSSH2_Sftphandle_Type);
-    PyDict_SetItemString(dict, "SftphandleType", (PyObject *)&PYLIBSSH2_Sftphandle_Type);
+    PYLIBSSH2_Sftpdirhandle_Type.ob_type = &PyType_Type;
+    Py_INCREF(&PYLIBSSH2_Sftpdirhandle_Type);
+    PyDict_SetItemString(dict, "SftpdirhandleType", (PyObject *)&PYLIBSSH2_Sftpdirhandle_Type);
 
     return 1;
 }

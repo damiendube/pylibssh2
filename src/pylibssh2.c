@@ -173,7 +173,8 @@ init_libssh2(void)
     PYLIBSSH2_API[PYLIBSSH2_Session_New_NUM] = (void *) PYLIBSSH2_Session_New;
     PYLIBSSH2_API[PYLIBSSH2_Channel_New_NUM] = (void *) PYLIBSSH2_Channel_New;
     PYLIBSSH2_API[PYLIBSSH2_Sftp_New_NUM] = (void *) PYLIBSSH2_Sftp_New;
-    PYLIBSSH2_API[PYLIBSSH2_Sftphandle_New_NUM] = (void *) PYLIBSSH2_Sftphandle_New;
+    PYLIBSSH2_API[PYLIBSSH2_Sftpfile_New_NUM] = (void *) PYLIBSSH2_Sftpfile_New;
+    PYLIBSSH2_API[PYLIBSSH2_Sftpdir_New_NUM] = (void *) PYLIBSSH2_Sftpdir_New;
 
     c_api_object = PyCObject_FromVoidPtr((void *)PYLIBSSH2_API, NULL);
     if (c_api_object != NULL) {
@@ -226,7 +227,10 @@ init_libssh2(void)
     if (!init_libssh2_Sftp(dict)) {
         goto error;
     }
-    if (!init_libssh2_Sftphandle(dict)) {
+    if (!init_libssh2_Sftpfile(dict)) {
+        goto error;
+    }
+    if (!init_libssh2_Sftpdir(dict)) {
         goto error;
     }
 

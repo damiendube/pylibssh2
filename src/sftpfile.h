@@ -18,24 +18,24 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
-#ifndef _PYLIBSSH2_SFTPHANDLE_H_
-#define _PYLIBSSH2_SFTPHANDLE_H_
+#ifndef _PYLIBSSH2_SFTPFILE_H_
+#define _PYLIBSSH2_SFTPFILE_H_
 
 #include <Python.h>
 #include <libssh2.h>
 
-extern int init_libssh2_Sftphandle(PyObject *);
+extern int init_libssh2_Sftpfile(PyObject *);
 
-extern PyTypeObject PYLIBSSH2_Sftphandle_Type;
+extern PyTypeObject PYLIBSSH2_Sftpfile_Type;
 
-#define PYLIBSSH2_Sftphandle_Check(v) ((v)->ob_type == &PYLIBSSH2_Sftphandle_Type)
+#define PYLIBSSH2_Sftpfile_Check(v) ((v)->ob_type == &PYLIBSSH2_Sftpfile_Type)
 
 typedef struct {
     PyObject_HEAD
-    LIBSSH2_SFTP_HANDLE *sftphandle;
+    LIBSSH2_SFTP_HANDLE *sftpfile;
     int dealloc;
-} PYLIBSSH2_SFTPHANDLE;
+} PYLIBSSH2_SFTPFILE;
 
-PYLIBSSH2_SFTPHANDLE * PYLIBSSH2_Sftphandle_New(LIBSSH2_SFTP_HANDLE *, int);
+PYLIBSSH2_SFTPFILE * PYLIBSSH2_Sftpfile_New(LIBSSH2_SFTP_HANDLE *, int);
 
-#endif /* _PYLIBSSH2_SFTPHANDLE_H_ */
+#endif /* _PYLIBSSH2_SFTPFILE_H_ */
