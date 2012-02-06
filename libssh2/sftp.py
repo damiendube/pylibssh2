@@ -44,59 +44,59 @@ class Sftp(object):
     def close(self):
         """
         """
-        _sftp.close()
+        self._sftp.close()
 
-    def opendir(self, path):
+    def open_dir(self, path):
         """
         """
-        return SftpDir(_sftp.opendir(path))
+        return SftpDir(self._sftp.open_dir(path))
 
-    def open(self, path):
+    def open_file(self, path):
         """
         """
-        return SftpFile(_sftp.open(path))
+        return SftpFile(self._sftp.open_file(path))
 
     def shutdown(self):
         """
         """
-        _sftp.close()
+        self._sftp.close()
 
     def unlink(self, path):
         """
         """
-        _sftp.unlink(path)
+        self._sftp.unlink(path)
 
     def rename(self, old_path, new_path):
         """
         """
-        _sftp.rename(old_path, new_path)
+        self._sftp.rename(old_path, new_path)
 
     def mkdir(self, path, mode):
         """
         """
-        _sftp.mkdir(path, mode)
+        self._sftp.mkdir(path, mode)
 
     def rmdir(self, path):
         """
         """
-        _sftp.rmdir()
+        self._sftp.rmdir()
 
     def realpath(self, path, pathlen, type):
         """
         """
-        return _sftp.realpath(path, pathlen, type)
+        return self._sftp.realpath(path, pathlen, type)
 
     def symlink(self, path, target):
         """
         """
-        _sftp.symlink()
+        self._sftp.symlink()
 
     def getstat(self, path, pathlen, type):
         """
         """
-        return _sftp.opendir(path, pathlen, type)
+        return self._sftp.opendir(path, pathlen, type)
 
     def setstat(self, path, attrs):
         """
         """
-        _sftp.setstat(path, attrs)
+        self._sftp.setstat(path, attrs)

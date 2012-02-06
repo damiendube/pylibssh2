@@ -142,6 +142,7 @@ PYLIBSSH2_Sftp(PyObject *self, PyObject *args)
 }
 /* }}} */
 
+
 /* {{{ PYLIBSSH2_methods[]
  */
 static PyMethodDef PYLIBSSH2_methods[] = {
@@ -182,8 +183,8 @@ init_libssh2(void)
     }
 
     PYLIBSSH2_Error = PyErr_NewException(
-        PYLIBSSH2_MODULE_NAME".Error", 
-        NULL, 
+        PYLIBSSH2_MODULE_NAME".Error",
+        NULL,
         NULL
     );
     if (PYLIBSSH2_Error == NULL) {

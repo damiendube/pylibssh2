@@ -23,9 +23,9 @@
 #include "pylibssh2.h"
 
 
-/* {{{ PYLIBSSH2_Sftp_opendir
+/* {{{ PYLIBSSH2_Sftp_open_dir
  */
-static char PYLIBSSH2_Sftp_opendir_doc[] = "\n\
+static char PYLIBSSH2_Sftp_open_dir_doc[] = "\n\
 \n\
 Arguments:\n\
 \n\
@@ -33,18 +33,18 @@ Returns:\n\
 ";
 
 static PyObject *
-PYLIBSSH2_Sftp_opendir(PYLIBSSH2_SFTP *self, PyObject *args)
+PYLIBSSH2_Sftp_open_dir(PYLIBSSH2_SFTP *self, PyObject *args)
 {
     LIBSSH2_SFTP_HANDLE *handle;
     char *path;
 
-    if (!PyArg_ParseTuple(args, "s:opendir", &path)) {
+    if (!PyArg_ParseTuple(args, "s:open_dir", &path)) {
         PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
     Py_BEGIN_ALLOW_THREADS
-    handle = libssh2_sftp_opendir(self->sftp, path);
+    handle = libssh2_sftp_open_dir(self->sftp, path);
     Py_END_ALLOW_THREADS
 
     if (handle == NULL) {
@@ -60,7 +60,7 @@ PYLIBSSH2_Sftp_opendir(PYLIBSSH2_SFTP *self, PyObject *args)
 
 /* {{{ PYLIBSSH2_Sftp_open
  */
-static char PYLIBSSH2_Sftp_open_doc[] = "\n\
+static char PYLIBSSH2_Sftp_open_file_doc[] = "\n\
 \n\
 Arguments:\n\
 \n\
@@ -68,7 +68,7 @@ Returns:\n\
 ";
 
 static PyObject *
-PYLIBSSH2_Sftp_open(PYLIBSSH2_SFTP *self, PyObject *args)
+PYLIBSSH2_Sftp_open_file(PYLIBSSH2_SFTP *self, PyObject *args)
 {
     LIBSSH2_SFTP_HANDLE *handle;
     char *path;
@@ -433,8 +433,8 @@ PYLIBSSH2_Sftp_set_stat(PYLIBSSH2_SFTP *self, PyObject *args)
 
 static PyMethodDef PYLIBSSH2_Sftp_methods[] =
 {
-    ADD_METHOD(opendir),
-    ADD_METHOD(open),
+    ADD_METHOD(open_dir),
+    ADD_METHOD(open_file),
     ADD_METHOD(shutdown),
     ADD_METHOD(unlink),
     ADD_METHOD(rename),
