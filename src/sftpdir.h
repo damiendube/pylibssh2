@@ -24,11 +24,11 @@
 #include <Python.h>
 #include <libssh2.h>
 
-extern int init_libssh2_Sftpdirhandle(PyObject *);
+extern int init_libssh2_Sftpdir(PyObject *);
 
-extern PyTypeObject PYLIBSSH2_Sftpdirhandle_Type;
+extern PyTypeObject PYLIBSSH2_Sftpdir_Type;
 
-#define PYLIBSSH2_Sftpdirhandle_Check(v) ((v)->ob_type == &PYLIBSSH2_Sftpdirhandle_Type)
+#define PYLIBSSH2_Sftpdir_Check(v) ((v)->ob_type == &PYLIBSSH2_Sftpdir_Type)
 
 typedef struct {
     PyObject_HEAD
@@ -36,6 +36,6 @@ typedef struct {
     int dealloc;
 } PYLIBSSH2_SFTPDIR;
 
-PYLIBSSH2_SFTPDIR * PYLIBSSH2_Sftpdirhandle_New(LIBSSH2_SFTP_HANDLE *, int);
+PYLIBSSH2_SFTPDIR * PYLIBSSH2_Sftpdir_New(LIBSSH2_SFTP_HANDLE *, int);
 
 #endif /* _PYLIBSSH2_SFTPDIR_H_ */

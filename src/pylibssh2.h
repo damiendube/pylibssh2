@@ -79,6 +79,10 @@ extern PyObject *PYLIBSSH2_Error;
 
 #define PYLIBSSH2_API_pointers           6
 
+PyObject *
+get_attrs(LIBSSH2_SFTP_ATTRIBUTES *attr);
+
+
 #ifdef PYLIBSSH2_MODULE
 
 extern PYLIBSSH2_Session_New_RETURN     PYLIBSSH2_Session_New   PYLIBSSH2_Session_New_PROTO;
@@ -111,6 +115,8 @@ extern void **PYLIBSSH2_API;
     } \
   } \
 }
+
+
 
 #endif /* PYLIBSSH2_MODULE */
 

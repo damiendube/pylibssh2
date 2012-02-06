@@ -22,25 +22,138 @@
 #define PYLIBSSH2_MODULE
 #include "pylibssh2.h"
 
+
+
+/* {{{ PYLIBSSH2_Sftpdir_readdir
+ */
+static char PYLIBSSH2_Sftpdir_read_doc[] = "\n\
+\n\
+Arguments:\n\
+\n\
+Returns:\n\
+";
+
+static PyObject *
+PYLIBSSH2_Sftpdir_read(PYLIBSSH2_SFTPDIR *self, PyObject *args)
+{
+    LIBSSH2_SFTP_ATTRIBUTES attrs;
+    int buffer_maxlen = 0;
+    int longentry_maxlen = 255;
+    PyObject *buffer;
+    PyObject *list;
+
+    buffer = PyString_FromStringAndSize(NULL, longentry_maxlen);
+    if (buffer == NULL) {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+
+    Py_BEGIN_ALLOW_THREADS
+    buffer_maxlen = libssh2_sftp_readdir(self->sftpdir, PyString_AsString(buffer),
+                                         longentry_maxlen, &attrs);
+    Py_END_ALLOW_THREADS
+
+    if (buffer_maxlen == 0) {
+        Py_INCREF(Py_None);
+        return Py_None;
+    } else if ( buffer_maxlen == -1) {
+        /* CLEAN: PYLIBSSH2_SFTPDIR_CANT_READDIR_MSG */
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to readdir.");
+        return NULL;
+    }
+
+    if (buffer_maxlen != longentry_maxlen &&
+        _PyString_Resize(&buffer, buffer_maxlen) < 0) {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+
+    list = PyList_New(0);
+    PyList_Append(list, buffer);
+    PyList_Append(list, get_attrs(&attrs));
+
+    return list;
+}
+/* }}} */
+
+/* {{{ PYLIBSSH2_Sftpdir_listdir
+ */
+static char PYLIBSSH2_Sftpdir_list_doc[] = "\n\
+\n\
+Arguments:\n\
+\n\
+Returns:\n\
+";
+
+static PyObject *
+PYLIBSSH2_Sftpdir_list(PYLIBSSH2_SFTPDIR *self, PyObject *args)
+{
+    LIBSSH2_SFTP_ATTRIBUTES attrs;
+    int buffer_maxlen = 0;
+    int longentry_maxlen = 255;
+    PyObject *buffer;
+    PyObject *all = NULL;
+    PyObject *list = NULL;
+
+    all = PyList_New(0);
+    while (1) {
+        buffer = PyString_FromStringAndSize(NULL, longentry_maxlen);
+        if (buffer == NULL) {
+            Py_INCREF(Py_None);
+            return Py_None;
+        }
+
+        Py_BEGIN_ALLOW_THREADS
+        buffer_maxlen = libssh2_sftp_readdir(self->sftpdir,
+            PyString_AsString(buffer), longentry_maxlen, &attrs);
+        Py_END_ALLOW_THREADS
+
+        if (buffer_maxlen == 0) {
+            break;
+        } else if (buffer_maxlen == -1) {
+            PyErr_SetString(PYLIBSSH2_Error, "Unable to listdir.");
+            return NULL;
+        }
+
+        if ( buffer_maxlen != longentry_maxlen &&
+             _PyString_Resize(&buffer, buffer_maxlen) < 0) {
+            Py_INCREF(Py_None);
+            return Py_None;
+        }
+
+        list = PyList_New(0);
+        PyList_Append(list, buffer);
+        PyList_Append(list, get_attrs(&attrs));
+        PyList_Append(all, list);
+    }
+
+    return all;
+}
+/* }}} */
+
+
 /*
  * ADD_METHOD(name) expands to a correct PyMethodDef declaration
- *   {  'name', (PyCFunction)PYLIBSSH2_Sftpdirhandle_name, METH_VARARGS }
+ *   {  'name', (PyCFunction)PYLIBSSH2_Sftpdir_name, METH_VARARGS }
  * for convenience
  */
 #define ADD_METHOD(name) \
-{ #name, (PyCFunction)PYLIBSSH2_Sftpdirhandle_##name, METH_VARARGS, PYLIBSSH2_Sftpdirhandle_##name##_doc }
+{ #name, (PyCFunction)PYLIBSSH2_Sftpdir_##name, METH_VARARGS, PYLIBSSH2_Sftpdir_##name##_doc }
 
-static PyMethodDef PYLIBSSH2_Sftpdirhandle_methods[] =
+static PyMethodDef PYLIBSSH2_Sftpdir_methods[] =
 {
+    ADD_METHOD(read),
+    ADD_METHOD(list),
     { NULL, NULL }
 };
+#undef ADD_METHOD
 
 PYLIBSSH2_SFTPDIR *
-PYLIBSSH2_Sftpdirhandle_New(LIBSSH2_SFTP_HANDLE *sftpdir, int dealloc)
+PYLIBSSH2_Sftpdir_New(LIBSSH2_SFTP_HANDLE *sftpdir, int dealloc)
 {
     PYLIBSSH2_SFTPDIR *self;
 
-    self = PyObject_New(PYLIBSSH2_SFTPDIR, &PYLIBSSH2_Sftpdirhandle_Type);
+    self = PyObject_New(PYLIBSSH2_SFTPDIR, &PYLIBSSH2_Sftpdir_Type);
     if (self == NULL) {
         return NULL;
     }
@@ -52,29 +165,29 @@ PYLIBSSH2_Sftpdirhandle_New(LIBSSH2_SFTP_HANDLE *sftpdir, int dealloc)
 }
 
 static void
-PYLIBSSH2_Sftpdirhandle_dealloc(PYLIBSSH2_SFTPDIR *self)
+PYLIBSSH2_Sftpdir_dealloc(PYLIBSSH2_SFTPDIR *self)
 {
     PyObject_Del(self);
 }
 
 static PyObject *
-PYLIBSSH2_Sftpdirhandle_getattr(PYLIBSSH2_SFTPDIR *self, char *name)
+PYLIBSSH2_Sftpdir_getattr(PYLIBSSH2_SFTPDIR *self, char *name)
 {
-    return Py_FindMethod(PYLIBSSH2_Sftpdirhandle_methods, (PyObject *)self, name);
+    return Py_FindMethod(PYLIBSSH2_Sftpdir_methods, (PyObject *)self, name);
 }
 
 /*
  * see /usr/include/python2.5/object.c line 261
  */
-PyTypeObject PYLIBSSH2_Sftpdirhandle_Type = {
+PyTypeObject PYLIBSSH2_Sftpdir_Type = {
     PyObject_HEAD_INIT(NULL)
     0,                                     /* ob_size */
-    "Sftpdirhandle",                          /* tp_name */
+    "Sftpdir",                          /* tp_name */
     sizeof(PYLIBSSH2_SFTPDIR),               /* tp_basicsize */
     0,                                     /* tp_itemsize */
-    (destructor)PYLIBSSH2_Sftpdirhandle_dealloc,    /* tp_dealloc */
+    (destructor)PYLIBSSH2_Sftpdir_dealloc,    /* tp_dealloc */
     0,                                     /* tp_print */
-    (getattrfunc)PYLIBSSH2_Sftpdirhandle_getattr,  /* tp_getattr */
+    (getattrfunc)PYLIBSSH2_Sftpdir_getattr,  /* tp_getattr */
     0,                                     /* tp_setattr */
     0,                                     /* tp_compare */
     0,                                     /* tp_repr */
@@ -88,15 +201,15 @@ PyTypeObject PYLIBSSH2_Sftpdirhandle_Type = {
     0,                                     /* tp_setattro */
     0,                                     /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT,                    /* tp_flags */
-    "Sftpdirhandle objects",                  /* tp_doc */
+    "Sftpdir objects",                  /* tp_doc */
 };
 
 int
-init_libssh2_Sftpdirhandle(PyObject *dict)
+init_libssh2_Sftpdir(PyObject *dict)
 {
-    PYLIBSSH2_Sftpdirhandle_Type.ob_type = &PyType_Type;
-    Py_INCREF(&PYLIBSSH2_Sftpdirhandle_Type);
-    PyDict_SetItemString(dict, "SftpdirhandleType", (PyObject *)&PYLIBSSH2_Sftpdirhandle_Type);
+    PYLIBSSH2_Sftpdir_Type.ob_type = &PyType_Type;
+    Py_INCREF(&PYLIBSSH2_Sftpdir_Type);
+    PyDict_SetItemString(dict, "SftpdirType", (PyObject *)&PYLIBSSH2_Sftpdir_Type);
 
     return 1;
 }

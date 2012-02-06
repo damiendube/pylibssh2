@@ -238,3 +238,28 @@ init_libssh2(void)
     ;
 }
 /* }}} */
+
+/* {{{ get_attrs
+ */
+PyObject *
+get_attrs(LIBSSH2_SFTP_ATTRIBUTES *attr)
+{
+    PyObject *attrs=NULL;
+
+    attrs = PyList_New(0);
+    PyList_Append(attrs, PyLong_FromUnsignedLong(
+        (unsigned long)attr->filesize));
+    PyList_Append(attrs, PyLong_FromUnsignedLong(
+        (unsigned long)attr->uid));
+    PyList_Append(attrs, PyLong_FromUnsignedLong(
+        (unsigned long)attr->gid));
+    PyList_Append(attrs, PyLong_FromUnsignedLong(
+        (unsigned long)attr->permissions));
+    PyList_Append(attrs, PyLong_FromUnsignedLong(
+        (unsigned long)attr->atime));
+    PyList_Append(attrs, PyLong_FromUnsignedLong(
+        (unsigned long)attr->mtime));
+
+    return attrs;
+}
+/* }}} */
