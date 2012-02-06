@@ -95,6 +95,7 @@ pty() -- requests a pty\n\
 pty_resize() -- requests a pty resize\n\
 read() -- reads bytes on the channel\n\
 send_eof() -- sends EOF status\n\
+wait_eof() -- wait EOF\n\
 setblocking() -- sets blocking mode\n\
 setenv() -- sets envrionment variable\n\
 shell() -- requests a shell\n\

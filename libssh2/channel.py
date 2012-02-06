@@ -71,12 +71,6 @@ class Channel(object):
         """
         return self._channel.eof()
 
-    def wait_eof(self):
-        """
-        Checks if the remote host has sent a EOF status.
-        """
-        self._channel.wait_eof()
-
     def execute(self, command):
         """
         Executes command on the channel.
@@ -186,6 +180,12 @@ class Channel(object):
         @rtype: int
         """
         self._channel.send_eof()
+
+    def wait_eof(self):
+        """
+        Checks if the remote host has sent a EOF status.
+        """
+        self._channel.wait_eof()
 
     def setblocking(self, mode=1):
         """

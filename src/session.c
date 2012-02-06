@@ -318,20 +318,19 @@ privatekey files, and passphrase if provided.\n\
 @return 0 on success or negative on failure\n\
 @rtype  int";
 
-static PyObject *
+void
 PYLIBSSH2_Session_userauth_publickey_fromfile(PYLIBSSH2_SESSION *self, PyObject *args)
 {
     int rc;
     char *username;
     char *publickey;
     char *privatekey;
-    char *passphrase;
-    char *last_error;
+    char *passphrase = NULL;
 
     if (!PyArg_ParseTuple(args, "sss|s:userauth_publickey_fromfile", &username,
                           &publickey, &privatekey, &passphrase)) {
         PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
-        return NULL;
+        return;
     }
 
     Py_BEGIN_ALLOW_THREADS
@@ -340,13 +339,12 @@ PYLIBSSH2_Session_userauth_publickey_fromfile(PYLIBSSH2_SESSION *self, PyObject 
     Py_END_ALLOW_THREADS
 
     if (rc) {
+        char *last_error;
         libssh2_session_last_error(self->session, &last_error, NULL, 0);
         PyErr_Format(PYLIBSSH2_Error, "Authentification by public key failed: %s",
                      last_error);
-        return NULL;
+        return;
     }
-
-    return Py_BuildValue("i", rc);
 }
 /* }}} */
 
@@ -716,7 +714,7 @@ x11_callback(LIBSSH2_SESSION *session, LIBSSH2_CHANNEL *channel,
 static PyObject *py_callback_func = NULL;
 
 static void
-stub_callback_func(LIBSSH2_SESSION *session,
+x11_callback_func(LIBSSH2_SESSION *session,
                    LIBSSH2_CHANNEL *channel,
                    const char *shost,
                    int sport,
@@ -773,10 +771,9 @@ stub_callback_func(LIBSSH2_SESSION *session,
     Py_DECREF(arglist);
 }
 
-static PyObject *
+void
 PYLIBSSH2_Session_callback_set(PYLIBSSH2_SESSION *self, PyObject *args)
 {
-    PyObject *result = NULL;
 
     /* type of callback to register see libssh2.h LIBSSH2_CALLBACK_* */
     int cbtype;
@@ -787,22 +784,21 @@ PYLIBSSH2_Session_callback_set(PYLIBSSH2_SESSION *self, PyObject *args)
     if (PyArg_ParseTuple(args, "iO:callback_set", &cbtype, &cb)) {
         if (!PyCallable_Check(cb)) {
             PyErr_SetString(PyExc_TypeError, "parameter must be callable");
-            return NULL;
+            return;
         }
+        if(cbtype == LIBSSH2_CALLBACK_X11) {
+            PyErr_SetString(PyExc_TypeError, "Only callable supported is LIBSSH2_CALLBACK_X11");
+            return;
 
+        }
         Py_XINCREF(cb);
         Py_XINCREF(py_callback_func);
         py_callback_func = cb;
 
         Py_BEGIN_ALLOW_THREADS
-        libssh2_session_callback_set(self->session, cbtype, stub_callback_func);
+        libssh2_session_callback_set(self->session, cbtype, x11_callback_func);
         Py_END_ALLOW_THREADS
-
-        Py_INCREF(Py_None);
-        result = Py_None;
     }
-
-    return result;
 }
 /* }}} */
 

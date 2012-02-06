@@ -267,8 +267,7 @@ class Session(object):
         return self._session.userauth_password(username, password)
 
     def userauth_publickey_fromfile(
-            self, username, publickey, privatekey, passphrase
-        ):
+            self, username, publickey, privatekey, passphrase=None):
         """
         Authenticates a session as username using a key pair found in the 
         pulickey and privatekey files, and passphrase if provided.
@@ -281,12 +280,11 @@ class Session(object):
         @type privatekey: str
         @param passphrase: passphrase to use when decoding private file
         @type passphrase: str
-
-        @return: 0 on success or negative on failure
-        @rtype: int
         """
-        return self._session.userauth_publickey_fromfile(username, publickey,
-                                                         privatekey, passphrase)
+        if passphrase == None or len(passphrase) == 0:
+            self._session.userauth_publickey_fromfile(username, publickey, privatekey)
+        else:
+            self._session.userauth_publickey_fromfile(username, publickey, privatekey, passphrase)
 
     def userauth_keyboardinteractive(self, username, password):
         """

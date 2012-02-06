@@ -528,7 +528,7 @@ PYLIBSSH2_Channel_send_eof(PYLIBSSH2_CHANNEL *self, PyObject *args)
 /* {{{ PYLIBSSH2_Channel_wait_eof
  */
 static char PYLIBSSH2_Channel_wait_eof_doc[] = "\n\
-send_eof() -> int\n\
+wait_eof() -> int\n\
 \n\
 Sends EOF status on the channel to remote server.\n\
 \n\
@@ -734,8 +734,8 @@ static PyMethodDef PYLIBSSH2_Channel_methods[] =
     ADD_METHOD(flush),
     ADD_METHOD(eof),
     ADD_METHOD(exit_status),
-    ADD_METHOD(wait_eof),
     ADD_METHOD(send_eof),
+    ADD_METHOD(wait_eof),
     ADD_METHOD(wait_closed),
     ADD_METHOD(window_read),
     ADD_METHOD(window_write),
