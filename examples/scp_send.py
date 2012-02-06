@@ -58,22 +58,22 @@ class MySCPClient:
         if not channel:
             print "Failed to open channel"
             return
-        buffer = f.read(write_len)
+        buf = f.read(write_len)
         while True:
-            if len(buffer) > 0:
-                written = channel.write(buffer)
+            if len(buf) > 0:
+                written = channel.write(buf)
                 if written == 0:
                     continue
                 elif written == write_len:
-                    buffer = f.read(write_len)
+                    buf = f.read(write_len)
                 else:
-                    buffer = buffer[written:-1]
+                    buf = buf[written:-1]
             else:
                 break
         print "Finished pushing"
-        channel.send_eof()
         channel.flush()
         channel.send_eof()
+        channel.wait_eof()
         try:
             channel.wait_closed()
             channel.close()
@@ -97,4 +97,4 @@ if __name__ == '__main__' :
     startTime = time.time()
     myscp.send(sys.argv[4], sys.argv[5])
     endTime = time.time()
-    print "Speed: %sMB/s" % (os.path.getsize() / (endTime - startTime) / 1024 / 1024)
+    print "Speed: %sMB/s" % (os.path.getsize(sys.argv[4]) / (endTime - startTime) / 1024 / 1024)

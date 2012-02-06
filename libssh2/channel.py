@@ -71,6 +71,12 @@ class Channel(object):
         """
         return self._channel.eof()
 
+    def wait_eof(self):
+        """
+        Checks if the remote host has sent a EOF status.
+        """
+        self._channel.wait_eof()
+
     def execute(self, command):
         """
         Executes command on the channel.
@@ -249,7 +255,7 @@ class Channel(object):
         @param message: data to write
         @type message: str
 
-        @return: 0 on sucess or failure
+        @return: number of bytes writter
         @rtype: int
         """
         return self._channel.write(message)
