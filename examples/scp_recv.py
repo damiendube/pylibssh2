@@ -18,12 +18,12 @@
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
-import socket, sys
+import socket, sys, os, io
 
 import libssh2
 
 usage = """Do a SCP send <file> with username@hostname:/remote_path/
-Usage: %s <hostname> <username> <password> <file>""" % __file__[__file__.rfind('/')+1:]
+Usage: %s <hostname> <username> <password> <remote_in_file> <local_out_file>""" % __file__[__file__.rfind('/') + 1:]
 
 class MySCPClient:
     def __init__(self, hostname, username, password, port=22):
@@ -51,19 +51,19 @@ class MySCPClient:
             print "SSHError: Can't startup session"
             print e
 
-    def send(self, remote_path, mode=0644):
-        datas=""
-        f=file(remote_path, "rb")
+    def recv(self, remote_in_path, local_out_path, mode=0644):
+        datas = ""
+        f = file(local_out_path, "wb", buffering=0)
+        channel = self.session.scp_recv(remote_path, mode, os.path.getsize(local_path))
+
         while True:
-            data = f.readline()
-            if  len(data) == 0: 
-                break
+            buffer = f.read(1024 * 1024)
+            if len(buffer) > 0:
+                channel.write(buffer)
             else:
-                datas += data
-        file_size = len(datas)
-        channel = self.session.scp_send(remote_path, mode, file_size)
-        channel.write(datas)
-        channel.close()
+                break
+        channel.flush()
+        channel.wait_closed()
 
     def __del__(self):
         self.session.close()
@@ -78,4 +78,4 @@ if __name__ == '__main__' :
         username=sys.argv[2],
         password=sys.argv[3]
     )
-    myscp.send(sys.argv[4])
+    myscp.recv(sys.argv[4], sys.argv[5])

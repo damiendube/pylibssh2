@@ -3,3 +3,5 @@ build/
 dist/
 doc/
 pylibssh2.egg-info/
+/.project
+/.pydevproject

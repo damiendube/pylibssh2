@@ -22,6 +22,26 @@
 #define PYLIBSSH2_MODULE
 #include "pylibssh2.h"
 
+/* {{{ PYLIBSSH2_Session_handshake
+ */
+static char PYLIBSSH2_Session_handshake_doc[] = "";
+void
+PYLIBSSH2_Session_handshake(PYLIBSSH2_SESSION *self, PyObject *args)
+{
+    int rc;
+    int fd;
+    fd = PyObject_AsFileDescriptor(self->socket);
+
+    Py_BEGIN_ALLOW_THREADS
+    rc = libssh2_session_handshake(self->session, fd);
+    Py_END_ALLOW_THREADS
+
+    if(rc < 0) {
+        PyErr_SetString(PYLIBSSH2_Error, "Failure establishing handshake.");
+    }
+}
+/* }}} */
+
 /* {{{ PYLIBSSH2_Session_set_banner
  */
 static char PYLIBSSH2_Session_set_banner_doc[] = "\
@@ -36,19 +56,22 @@ This is optional, the banner libssh2.DEFAULT_BANNER will be sent by default.\n\
 @return 0 on success or negative on failure\n\
 @rtype  int";
 
-static PyObject *
+void
 PYLIBSSH2_Session_set_banner(PYLIBSSH2_SESSION *self, PyObject *args)
 {
     int rc;
     char *banner;
 
     if (!PyArg_ParseTuple(args, "s:set_banner", &banner)) {
-        return NULL;
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
+        return;
     }
 
-    rc=libssh2_banner_set(self->session, banner);
-
-    return Py_BuildValue("i", rc);
+    rc = libssh2_banner_set(self->session, banner);
+    if(rc == 0) {
+        PyErr_SetString(PYLIBSSH2_Error, "Failure to set banner.");
+        return;
+    }
 }
 /* }}} */
 
@@ -65,7 +88,7 @@ Starts up the session from a socket created by socket.socket() call.\n\
 @return 0 on success or negative on failure\n\
 @rtype  int";
 
-static PyObject *
+void
 PYLIBSSH2_Session_startup(PYLIBSSH2_SESSION *self, PyObject *args)
 {
     int rc;
@@ -74,7 +97,8 @@ PYLIBSSH2_Session_startup(PYLIBSSH2_SESSION *self, PyObject *args)
     PyObject *socket;
 
     if (!PyArg_ParseTuple(args, "O:startup", &socket)) {
-        return NULL;
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
+        return;
     }
 
     Py_XINCREF(socket);
@@ -88,12 +112,10 @@ PYLIBSSH2_Session_startup(PYLIBSSH2_SESSION *self, PyObject *args)
         libssh2_session_last_error(self->session, &last_error, NULL, 0);
         /* CLEAN: PYLIBSSH2_SESSION_STARTUP_MSG */
         PyErr_Format(PYLIBSSH2_Error, "SSH startup: %s", last_error);
-        return NULL;
+        return;
     }
     
     self->opened = 1;
-
-    return Py_BuildValue("i", rc);
 }
 /* }}} */
 
@@ -105,34 +127,30 @@ close([reason]) -> int \n\
 Closes the session.\n\
 \n\
 @param  reason: human readable reason for disconnection\n\
-@type   reason: str\n\
-\n\
-@return 0 on success or negative on failure\n\
-@rtype  int";
+@type   reason: str\n";
 
-static PyObject *
+void
 PYLIBSSH2_Session_close(PYLIBSSH2_SESSION *self, PyObject *args)
 {
     int rc;
     char *reason = "end";
 
     if (!PyArg_ParseTuple(args, "|s:close", &reason)) {
-        return NULL;
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
+        return;
     }
 
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_session_disconnect(self->session, reason);
     Py_END_ALLOW_THREADS
 
-    if (rc) {
+    if (rc < 0) {
         /* CLEAN: PYLIBSSH2_SESSION_CLOSE_MSG */
         PyErr_SetString(PYLIBSSH2_Error, "SSH close error.");
-        return NULL;
+        return;
     }
 
     self->opened = 0;
-
-    return Py_BuildValue("i", rc);
 }
 /* }}} */
 
@@ -174,6 +192,7 @@ PYLIBSSH2_Session_userauth_list(PYLIBSSH2_SESSION *self, PyObject *args)
     char *auth_list;
 
     if (!PyArg_ParseTuple(args, "s#:userauth_list", &username, &username_len)) {
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
@@ -209,6 +228,7 @@ PYLIBSSH2_Session_hostkey_hash(PYLIBSSH2_SESSION *self, PyObject *args)
     size_t len;
 
     if (!PyArg_ParseTuple(args, "|i:hostkey_hash", &hashtype)) {
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
@@ -254,7 +274,7 @@ Authenticates a session with the given username and password.\n\
 @return 0 on success or raise an exception on failure\n\
 @rtype  int";
 
-static PyObject *
+void
 PYLIBSSH2_Session_userauth_password(PYLIBSSH2_SESSION *self, PyObject *args)
 {
     int rc;
@@ -262,7 +282,8 @@ PYLIBSSH2_Session_userauth_password(PYLIBSSH2_SESSION *self, PyObject *args)
     char *password;
 
     if (!PyArg_ParseTuple(args, "ss:userauth_password", &username, &password))
-        return NULL;
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
+        return;
 
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_userauth_password(self->session, username, password);
@@ -271,10 +292,9 @@ PYLIBSSH2_Session_userauth_password(PYLIBSSH2_SESSION *self, PyObject *args)
     if (rc < 0) {
         /* CLEAN: PYLIBSSH2_SESSION_USERAUTH_PASSWORD_FAILED_MSG */
         PyErr_SetString(PYLIBSSH2_Error, "Authentification by password failed.");
-        return NULL;
+        return;
     }
 
-    return Py_BuildValue("i", rc);
 }
 /* }}} */
 
@@ -310,6 +330,7 @@ PYLIBSSH2_Session_userauth_publickey_fromfile(PYLIBSSH2_SESSION *self, PyObject 
 
     if (!PyArg_ParseTuple(args, "sss|s:userauth_publickey_fromfile", &username,
                           &publickey, &privatekey, &passphrase)) {
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
@@ -401,17 +422,20 @@ prior to calling startup().\n\
 @return 0 on success or negative on failure\n\
 @rtype  int";
 
-static PyObject *
+void
 PYLIBSSH2_Session_session_method_pref(PYLIBSSH2_SESSION *self, PyObject *args)
 {
     int method;
     char *pref;
 
     if (!PyArg_ParseTuple(args, "is:session_method_pref", &method, &pref)) {
-        return NULL;
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
+        return;
     }
-
-    return PyInt_FromLong(libssh2_session_method_pref(self->session, method, pref)==0?1:0);   
+    if(libssh2_session_method_pref(self->session, method, pref) != 0) {
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
+        return;
+    }
 }
 /* }}} */
 
@@ -429,13 +453,17 @@ static PyObject *
 PYLIBSSH2_Session_open_session(PYLIBSSH2_SESSION *self, PyObject *args)
 {
     int dealloc = 1;
-
+    LIBSSH2_CHANNEL *channel;
     if (!PyArg_ParseTuple(args, "|i:open_session", &dealloc)) {
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
-
-    return (PyObject *)PYLIBSSH2_Channel_New(libssh2_channel_open_session(self->session),
-                                        dealloc);
+    channel = libssh2_channel_open_session(self->session);
+    if(channel == NULL) {
+        PyErr_SetString(PYLIBSSH2_Error, "Failed to open a channel session");
+        return NULL;
+    }
+    return (PyObject *)PYLIBSSH2_Channel_New(channel, dealloc);
 }
 /* }}} */
 
@@ -459,6 +487,7 @@ PYLIBSSH2_Session_scp_recv(PYLIBSSH2_SESSION *self, PyObject *args)
     LIBSSH2_CHANNEL *channel;
 
     if (!PyArg_ParseTuple(args, "s:scp_recv", &path)) {
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
@@ -480,7 +509,7 @@ scp_send(path, mode, size) -> libssh2.Channel\n\
 \n\
 Sends a file to remote host via SCP protocol.\n\
 \n\
-@param path: absolute path of tile to transfer\n\
+@param path: absolute path of file to transfer\n\
 @type  path: str\n\
 @param mode: file access mode to create file\n\
 @type  mode: int\n\
@@ -498,14 +527,17 @@ PYLIBSSH2_Session_scp_send(PYLIBSSH2_SESSION *self, PyObject *args)
     unsigned long filesize;
     LIBSSH2_CHANNEL *channel;
 
-    if (!PyArg_ParseTuple(args, "sik:scp_send", &path, &mode, &filesize)) {
+    if (!PyArg_ParseTuple(args, "s:scp_send", &path)) {
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
-    channel = libssh2_scp_send(self->session, path, mode, filesize);
+    channel = libssh2_scp_send64(self->session, path, statBuf.st_mode, statBuf.st_size, 0, 0);
     if (channel == NULL) {
-        /* CLEAN: PYLIBSSH2_CHANNEL_SCP_SEND_ERROR_MSG */
-        PyErr_SetString(PYLIBSSH2_Error, "SCP send error.");
+        char *errmsg;
+        int errlen;
+        int err = libssh2_session_last_error(self->session, &errmsg, &errlen, 0);
+        PyErr_Format(PYLIBSSH2_Error, "SCP send error. Unable to open a session: (%d) %s\n", err, errmsg);
         return NULL;
     }
 
@@ -529,6 +561,7 @@ PYLIBSSH2_Session_sftp_init(PYLIBSSH2_SESSION *self, PyObject *args)
     int dealloc = 1;
 
     if (!PyArg_ParseTuple(args, "|i:sftp_init", &dealloc)) {
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
@@ -570,6 +603,7 @@ PYLIBSSH2_Session_direct_tcpip(PYLIBSSH2_SESSION *self, PyObject *args)
     char *last_error = "";
 
     if (!PyArg_ParseTuple(args, "si|si:direct_tcpip", &host, &port, &shost, &sport)) {
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
@@ -618,6 +652,7 @@ PYLIBSSH2_Session_forward_listen(PYLIBSSH2_SESSION *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "siii:forward_listen", &host, &port,
                           &bound_port, &queue_maxsize)) {
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
@@ -724,6 +759,10 @@ stub_callback_func(LIBSSH2_SESSION *session,
     if (result && PyInt_Check(result)) {
         rc = PyInt_AsLong(result);
     }
+    if(rc) {
+        PyErr_SetString(PyExc_TypeError, "An error occured while calling callback function");
+        return;
+    }
 
     /* Restore previous thread state and release acquired resources */
     PyGILState_Release(gstate);
@@ -785,6 +824,7 @@ PYLIBSSH2_Session_set_trace(PYLIBSSH2_SESSION *self, PyObject *args)
     int bitmask;
 
     if (!PyArg_ParseTuple(args, "i:set_trace", &bitmask)) {
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
@@ -846,6 +886,7 @@ PYLIBSSH2_Session_userauth_keyboardinteractive(PYLIBSSH2_SESSION *self, PyObject
     /*PyObject *kbd_callback;*/
 
     if(!PyArg_ParseTuple(args, "ssi:userauth_keyboardinteractive", &username, &interactive_response, &interactive_response_len)) {
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
@@ -876,6 +917,7 @@ PYLIBSSH2_Session_userauth_keyboardinteractive(PYLIBSSH2_SESSION *self, PyObject
 
 static PyMethodDef PYLIBSSH2_Session_methods[] =
 {
+    ADD_METHOD(handshake),
     ADD_METHOD(set_banner),
     ADD_METHOD(startup),
     ADD_METHOD(close),
@@ -992,7 +1034,7 @@ int
 init_libssh2_Session(PyObject *dict)
 {
     PYLIBSSH2_Session_Type.ob_type = &PyType_Type;
-    Py_XINCREF(&PYLIBSSH2_Session_Type);
+    Py_INCREF(&PYLIBSSH2_Session_Type);
     PyDict_SetItemString(dict, "SessionType", (PyObject *)&PYLIBSSH2_Session_Type);
     
     return 1;

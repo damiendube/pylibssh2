@@ -57,14 +57,15 @@ Arguments:\n\
 Returns:\n\
 ";
 
-static PyObject *
+void
 PYLIBSSH2_Sftp_close(PYLIBSSH2_SFTP *self, PyObject *args)
 {
     int rc;
     PYLIBSSH2_SFTPHANDLE *handle;
 
     if (!PyArg_ParseTuple(args, "O:close", &handle)) {
-        return NULL;
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
+        return;
     }
 
     Py_BEGIN_ALLOW_THREADS
@@ -74,10 +75,9 @@ PYLIBSSH2_Sftp_close(PYLIBSSH2_SFTP *self, PyObject *args)
     if (rc) {
         /* CLEAN: PYLIBSSH2_SFTPHANDLE_CANT_CLOSE_MSG */
         PyErr_SetString(PYLIBSSH2_Error, "Unable to close sftp handle.");
-        return NULL;
+        return;
     }
 
-    return Py_BuildValue("i", rc);
 }
 /* }}} */
 
@@ -97,6 +97,7 @@ PYLIBSSH2_Sftp_opendir(PYLIBSSH2_SFTP *self, PyObject *args)
     char *path;
 
     if (!PyArg_ParseTuple(args, "s:opendir", &path)) {
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
@@ -134,6 +135,7 @@ PYLIBSSH2_Sftp_readdir(PYLIBSSH2_SFTP *self, PyObject *args)
     PyObject *list;
 
     if (!PyArg_ParseTuple(args, "O:readdir", &handle)) {
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
@@ -192,6 +194,7 @@ PYLIBSSH2_Sftp_listdir(PYLIBSSH2_SFTP *self, PyObject *args)
     PyObject *list = NULL;
 
     if (!PyArg_ParseTuple(args, "O:listdir", &handle)) {
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
@@ -249,6 +252,7 @@ PYLIBSSH2_Sftp_open(PYLIBSSH2_SFTP *self, PyObject *args)
     long mode = 0755;
 
     if (!PyArg_ParseTuple(args, "s|si:open", &path, &flags, &mode)) {
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
@@ -276,20 +280,18 @@ Arguments:\n\
 Returns:\n\
 ";
 
-static PyObject *
+void
 PYLIBSSH2_Sftp_shutdown(PYLIBSSH2_SFTP *self, PyObject *args)
 {
     int rc;
 
     rc=libssh2_sftp_shutdown(self->sftp);
 
-    if (rc == -1) {
+    if (rc < 0) {
         /* CLEAN: PYLIBSSH2_SFTP_CANT_SHUTDOWN_MSG */
         PyErr_SetString(PYLIBSSH2_Error, "Unable to shutdown sftp.");
-        return NULL;
+        return;
     }
-
-    return Py_BuildValue("i", rc);
 }
 /* }}} */
 
@@ -311,6 +313,7 @@ PYLIBSSH2_Sftp_read(PYLIBSSH2_SFTP *self, PyObject *args)
     PYLIBSSH2_SFTPHANDLE *handle;
 
     if (!PyArg_ParseTuple(args, "Oi:read", &handle, &buffer_maxlen)) {
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
@@ -357,6 +360,7 @@ PYLIBSSH2_Sftp_write(PYLIBSSH2_SFTP *self, PyObject *args)
     PYLIBSSH2_SFTPHANDLE *handle;
 
     if (!PyArg_ParseTuple(args, "Os#:write", &handle, &buffer, &buffer_len)) {
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
@@ -390,10 +394,11 @@ PYLIBSSH2_Sftp_tell(PYLIBSSH2_SFTP *self, PyObject *args)
     PYLIBSSH2_SFTPHANDLE *handle;
 
     if (!PyArg_ParseTuple(args, "O:tell", &handle)) {
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
-    return PyInt_FromLong(libssh2_sftp_tell(handle->sftphandle));
+    return PyInt_FromLong(libssh2_sftp_tell64(handle->sftphandle));
 }
 /* }}} */
 
@@ -406,21 +411,20 @@ Arguments:\n\
 Returns:\n\
 ";
 
-static PyObject *
+void
 PYLIBSSH2_Sftp_seek(PYLIBSSH2_SFTP *self, PyObject *args)
 {
     PYLIBSSH2_SFTPHANDLE *handle;
     unsigned long offset=0;
 
     if (!PyArg_ParseTuple(args, "Ok:seek", &handle, &offset)) {
-        return NULL;
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
+        return;
     }
 
     Py_BEGIN_ALLOW_THREADS
-    libssh2_sftp_seek(handle->sftphandle, offset);
+    libssh2_sftp_seek64(handle->sftphandle, offset);
     Py_END_ALLOW_THREADS
-
-    return PyInt_FromLong(1);
 }
 /* }}} */
 
@@ -433,7 +437,7 @@ Arguments:\n\
 Returns:\n\
 ";
 
-static PyObject *
+void
 PYLIBSSH2_Sftp_unlink(PYLIBSSH2_SFTP *self, PyObject *args)
 {
 
@@ -441,14 +445,17 @@ PYLIBSSH2_Sftp_unlink(PYLIBSSH2_SFTP *self, PyObject *args)
     char *path;
 
     if (!PyArg_ParseTuple(args, "s:unlink", &path)) {
-        return NULL;
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
+        return;
     }
 
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_sftp_unlink(self->sftp, path);
     Py_END_ALLOW_THREADS
-
-    return Py_BuildValue("i", rc);
+    if(rc) {
+        PyErr_SetString(PYLIBSSH2_Error, "Error while unlink an SFTP file.");
+        return;
+    }
 }
 /* }}} */
 
@@ -461,21 +468,24 @@ Arguments:\n\
 Returns:\n\
 ";
 
-static PyObject *
+void
 PYLIBSSH2_Sftp_rename(PYLIBSSH2_SFTP *self, PyObject *args)
 {
     int rc;
     char *src, *dst;
     
     if (!PyArg_ParseTuple(args, "ss:rename", &src, &dst)) {
-        return NULL;
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
+        return;
     }
 
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_sftp_rename(self->sftp, src, dst);
     Py_END_ALLOW_THREADS
-
-    return Py_BuildValue("i", rc);
+    if(rc) {
+        PyErr_SetString(PYLIBSSH2_Error, "Error while renaming an SFTP file.");
+        return;
+    }
 }
 /* }}} */
 
@@ -488,7 +498,7 @@ Arguments:\n\
 Returns:\n\
 ";
 
-static PyObject *
+void
 PYLIBSSH2_Sftp_mkdir(PYLIBSSH2_SFTP *self, PyObject *args)
 {
     int rc;
@@ -496,14 +506,18 @@ PYLIBSSH2_Sftp_mkdir(PYLIBSSH2_SFTP *self, PyObject *args)
     long mode = 0755;
     
     if (!PyArg_ParseTuple(args, "s|i:mkdir", &path, &mode)) {
-        return NULL;
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
+        return;
     }
 
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_sftp_mkdir(self->sftp, path, mode);
     Py_END_ALLOW_THREADS
+    if(rc) {
+        PyErr_SetString(PYLIBSSH2_Error, "Error while creating a directory on the remote file system.");
+        return;
+    }
 
-    return Py_BuildValue("i", rc);
 }
 /* }}} */
 
@@ -516,21 +530,24 @@ Arguments:\n\
 Returns:\n\
 ";
 
-static PyObject *
+void
 PYLIBSSH2_Sftp_rmdir(PYLIBSSH2_SFTP *self, PyObject *args)
 {
     int rc;
     char *path;
 
     if (!PyArg_ParseTuple(args, "s:rmdir", &path)) {
-        return NULL;
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
+        return;
     }
 
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_sftp_rmdir(self->sftp, path);
     Py_END_ALLOW_THREADS
-
-    return Py_BuildValue("i", rc);
+    if(rc) {
+        PyErr_SetString(PYLIBSSH2_Error, "Error while removing an SFTP directory.");
+        return;
+    }
 }
 /* }}} */
 
@@ -552,6 +569,7 @@ PYLIBSSH2_Sftp_realpath(PYLIBSSH2_SFTP *self, PyObject *args)
     PyObject *target;
 
     if (!PyArg_ParseTuple(args, "s#|i:realpath", &path, &path_len, &type)) {
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
@@ -590,27 +608,26 @@ Arguments:\n\
 Returns:\n\
 ";
 
-static PyObject *
+void
 PYLIBSSH2_Sftp_symlink(PYLIBSSH2_SFTP *self, PyObject *args)
 {
     int rc;
     char *path, *target;
 
     if (!PyArg_ParseTuple(args, "ss:symlink", &path, &target)) {
-        return NULL;
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
+        return;
     }
 
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_sftp_symlink(self->sftp, path, target);
     Py_END_ALLOW_THREADS
 
-    if (rc == -1) {
+    if (rc < 0) {
         /* CLEAN: PYLIBSSH2_SFTP_CANT_SYMLINK_MSG */
         PyErr_SetString(PYLIBSSH2_Error, "Unable to sftp symlink.");
-        return NULL;
+        return;
     }
-
-    return Py_BuildValue("i", rc);
 }
 /* }}} */
 
@@ -633,6 +650,7 @@ PYLIBSSH2_Sftp_get_stat(PYLIBSSH2_SFTP *self, PyObject *args)
     LIBSSH2_SFTP_ATTRIBUTES attr;
     
     if (!PyArg_ParseTuple(args, "s#|i:get_stat", &path, &path_len, &type)) {
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL; 
     }
 
@@ -640,7 +658,7 @@ PYLIBSSH2_Sftp_get_stat(PYLIBSSH2_SFTP *self, PyObject *args)
     rc = libssh2_sftp_stat_ex(self->sftp, path, path_len, type, &attr);
     Py_END_ALLOW_THREADS
 
-    if (rc == -1) {
+    if (rc < 0) {
         /* CLEAN: PYLIBSSH2_SFTP_CANT_GETSTAT_MSG */
         PyErr_SetString(PYLIBSSH2_Error, "Unable to get stat.");
         return NULL;
@@ -658,8 +676,7 @@ Arguments:\n\
 \n\
 Returns:\n\
 ";
-
-static PyObject *
+void
 PYLIBSSH2_Sftp_set_stat(PYLIBSSH2_SFTP *self, PyObject *args)
 {
     int rc;
@@ -668,7 +685,8 @@ PYLIBSSH2_Sftp_set_stat(PYLIBSSH2_SFTP *self, PyObject *args)
     PyObject *attrs;
 
     if (!PyArg_ParseTuple(args, "sO:set_stat", &path, &attrs)) {
-        return NULL;
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
+        return;
     }
 
     attr.flags = 0;
@@ -705,12 +723,10 @@ PYLIBSSH2_Sftp_set_stat(PYLIBSSH2_SFTP *self, PyObject *args)
     rc = libssh2_sftp_setstat(self->sftp, path, &attr);
     Py_END_ALLOW_THREADS
 
-    if (rc == -1) {
+    if (rc < 0) {
         PyErr_SetString(PYLIBSSH2_Error, "Unable to stat.");
-        return NULL;
+        return;
     }
-
-    return Py_BuildValue("i", rc);
 }
 /* }}} */
 
@@ -822,7 +838,7 @@ int
 init_libssh2_Sftp(PyObject *dict)
 {
     PYLIBSSH2_Sftp_Type.ob_type = &PyType_Type;
-    Py_XINCREF(&PYLIBSSH2_Sftp_Type);
+    Py_INCREF(&PYLIBSSH2_Sftp_Type);
     PyDict_SetItemString(dict, "SFTPType", (PyObject *) &PYLIBSSH2_Sftp_Type);
 
     return 1;

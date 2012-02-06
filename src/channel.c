@@ -36,7 +36,7 @@ Closes the active channel.\n\
 @return 0 on success or negative on failure\n\
 @rtype int";
 
-static PyObject *
+void
 PYLIBSSH2_Channel_close(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     int rc;
@@ -49,10 +49,7 @@ PYLIBSSH2_Channel_close(PYLIBSSH2_CHANNEL *self, PyObject *args)
     if (rc) {
         /* CLEAN: PYLIBSSH2_CHANNEL_CANT_CLOSE_MSG */
         PyErr_SetString(PYLIBSSH2_Error, "Unable to close the channel.");
-        return NULL; 
     }
-
-    return Py_BuildValue("i", rc);
 }
 /* }}} */
 
@@ -72,7 +69,7 @@ Requests a pty with term type on a channel.\n\
 /*
  * refer libssh2_channel_request_pty_ex()
  */
-static PyObject *
+void
 PYLIBSSH2_Channel_pty(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     int rc;
@@ -91,7 +88,8 @@ PYLIBSSH2_Channel_pty(PYLIBSSH2_CHANNEL *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "s#|s#iiii:pty", &term, &term_len, &modes,
                           &modes_len, &width, &height, &width_px, &height_px)) {
-        return NULL;
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
+        return;
     }
 
     Py_BEGIN_ALLOW_THREADS
@@ -102,10 +100,8 @@ PYLIBSSH2_Channel_pty(PYLIBSSH2_CHANNEL *self, PyObject *args)
     if (rc) {
         /* CLEAN: PYLIBSSH2_CHANNEL_PTY_FAILED_MSG */ 
         PyErr_SetString(PYLIBSSH2_Error, "Failed to request pty.");
-        return NULL;
+        return;
     }
-
-    return Py_BuildValue("i", rc);
 }
 /* }}} */
 
@@ -131,7 +127,7 @@ Requests a pty resize on a channel with the given width and height.\n\
 /*
  * refer libssh2_channel_request_pty_size_ex()
  */
-static PyObject *
+void
 PYLIBSSH2_Channel_pty_resize(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     int rc = -1;
@@ -146,7 +142,8 @@ PYLIBSSH2_Channel_pty_resize(PYLIBSSH2_CHANNEL *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args,"ii|ii:pty_resize", &width, &height,
                                                    &width_px, &height_px)){
-        return NULL;
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
+        return;
     }
 
     Py_BEGIN_ALLOW_THREADS
@@ -156,10 +153,8 @@ PYLIBSSH2_Channel_pty_resize(PYLIBSSH2_CHANNEL *self, PyObject *args)
 
     if (rc) {
         PyErr_SetString(PYLIBSSH2_Error, "Failed to resize pty");
-        return NULL;
+        return;
     }
-
-    return Py_BuildValue("i",rc);
 }
 /* }}} */
 
@@ -169,11 +164,9 @@ static char PYLIBSSH2_Channel_shell_doc[] = "\n\
 shell() -> int\n\
 \n\
 Requests a shell on the channel.\n\
-\n\
-@return 0 on success or negative on failure\n\
-@rtype  int";
+\n";
 
-static PyObject *
+void
 PYLIBSSH2_Channel_shell(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     int rc;
@@ -185,10 +178,9 @@ PYLIBSSH2_Channel_shell(PYLIBSSH2_CHANNEL *self, PyObject *args)
     if (rc) {
         /* CLEAN: PYLIBSSH2_CHANNEL_CANT_REQUEST_SHELL_MSG */
         PyErr_SetString(PYLIBSSH2_Error,"Unable to request shell on allocated pty.");
-        return NULL;
+        return;
     }
 
-    return Py_BuildValue("i", rc);
 }
 /* }}} */
 
@@ -201,11 +193,9 @@ Executes command on the channel.\n\
 \n\
 @param  command: message data\n\
 @type   command: str\n\
-\n\
-@return 0 on success or negative on failure\n\
-@rtype  int";
+\n";
 
-static PyObject *
+void
 PYLIBSSH2_Channel_execute(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     int rc;
@@ -213,7 +203,8 @@ PYLIBSSH2_Channel_execute(PYLIBSSH2_CHANNEL *self, PyObject *args)
     char *command;
 
     if (!PyArg_ParseTuple(args, "s:execute", &command))
-        return NULL;
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
+        return;
 
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_channel_exec(self->channel, command);
@@ -222,10 +213,8 @@ PYLIBSSH2_Channel_execute(PYLIBSSH2_CHANNEL *self, PyObject *args)
     if (rc) {
         /* CLEAN: PYLIBSSH2_CANT_REQUEST_EXEC_COMMAND_MSG */
         PyErr_SetString(PYLIBSSH2_Error, "Unable to request exec command.");
-        return NULL;
+        return;
     }
-
-    return Py_BuildValue("i", rc);
 }
 /* }}} */
 
@@ -244,7 +233,7 @@ Sets envrionment variable on the channel.\n\
 @return 0 on success or negative on failure\n\
 @rtype  int";
 
-static PyObject *
+void
 PYLIBSSH2_Channel_setenv(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     int rc;
@@ -254,19 +243,18 @@ PYLIBSSH2_Channel_setenv(PYLIBSSH2_CHANNEL *self, PyObject *args)
     char *env_val;
 
     if (!PyArg_ParseTuple(args, "ss:setenv", &env_key, &env_val))
-        return NULL;
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
+        return;
 
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_channel_setenv(self->channel, env_key, env_val);
     Py_END_ALLOW_THREADS
 
-    if (rc == -1) {
+    if (rc < 0) {
         /* CLEAN: PYLIBSSH2_CANT_SET_ENVRIONNEMENT_VARIABLE_MSG */
         PyErr_SetString(PYLIBSSH2_Error,"Unable to set envrionnement variable.");
-        return NULL;
+        return;
     }
-
-    return Py_BuildValue("i", rc);
 }
 /* }}} */
 
@@ -280,19 +268,18 @@ Sets blocking mode on the channel. Default mode is blocking.\n\
 @param  mode: blocking (1) or non blocking (0) mode\n\
 @type   mode: int";
 
-static PyObject *
+void
 PYLIBSSH2_Channel_setblocking(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     /* 1 blocking, 0 non blocking */
     int block = 1;
 
-    if (!PyArg_ParseTuple(args, "i:setblocking", &block))
-        return NULL;
+    if (!PyArg_ParseTuple(args, "i:setblocking", &block)) {
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
+        return;
+    }
 
     libssh2_channel_set_blocking(self->channel, block);
-
-    Py_INCREF(Py_None);
-    return Py_None;
 }
 /* }}} */
 
@@ -317,8 +304,10 @@ PYLIBSSH2_Channel_read(PYLIBSSH2_CHANNEL *self, PyObject *args)
     /* buffer to read as a python object */
     PyObject *buffer;
 
-    if (!PyArg_ParseTuple(args, "i|i:read", &buffer_size))
+    if (!PyArg_ParseTuple(args, "i|i:read", &buffer_size)) {
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
+    }
 
     buffer = PyString_FromStringAndSize(NULL, buffer_size);
     if (buffer == NULL) {
@@ -370,8 +359,10 @@ PYLIBSSH2_Channel_read_ex(PYLIBSSH2_CHANNEL *self, PyObject *args)
     PyObject *buffer;
     char * cbuf;
 
-    if (!PyArg_ParseTuple(args, "i|i:read_ex", &buffer_size, &stream_id))
+    if (!PyArg_ParseTuple(args, "i|i:read_ex", &buffer_size, &stream_id)) {
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
+    }
     buffer = PyString_FromStringAndSize(NULL, buffer_size);
     if (buffer == NULL) {
         return NULL;
@@ -404,7 +395,7 @@ Writes data on a channel.\n\
 @param  message: data to write\n\
 @type   message: str\n\
 \n\
-@return 0 on success or failure\n\
+@return written bytes on success\n\
 @rtype  int";
 
 static PyObject *
@@ -414,17 +405,18 @@ PYLIBSSH2_Channel_write(PYLIBSSH2_CHANNEL *self, PyObject *args)
     char *message;
     int message_len;
 
-    if (!PyArg_ParseTuple(args, "s#:write", &message, &message_len))
+    if (!PyArg_ParseTuple(args, "s#:write", &message, &message_len)) {
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
+    }
 
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_channel_write(self->channel, message, message_len);
     Py_END_ALLOW_THREADS
 
-    if (rc == -1) {
+    if (rc < 0) {
         /* CLEAN: PYLIBSSH2_CANT_WRITE_CHANNEL_MSG */
         PyErr_SetString(PYLIBSSH2_Error,"Unable to write channel.");
-        return NULL;
     }
 
     return Py_BuildValue("i", rc);
@@ -441,7 +433,7 @@ Flushs the read buffer for a given channel.\n\
 @return 0 on success or negative on failure\n\
 @rtype  int";
 
-static PyObject *
+void
 PYLIBSSH2_Channel_flush(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     int rc;
@@ -450,13 +442,11 @@ PYLIBSSH2_Channel_flush(PYLIBSSH2_CHANNEL *self, PyObject *args)
     rc = libssh2_channel_flush(self->channel);
     Py_END_ALLOW_THREADS
 
-    if (rc == -1) {
+    if (rc < 0) {
         /* CLEAN: PYLIBSSH2_CANT_FLUSH_CHANNEL_MSG */
         PyErr_SetString(PYLIBSSH2_Error, "Unable to flush channel.");
-        return NULL;
+        return;
     }
-
-    return Py_BuildValue("i", rc);
 }
 /* }}} */
 
@@ -473,7 +463,14 @@ Gets the exit code raised by the process running on the remote host.\n\
 static PyObject *
 PYLIBSSH2_Channel_exit_status(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
-    return Py_BuildValue("i", libssh2_channel_get_exit_status(self->channel));
+    int rc;
+    rc = libssh2_channel_get_exit_status(self->channel);
+    if(rc == 0) {
+        /* CLEAN: PYLIBSSH2_CANT_FLUSH_CHANNEL_MSG */
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get exit status.");
+        return NULL;
+    }
+    return Py_BuildValue("i", rc);
 }
 /* }}} */
 
@@ -490,7 +487,14 @@ Checks if the remote host has sent an EOF status.\n\
 static PyObject *
 PYLIBSSH2_Channel_eof(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
-    return Py_BuildValue("i", libssh2_channel_eof(self->channel));
+    int rc;
+    rc = libssh2_channel_eof(self->channel);
+    if(rc < 0) {
+        /* CLEAN: PYLIBSSH2_CANT_FLUSH_CHANNEL_MSG */
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to check channel eof.");
+        return NULL;
+    }
+    return Py_BuildValue("i", rc);
 }
 /* }}} */
 
@@ -504,7 +508,7 @@ Sends EOF status on the channel to remote server.\n\
 @return 0 on success or negative on failure\n\
 @rtype  int";
 
-static PyObject *
+void
 PYLIBSSH2_Channel_send_eof(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     int rc;
@@ -513,13 +517,38 @@ PYLIBSSH2_Channel_send_eof(PYLIBSSH2_CHANNEL *self, PyObject *args)
     rc = libssh2_channel_send_eof(self->channel);
     Py_END_ALLOW_THREADS
 
-    if (rc == -1) {
+    if (rc < 0) {
         /* CLEAN: PYLIBSSH2_CANT_SEND_EOF_MSG */
         PyErr_SetString(PYLIBSSH2_Error, "Unable to send a EOF on channel.");
-        return NULL;
+        return;
     }
+}
+/* }}} */
 
-    return Py_BuildValue("i", rc);
+/* {{{ PYLIBSSH2_Channel_wait_eof
+ */
+static char PYLIBSSH2_Channel_wait_eof_doc[] = "\n\
+send_eof() -> int\n\
+\n\
+Sends EOF status on the channel to remote server.\n\
+\n\
+@return 0 on success or negative on failure\n\
+@rtype  int";
+
+void
+PYLIBSSH2_Channel_wait_eof(PYLIBSSH2_CHANNEL *self, PyObject *args)
+{
+    int rc;
+
+    Py_BEGIN_ALLOW_THREADS
+    rc = libssh2_channel_wait_eof(self->channel);
+    Py_END_ALLOW_THREADS
+
+    if (rc < 0) {
+        /* CLEAN: PYLIBSSH2_CANT_SEND_EOF_MSG */
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to wait EOF on channel.");
+        return;
+    }
 }
 /* }}} */
 
@@ -536,16 +565,19 @@ Wait for the remote channel to ack channel close.\n\
 @return 0 on success or negative on failure\n\
 @rtype int";
 
-static PyObject *
+void
 PYLIBSSH2_Channel_wait_closed(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     int rc;
 
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_channel_wait_closed(self->channel);
+    if (rc < 0) {
+        /* CLEAN: PYLIBSSH2_CANT_SEND_EOF_MSG */
+        PyErr_SetString(PYLIBSSH2_Error, "");
+        return;
+    }
     Py_END_ALLOW_THREADS
-
-    return Py_BuildValue("i", rc);
 }
 /* }}} */
 
@@ -621,7 +653,7 @@ Requests an X11 Forwarding on the channel.\n\
 @return 0 on success or negative on failure\n\
 @rtype  int";
 
-static PyObject *
+void
 PYLIBSSH2_Channel_x11_req(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     int rc;
@@ -631,14 +663,18 @@ PYLIBSSH2_Channel_x11_req(PYLIBSSH2_CHANNEL *self, PyObject *args)
     int display = 0;
 
     if (!PyArg_ParseTuple(args, "|issi:x11_req", &single_connection, &auth_proto, &auth_cookie, &display)) {
-        return NULL;
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
+        return;
     }
 
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_channel_x11_req_ex(self->channel, single_connection, auth_proto, auth_cookie, display);
     Py_END_ALLOW_THREADS
 
-    return Py_BuildValue("i", rc);
+    if(rc < 0) {
+        PyErr_SetString(PYLIBSSH2_Error, " failed to  request an X11 forwarding channel");
+        return;
+    }
 }
 /* }}} */
 
@@ -662,6 +698,7 @@ PYLIBSSH2_Channel_poll_read(PYLIBSSH2_CHANNEL *self, PyObject *args)
     int extended = 0;
 
     if (!PyArg_ParseTuple(args, "|i:poll_read", &extended)) {
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
@@ -697,6 +734,7 @@ static PyMethodDef PYLIBSSH2_Channel_methods[] =
     ADD_METHOD(flush),
     ADD_METHOD(eof),
     ADD_METHOD(exit_status),
+    ADD_METHOD(wait_eof),
     ADD_METHOD(send_eof),
     ADD_METHOD(wait_closed),
     ADD_METHOD(window_read),
@@ -780,7 +818,7 @@ int
 init_libssh2_Channel(PyObject *dict)
 {
     PYLIBSSH2_Channel_Type.ob_type = &PyType_Type;
-    Py_XINCREF(&PYLIBSSH2_Channel_Type);
+    Py_INCREF(&PYLIBSSH2_Channel_Type);
     PyDict_SetItemString(dict, "ChannelType", (PyObject *)&PYLIBSSH2_Channel_Type);
 
     return 1;

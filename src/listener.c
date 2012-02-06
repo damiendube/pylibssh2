@@ -164,7 +164,7 @@ int
 init_libssh2_Listener(PyObject *dict)
 {
     PYLIBSSH2_Listener_Type.ob_type = &PyType_Type;
-    Py_XINCREF(&PYLIBSSH2_Listener_Type);
+    Py_INCREF(&PYLIBSSH2_Listener_Type);
     PyDict_SetItemString(dict, "ListenerType", (PyObject *)&PYLIBSSH2_Listener_Type);
 
     return 1;
