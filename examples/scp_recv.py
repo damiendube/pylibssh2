@@ -18,7 +18,7 @@
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
-import socket, sys, os, io
+import socket, sys, os
 
 import libssh2
 
@@ -52,9 +52,8 @@ class MySCPClient:
             print e
 
     def recv(self, remote_in_path, local_out_path, mode=0644):
-        datas = ""
         f = file(local_out_path, "wb", buffering=0)
-        channel = self.session.scp_recv(remote_path, mode, os.path.getsize(local_path))
+        channel = self.session.scp_recv(remote_in_path, mode, os.path.getsize(local_out_path))
 
         while True:
             buffer = f.read(1024 * 1024)

@@ -35,7 +35,7 @@ Returns:\n\
 ";
 
 void
-PYLIBSSH2_Sftpdir_close(PYLIBSSH2_SFTPFILE *self, PyObject *args)
+PYLIBSSH2_Sftpdir_close(PYLIBSSH2_SFTPDIR *self, PyObject *args)
 {
     int rc;
 

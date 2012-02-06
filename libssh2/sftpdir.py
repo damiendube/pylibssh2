@@ -21,13 +21,13 @@
 Abstraction for libssh2 L{Sftp} object
 """
 
-class SftpFileException(Exception):
+class SftpDirException(Exception):
     """
     Exception raised when L{Sftp} actions fails.
     """
     pass
 
-class SftpFile(object):
+class SftpDir(object):
     """
     Sftp object
     """

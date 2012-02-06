@@ -62,7 +62,7 @@ Returns:\n\
 ";
 
 static PyObject *
-PYLIBSSH2_Sftpfile_read(PYLIBSSH2_SFTP *self, PyObject *args)
+PYLIBSSH2_Sftpfile_read(PYLIBSSH2_SFTPFILE *self, PyObject *args)
 {
     int rc;
     int buffer_maxlen;
@@ -109,7 +109,7 @@ Returns:\n\
 ";
 
 static PyObject *
-PYLIBSSH2_Sftpfile_write(PYLIBSSH2_SFTP *self, PyObject *args)
+PYLIBSSH2_Sftpfile_write(PYLIBSSH2_SFTPFILE *self, PyObject *args)
 {
     int rc, buffer_len;
     char *buffer;
@@ -144,7 +144,7 @@ Returns:\n\
 ";
 
 static PyObject *
-PYLIBSSH2_Sftpfile_tell(PYLIBSSH2_SFTP *self, PyObject *args)
+PYLIBSSH2_Sftpfile_tell(PYLIBSSH2_SFTPFILE *self, PyObject *args)
 {
     return PyInt_FromLong(libssh2_sftp_tell64(self->handle));
 }
@@ -160,7 +160,7 @@ Returns:\n\
 ";
 
 void
-PYLIBSSH2_Sftpfile_seek(PYLIBSSH2_SFTP *self, PyObject *args)
+PYLIBSSH2_Sftpfile_seek(PYLIBSSH2_SFTPFILE *self, PyObject *args)
 {
     unsigned long offset=0;
 

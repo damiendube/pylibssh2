@@ -18,7 +18,7 @@
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
-import socket, sys, os, io
+import socket, sys, os
 
 import libssh2
 
@@ -51,11 +51,10 @@ class MySCPClient:
             print "SSHError: Can't startup session"
             print e
 
-    def send(self, local_path, remote_path, mode=0644):
-        datas = ""
+    def send(self, local_in_path, remote_out_path, mode=0644):
         write_len = 4096
-        f = file(local_path, "rb")
-        channel = self.session.scp_send(remote_path, mode, os.path.getsize(local_path))
+        f = file(local_in_path, "rb")
+        channel = self.session.scp_send(remote_out_path, mode, os.path.getsize(local_in_path))
         if not channel:
             print "Failed to open channel"
             return
