@@ -42,7 +42,7 @@ PYLIBSSH2_Listener_accept(PYLIBSSH2_LISTENER *self, PyObject *args)
 
     if (channel == NULL) {
         PyErr_SetString(PYLIBSSH2_Error, "Unable to accept listener on channel.");
-        Py_INCREF(Py_None);
+        Py_XINCREF(Py_None);
         return Py_None;
     }
 
@@ -167,7 +167,7 @@ int
 init_libssh2_Listener(PyObject *dict)
 {
     PYLIBSSH2_Listener_Type.ob_type = &PyType_Type;
-    Py_INCREF(&PYLIBSSH2_Listener_Type);
+    Py_XINCREF(&PYLIBSSH2_Listener_Type);
     PyDict_SetItemString(dict, "ListenerType", (PyObject *)&PYLIBSSH2_Listener_Type);
 
     return 1;

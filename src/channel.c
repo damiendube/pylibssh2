@@ -33,7 +33,7 @@ Closes the active channel.\n\
 @param channel\n\
 @type libssh2.Channel\n";
 
-static void
+static PyObject *
 PYLIBSSH2_Channel_close(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     int rc;
@@ -66,7 +66,7 @@ Requests a pty with term type on a channel.\n\
 /*
  * refer libssh2_channel_request_pty_ex()
  */
-static void
+static PyObject *
 PYLIBSSH2_Channel_pty(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     int rc;
@@ -322,7 +322,7 @@ PYLIBSSH2_Channel_read(PYLIBSSH2_CHANNEL *self, PyObject *args)
     }
 
     Py_XDECREF(buffer);
-    Py_INCREF(Py_None);
+    Py_XINCREF(Py_None);
 
     return Py_None;
 }
@@ -797,7 +797,7 @@ int
 init_libssh2_Channel(PyObject *dict)
 {
     PYLIBSSH2_Channel_Type.ob_type = &PyType_Type;
-    Py_INCREF(&PYLIBSSH2_Channel_Type);
+    Py_XINCREF(&PYLIBSSH2_Channel_Type);
     PyDict_SetItemString(dict, "ChannelType", (PyObject *)&PYLIBSSH2_Channel_Type);
 
     return 1;

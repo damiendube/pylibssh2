@@ -72,7 +72,7 @@ PYLIBSSH2_Sftpdir_read(PYLIBSSH2_SFTPDIR *self, PyObject *args)
 
     buffer = PyString_FromStringAndSize(NULL, longentry_maxlen);
     if (buffer == NULL) {
-        Py_INCREF(Py_None);
+        Py_XINCREF(Py_None);
         return Py_None;
     }
 
@@ -82,7 +82,7 @@ PYLIBSSH2_Sftpdir_read(PYLIBSSH2_SFTPDIR *self, PyObject *args)
     Py_END_ALLOW_THREADS
 
     if (buffer_maxlen == 0) {
-        Py_INCREF(Py_None);
+        Py_XINCREF(Py_None);
         return Py_None;
     } else if ( buffer_maxlen == -1) {
         /* CLEAN: PYLIBSSH2_SFTPDIR_CANT_READDIR_MSG */
@@ -92,7 +92,7 @@ PYLIBSSH2_Sftpdir_read(PYLIBSSH2_SFTPDIR *self, PyObject *args)
 
     if (buffer_maxlen != longentry_maxlen &&
         _PyString_Resize(&buffer, buffer_maxlen) < 0) {
-        Py_INCREF(Py_None);
+        Py_XINCREF(Py_None);
         return Py_None;
     }
 
@@ -127,7 +127,7 @@ PYLIBSSH2_Sftpdir_list(PYLIBSSH2_SFTPDIR *self, PyObject *args)
     while (1) {
         buffer = PyString_FromStringAndSize(NULL, longentry_maxlen);
         if (buffer == NULL) {
-            Py_INCREF(Py_None);
+            Py_XINCREF(Py_None);
             return Py_None;
         }
 
@@ -145,7 +145,7 @@ PYLIBSSH2_Sftpdir_list(PYLIBSSH2_SFTPDIR *self, PyObject *args)
 
         if ( buffer_maxlen != longentry_maxlen &&
              _PyString_Resize(&buffer, buffer_maxlen) < 0) {
-            Py_INCREF(Py_None);
+            Py_XINCREF(Py_None);
             return Py_None;
         }
 
@@ -237,7 +237,7 @@ int
 init_libssh2_Sftpdir(PyObject *dict)
 {
     PYLIBSSH2_Sftpdir_Type.ob_type = &PyType_Type;
-    Py_INCREF(&PYLIBSSH2_Sftpdir_Type);
+    Py_XINCREF(&PYLIBSSH2_Sftpdir_Type);
     PyDict_SetItemString(dict, "SftpdirType", (PyObject *)&PYLIBSSH2_Sftpdir_Type);
 
     return 1;

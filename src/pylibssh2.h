@@ -50,7 +50,7 @@ extern PyObject *PYLIBSSH2_Error;
 #define exception_from_error_queue() do { \
     PyObject *errlist = error_queue_to_list(); \
     PyErr_SetObject(PYLIBSSH2_Error, errlist); \
-    Py_DECREF(errlist); \
+    Py_XDECREF(errlist); \
 } while (0)
 
 #define PYLIBSSH2_Session_New_NUM        0

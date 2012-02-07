@@ -41,7 +41,7 @@ PYLIBSSH2_Session_handshake(PYLIBSSH2_SESSION *self, PyObject *args)
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_session_handshake(self->session, fd);
     Py_END_ALLOW_THREADS
-
+/*
     if(rc < 0) {
         switch(rc) {
             case LIBSSH2_ERROR_SOCKET_NONE:
@@ -70,6 +70,7 @@ PYLIBSSH2_Session_handshake(PYLIBSSH2_SESSION *self, PyObject *args)
                 break;
         }
     }
+    */
 }
 /* }}} */
 
@@ -83,23 +84,28 @@ This is optional, the banner libssh2.DEFAULT_BANNER will be sent by default.\n\
 \n\
 @param  banner: an user defined banner\n\
 @type   banner: str\n";
-
-static void
+static PyObject *
 PYLIBSSH2_Session_set_banner(PYLIBSSH2_SESSION *self, PyObject *args)
 {
     int rc;
-    char *banner;
+    char *banner = LIBSSH2_SSH_DEFAULT_BANNER"_Python";
 
-    if (!PyArg_ParseTuple(args, "s:set_banner", &banner)) {
+    if (!PyArg_ParseTuple(args, "|s:set_banner", &banner)) {
         PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return;
     }
 
     rc = libssh2_banner_set(self->session, banner);
-    if(rc == 0) {
-        PyErr_SetString(PYLIBSSH2_Error, "Failure to set banner.");
-        return;
+    if(rc) {
+        if(rc != LIBSSH2_ERROR_EAGAIN) {
+            printf("test");
+            PyErr_SetString(PYLIBSSH2_Error, "Failure to set banner.");
+            return;
+        }
     }
+
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 /* }}} */
 
@@ -221,7 +227,7 @@ PYLIBSSH2_Session_hostkey_hash(PYLIBSSH2_SESSION *self, PyObject *args)
     Py_END_ALLOW_THREADS
 
     if (hash == NULL) {
-        Py_INCREF(Py_None);
+        Py_XINCREF(Py_None);
         return Py_None;
     }
 
@@ -352,7 +358,7 @@ PYLIBSSH2_Session_session_methods(PYLIBSSH2_SESSION *self, PyObject *args)
     kex = libssh2_session_methods(self->session, LIBSSH2_METHOD_KEX);
     if (kex == NULL) {
         /* session has not yet been started no methods negociated */
-        Py_INCREF(Py_None);
+        Py_XINCREF(Py_None);
         return Py_None;
     }
     hostkey = libssh2_session_methods(self->session, LIBSSH2_METHOD_HOSTKEY);
@@ -712,20 +718,20 @@ stub_x11_callback_func(LIBSSH2_SESSION *session,
     pysession->session = session;
     pysession->opened = 1;
     pysession->dealloc = 0;
-    Py_INCREF(pysession);
+    Py_XINCREF(pysession);
 
     pychannel = PyObject_New(PYLIBSSH2_CHANNEL, &PYLIBSSH2_Channel_Type);
     pychannel->channel = channel;
     pychannel->dealloc = 0;
-    Py_INCREF(pychannel);
+    Py_XINCREF(pychannel);
 
     pyabstract = Py_None;
-    Py_INCREF(pyabstract);
+    Py_XINCREF(pyabstract);
 
     arglist = Py_BuildValue("(OOsiO)",
         pysession, pychannel, shost, sport, pyabstract
     );
-    Py_INCREF(arglist);
+    Py_XINCREF(arglist);
 
     /* Performing Python callback with C API */
     result = PyEval_CallObject(py_callback_func, arglist);
@@ -740,10 +746,10 @@ stub_x11_callback_func(LIBSSH2_SESSION *session,
     /* Restore previous thread state and release acquired resources */
     PyGILState_Release(gstate);
 
-    Py_DECREF(pysession);
-    Py_DECREF(pychannel);
-    Py_DECREF(pyabstract);
-    Py_DECREF(arglist);
+    Py_XDECREF(pysession);
+    Py_XDECREF(pychannel);
+    Py_XDECREF(pyabstract);
+    Py_XDECREF(arglist);
 }
 
 void
@@ -931,7 +937,7 @@ PYLIBSSH2_Session_New(LIBSSH2_SESSION *session, int dealloc)
     self->opened = 0;
     self->socket = NULL;
 
-    libssh2_banner_set(session, LIBSSH2_SSH_DEFAULT_BANNER "_Python");
+    libssh2_banner_set(session, LIBSSH2_SSH_DEFAULT_BANNER"_Python");
 
     return self;
 }
@@ -1004,7 +1010,7 @@ int
 init_libssh2_Session(PyObject *dict)
 {
     PYLIBSSH2_Session_Type.ob_type = &PyType_Type;
-    Py_INCREF(&PYLIBSSH2_Session_Type);
+    Py_XINCREF(&PYLIBSSH2_Session_Type);
     PyDict_SetItemString(dict, "SessionType", (PyObject *)&PYLIBSSH2_Session_Type);
     
     return 1;

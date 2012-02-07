@@ -75,7 +75,7 @@ PYLIBSSH2_Sftpfile_read(PYLIBSSH2_SFTPFILE *self, PyObject *args)
 
     buffer = PyString_FromStringAndSize(NULL, buffer_maxlen);
     if (buffer == NULL) {
-        Py_INCREF(Py_None);
+        Py_XINCREF(Py_None);
         return Py_None;
     }
 
@@ -86,14 +86,14 @@ PYLIBSSH2_Sftpfile_read(PYLIBSSH2_SFTPFILE *self, PyObject *args)
 
     if (rc > 0) {
         if ( rc != buffer_maxlen && _PyString_Resize(&buffer, rc) < 0) {
-            Py_INCREF(Py_None);
+            Py_XINCREF(Py_None);
             return Py_None;
         }
         return buffer;
     }
 
     Py_XDECREF(buffer);
-    Py_INCREF(Py_None);
+    Py_XINCREF(Py_None);
 
     return Py_None;
 }
@@ -254,7 +254,7 @@ int
 init_libssh2_Sftpfile(PyObject *dict)
 {
     PYLIBSSH2_Sftpfile_Type.ob_type = &PyType_Type;
-    Py_INCREF(&PYLIBSSH2_Sftpfile_Type);
+    Py_XINCREF(&PYLIBSSH2_Sftpfile_Type);
     PyDict_SetItemString(dict, "SftpfileType", (PyObject *)&PYLIBSSH2_Sftpfile_Type);
 
     return 1;
