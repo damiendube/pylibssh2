@@ -34,7 +34,7 @@ Arguments:\n\
 Returns:\n\
 ";
 
-static void
+static PyObject*
 PYLIBSSH2_Sftpdir_close(PYLIBSSH2_SFTPDIR *self, PyObject *args)
 {
     int rc;
@@ -46,9 +46,11 @@ PYLIBSSH2_Sftpdir_close(PYLIBSSH2_SFTPDIR *self, PyObject *args)
     if (rc) {
         /* CLEAN: PYLIBSSH2_SFTPFILE_CANT_CLOSE_MSG */
         PyErr_SetString(PYLIBSSH2_Error, "Unable to close sftp handle.");
-        return;
+        return NULL;
     }
 
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 /* }}} */
 

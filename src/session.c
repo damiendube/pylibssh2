@@ -31,7 +31,7 @@ static char PYLIBSSH2_Session_handshake_doc[] = "\
     \n\
     @param  socket: an open socket to the remote host\n\
     @type   socket: object\n";
-static void
+static PyObject*
 PYLIBSSH2_Session_handshake(PYLIBSSH2_SESSION *self, PyObject *args)
 {
     int rc;
@@ -92,7 +92,7 @@ PYLIBSSH2_Session_set_banner(PYLIBSSH2_SESSION *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "|s:set_banner", &banner)) {
         PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
-        return;
+        return NULL;
     }
 
     rc = libssh2_banner_set(self->session, banner);
@@ -100,7 +100,7 @@ PYLIBSSH2_Session_set_banner(PYLIBSSH2_SESSION *self, PyObject *args)
         if(rc != LIBSSH2_ERROR_EAGAIN) {
             printf("test");
             PyErr_SetString(PYLIBSSH2_Error, "Failure to set banner.");
-            return;
+            return NULL;
         }
     }
 
@@ -119,7 +119,7 @@ Closes the session.\n\
 @param  reason: human readable reason for disconnection\n\
 @type   reason: str\n";
 
-static void
+static PyObject*
 PYLIBSSH2_Session_close(PYLIBSSH2_SESSION *self, PyObject *args)
 {
     int rc;
@@ -127,7 +127,7 @@ PYLIBSSH2_Session_close(PYLIBSSH2_SESSION *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "|s:close", &reason)) {
         PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
-        return;
+        return NULL;
     }
 
     Py_BEGIN_ALLOW_THREADS
@@ -137,10 +137,13 @@ PYLIBSSH2_Session_close(PYLIBSSH2_SESSION *self, PyObject *args)
     if (rc < 0) {
         /* CLEAN: PYLIBSSH2_SESSION_CLOSE_MSG */
         PyErr_SetString(PYLIBSSH2_Error, "SSH close error.");
-        return;
+        return NULL;
     }
 
     self->opened = 0;
+
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 /* }}} */
 
@@ -261,7 +264,7 @@ Authenticates a session with the given username and password.\n\
 @param  password: password to use for the authentication\n\
 @type   password: str\n";
 
-static void
+static PyObject*
 PYLIBSSH2_Session_userauth_password(PYLIBSSH2_SESSION *self, PyObject *args)
 {
     int rc;
@@ -270,7 +273,7 @@ PYLIBSSH2_Session_userauth_password(PYLIBSSH2_SESSION *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "ss:userauth_password", &username, &password))
         PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
-        return;
+        return NULL;
 
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_userauth_password(self->session, username, password);
@@ -279,9 +282,11 @@ PYLIBSSH2_Session_userauth_password(PYLIBSSH2_SESSION *self, PyObject *args)
     if (rc < 0) {
         /* CLEAN: PYLIBSSH2_SESSION_USERAUTH_PASSWORD_FAILED_MSG */
         PyErr_SetString(PYLIBSSH2_Error, "Authentification by password failed.");
-        return;
+        return NULL;
     }
 
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 /* }}} */
 
@@ -302,7 +307,7 @@ privatekey files, and passphrase if provided.\n\
 @param  passphrase: passphrase to use when decoding private file\n\
 @type   passphrase: str\n";
 
-static void
+static PyObject*
 PYLIBSSH2_Session_userauth_publickey_fromfile(PYLIBSSH2_SESSION *self, PyObject *args)
 {
     int rc;
@@ -314,7 +319,7 @@ PYLIBSSH2_Session_userauth_publickey_fromfile(PYLIBSSH2_SESSION *self, PyObject 
     if (!PyArg_ParseTuple(args, "sss|s:userauth_publickey_fromfile", &username,
                           &publickey, &privatekey, &passphrase)) {
         PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
-        return;
+        return NULL;
     }
 
     Py_BEGIN_ALLOW_THREADS
@@ -327,8 +332,11 @@ PYLIBSSH2_Session_userauth_publickey_fromfile(PYLIBSSH2_SESSION *self, PyObject 
         libssh2_session_last_error(self->session, &last_error, NULL, 0);
         PyErr_Format(PYLIBSSH2_Error, "Authentification by public key failed: %s",
                      last_error);
-        return;
+        return NULL;
     }
+
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 /* }}} */
 
@@ -401,7 +409,7 @@ prior to calling handshake().\n\
 @param  pref: coma delimited list of preferred methods\n\
 @type   pref: str\n";
 
-static void
+static PyObject*
 PYLIBSSH2_Session_session_method_pref(PYLIBSSH2_SESSION *self, PyObject *args)
 {
     int method;
@@ -409,12 +417,15 @@ PYLIBSSH2_Session_session_method_pref(PYLIBSSH2_SESSION *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "is:session_method_pref", &method, &pref)) {
         PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
-        return;
+        return NULL;
     }
     if(libssh2_session_method_pref(self->session, method, pref) != 0) {
         PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
-        return;
+        return NULL;
     }
+
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 /* }}} */
 
@@ -694,7 +705,7 @@ x11_callback(LIBSSH2_SESSION *session, LIBSSH2_CHANNEL *channel,
 
 static PyObject *py_callback_func = NULL;
 
-static void
+void
 stub_x11_callback_func(LIBSSH2_SESSION *session,
                    LIBSSH2_CHANNEL *channel,
                    const char *shost,
@@ -740,7 +751,7 @@ stub_x11_callback_func(LIBSSH2_SESSION *session,
     }
     if(rc) {
         PyErr_SetString(PyExc_TypeError, "An error occured while calling callback function");
-        return;
+        return NULL;
     }
 
     /* Restore previous thread state and release acquired resources */
@@ -752,7 +763,7 @@ stub_x11_callback_func(LIBSSH2_SESSION *session,
     Py_XDECREF(arglist);
 }
 
-void
+static PyObject *
 PYLIBSSH2_Session_callback_set(PYLIBSSH2_SESSION *self, PyObject *args)
 {
 
@@ -765,11 +776,11 @@ PYLIBSSH2_Session_callback_set(PYLIBSSH2_SESSION *self, PyObject *args)
     if (PyArg_ParseTuple(args, "iO:callback_set", &cbtype, &cb)) {
         if (!PyCallable_Check(cb)) {
             PyErr_SetString(PyExc_TypeError, "parameter must be callable");
-            return;
+            return NULL;
         }
         if(cbtype == LIBSSH2_CALLBACK_X11) {
             PyErr_SetString(PyExc_TypeError, "Only callable supported is LIBSSH2_CALLBACK_X11");
-            return;
+            return NULL;
 
         }
         Py_XINCREF(cb);
@@ -780,6 +791,9 @@ PYLIBSSH2_Session_callback_set(PYLIBSSH2_SESSION *self, PyObject *args)
         libssh2_session_callback_set(self->session, cbtype, stub_x11_callback_func);
         Py_END_ALLOW_THREADS
     }
+
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 /* }}} */
 
@@ -825,7 +839,7 @@ static PyObject *kbd_callback_func = NULL;
 static char *interactive_response;
 static int interactive_response_len;
 
-static void
+static PyObject*
 stub_kbd_callback_func(const char *name, int name_len,
                        const char *instruction, int instruction_len,
                        int num_prompts,

@@ -33,7 +33,7 @@ Arguments:\n\
 Returns:\n\
 ";
 
-static void
+static PyObject*
 PYLIBSSH2_Sftpfile_close(PYLIBSSH2_SFTPFILE *self, PyObject *args)
 {
     int rc;
@@ -45,9 +45,11 @@ PYLIBSSH2_Sftpfile_close(PYLIBSSH2_SFTPFILE *self, PyObject *args)
     if (rc) {
         /* CLEAN: PYLIBSSH2_SFTPFILE_CANT_CLOSE_MSG */
         PyErr_SetString(PYLIBSSH2_Error, "Unable to close sftp handle.");
-        return;
+        return NULL;
     }
 
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 /* }}} */
 
@@ -159,19 +161,22 @@ Arguments:\n\
 Returns:\n\
 ";
 
-static void
+static PyObject*
 PYLIBSSH2_Sftpfile_seek(PYLIBSSH2_SFTPFILE *self, PyObject *args)
 {
     unsigned long offset=0;
 
     if (!PyArg_ParseTuple(args, "k:seek", &offset)) {
         PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
-        return;
+        return NULL;
     }
 
     Py_BEGIN_ALLOW_THREADS
     libssh2_sftp_seek64(self->handle, offset);
     Py_END_ALLOW_THREADS
+
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 /* }}} */
 

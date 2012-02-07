@@ -59,7 +59,7 @@ Arguments:\n\
 Returns:\n\
 ";
 
-static void
+static PyObject*
 PYLIBSSH2_Listener_cancel(PYLIBSSH2_LISTENER *self, PyObject *args)
 {
     int rc;
@@ -70,8 +70,11 @@ PYLIBSSH2_Listener_cancel(PYLIBSSH2_LISTENER *self, PyObject *args)
 
     if(rc) {
         PyErr_SetString(PYLIBSSH2_Error, "Unable to cancel a forwarded TCP port");
-        return;
+        return NULL;
     }
+
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 /* }}} */
 

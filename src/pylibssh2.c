@@ -169,7 +169,7 @@ init_libssh2(void)
         PYLIBSSH2_doc
     );
     if (module == NULL) {
-        return;
+        return NULL;
     }
 
     PYLIBSSH2_API[PYLIBSSH2_Session_New_NUM] = (void *) PYLIBSSH2_Session_New;
