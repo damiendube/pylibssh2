@@ -230,7 +230,7 @@ PYLIBSSH2_Session_hostkey_hash(PYLIBSSH2_SESSION *self, PyObject *args)
     Py_END_ALLOW_THREADS
 
     if (hash == NULL) {
-        Py_XINCREF(Py_None);
+        Py_INCREF(Py_None);
         return Py_None;
     }
 
@@ -366,7 +366,7 @@ PYLIBSSH2_Session_session_methods(PYLIBSSH2_SESSION *self, PyObject *args)
     kex = libssh2_session_methods(self->session, LIBSSH2_METHOD_KEX);
     if (kex == NULL) {
         /* session has not yet been started no methods negociated */
-        Py_XINCREF(Py_None);
+        Py_INCREF(Py_None);
         return Py_None;
     }
     hostkey = libssh2_session_methods(self->session, LIBSSH2_METHOD_HOSTKEY);
@@ -1024,7 +1024,7 @@ int
 init_libssh2_Session(PyObject *dict)
 {
     PYLIBSSH2_Session_Type.ob_type = &PyType_Type;
-    Py_XINCREF(&PYLIBSSH2_Session_Type);
+    Py_INCREF(&PYLIBSSH2_Session_Type);
     PyDict_SetItemString(dict, "SessionType", (PyObject *)&PYLIBSSH2_Session_Type);
     
     return 1;

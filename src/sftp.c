@@ -281,7 +281,7 @@ PYLIBSSH2_Sftp_realpath(PYLIBSSH2_SFTP *self, PyObject *args)
 
     target = PyString_FromStringAndSize(NULL, target_len);
     if (target == NULL) {
-        Py_XINCREF(Py_None);
+        Py_INCREF(Py_None);
         return Py_None;
     }
 
@@ -292,14 +292,14 @@ PYLIBSSH2_Sftp_realpath(PYLIBSSH2_SFTP *self, PyObject *args)
 
     if (rc > 0) {
         if (rc != target_len && _PyString_Resize(&target, rc) < 0) {
-            Py_XINCREF(Py_None);
+            Py_INCREF(Py_None);
             return Py_None;
         }
         return target;
     }
 
     Py_XDECREF(target);
-    Py_XINCREF(Py_None);
+    Py_INCREF(Py_None);
 
     return Py_None;
 }
@@ -543,7 +543,7 @@ int
 init_libssh2_Sftp(PyObject *dict)
 {
     PYLIBSSH2_Sftp_Type.ob_type = &PyType_Type;
-    Py_XINCREF(&PYLIBSSH2_Sftp_Type);
+    Py_INCREF(&PYLIBSSH2_Sftp_Type);
     PyDict_SetItemString(dict, "SFTPType", (PyObject *) &PYLIBSSH2_Sftp_Type);
 
     return 1;

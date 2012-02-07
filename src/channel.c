@@ -833,7 +833,7 @@ int
 init_libssh2_Channel(PyObject *dict)
 {
     PYLIBSSH2_Channel_Type.ob_type = &PyType_Type;
-    Py_XINCREF(&PYLIBSSH2_Channel_Type);
+    Py_INCREF(&PYLIBSSH2_Channel_Type);
     PyDict_SetItemString(dict, "ChannelType", (PyObject *)&PYLIBSSH2_Channel_Type);
 
     return 1;
