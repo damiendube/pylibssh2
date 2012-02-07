@@ -31,10 +31,7 @@ close() -> int\n\
 Closes the active channel.\n\
 \n\
 @param channel\n\
-@type libssh2.Channel\n\
-\n\
-@return 0 on success or negative on failure\n\
-@rtype int";
+@type libssh2.Channel\n";
 
 void
 PYLIBSSH2_Channel_close(PYLIBSSH2_CHANNEL *self, PyObject *args)
@@ -228,10 +225,7 @@ Sets envrionment variable on the channel.\n\
 @param name: evironment variable name\n\
 @type  name: str\n\
 @param value: evironment variable value\n\
-@type  value: str\n\
-\n\
-@return 0 on success or negative on failure\n\
-@rtype  int";
+@type  value: str\n";
 
 void
 PYLIBSSH2_Channel_setenv(PYLIBSSH2_CHANNEL *self, PyObject *args)
@@ -428,10 +422,7 @@ PYLIBSSH2_Channel_write(PYLIBSSH2_CHANNEL *self, PyObject *args)
 static char PYLIBSSH2_Channel_flush_doc[] = "\n\
 flush() -> int\n\
 \n\
-Flushs the read buffer for a given channel.\n\
-\n\
-@return 0 on success or negative on failure\n\
-@rtype  int";
+Flushs the read buffer for a given channel.\n";
 
 void
 PYLIBSSH2_Channel_flush(PYLIBSSH2_CHANNEL *self, PyObject *args)
@@ -503,10 +494,7 @@ PYLIBSSH2_Channel_eof(PYLIBSSH2_CHANNEL *self, PyObject *args)
 static char PYLIBSSH2_Channel_send_eof_doc[] = "\n\
 send_eof() -> int\n\
 \n\
-Sends EOF status on the channel to remote server.\n\
-\n\
-@return 0 on success or negative on failure\n\
-@rtype  int";
+Sends EOF status on the channel to remote server.\n";
 
 void
 PYLIBSSH2_Channel_send_eof(PYLIBSSH2_CHANNEL *self, PyObject *args)
@@ -530,10 +518,7 @@ PYLIBSSH2_Channel_send_eof(PYLIBSSH2_CHANNEL *self, PyObject *args)
 static char PYLIBSSH2_Channel_wait_eof_doc[] = "\n\
 wait_eof() -> int\n\
 \n\
-Sends EOF status on the channel to remote server.\n\
-\n\
-@return 0 on success or negative on failure\n\
-@rtype  int";
+Sends EOF status on the channel to remote server.\n";
 
 void
 PYLIBSSH2_Channel_wait_eof(PYLIBSSH2_CHANNEL *self, PyObject *args)
@@ -560,10 +545,7 @@ wait_closed() -> int\n\
 Wait for the remote channel to ack channel close.\n\
 \n\
 @param channel\n\
-@type libssh2.Channel\n\
-\n\
-@return 0 on success or negative on failure\n\
-@rtype int";
+@type libssh2.Channel\n";
 
 void
 PYLIBSSH2_Channel_wait_closed(PYLIBSSH2_CHANNEL *self, PyObject *args)
@@ -648,10 +630,7 @@ Requests an X11 Forwarding on the channel.\n\
 @param  auth_cookie: the cookie\n\
 @type  auth_cookie: str\n\
 @param  display: screen number\n\
-@type  display: int\n\
-\n\
-@return 0 on success or negative on failure\n\
-@rtype  int";
+@type  display: int\n";
 
 void
 PYLIBSSH2_Channel_x11_req(PYLIBSSH2_CHANNEL *self, PyObject *args)

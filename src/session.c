@@ -24,7 +24,13 @@
 
 /* {{{ PYLIBSSH2_Session_handshake
  */
-static char PYLIBSSH2_Session_handshake_doc[] = "";
+static char PYLIBSSH2_Session_handshake_doc[] = "\
+    handshake(socket)\n\
+    \n\
+    Perform the SSH handshake.\n\
+    \n\
+    @param  socket: an open socket to the remote host\n\
+    @type   socket: object\n";
 void
 PYLIBSSH2_Session_handshake(PYLIBSSH2_SESSION *self, PyObject *args)
 {
@@ -37,7 +43,32 @@ PYLIBSSH2_Session_handshake(PYLIBSSH2_SESSION *self, PyObject *args)
     Py_END_ALLOW_THREADS
 
     if(rc < 0) {
-        PyErr_SetString(PYLIBSSH2_Error, "Failure establishing handshake.");
+        switch(rc) {
+            case LIBSSH2_ERROR_SOCKET_NONE:
+                PyErr_SetString(PYLIBSSH2_Error, "The socket is invalid.");
+                break;
+            case LIBSSH2_ERROR_BANNER_SEND:
+                PyErr_SetString(PYLIBSSH2_Error, "Unable to send banner to remote host.");
+                break;
+            case LIBSSH2_ERROR_KEX_FAILURE:
+                PyErr_SetString(PYLIBSSH2_Error, "Encryption key exchange with the remote host failed.");
+                break;
+            case LIBSSH2_ERROR_SOCKET_SEND:
+                PyErr_SetString(PYLIBSSH2_Error, "Unable to send data on socket.");
+                break;
+            case LIBSSH2_ERROR_SOCKET_DISCONNECT:
+                PyErr_SetString(PYLIBSSH2_Error, "The socket was disconnected.");
+                break;
+            case LIBSSH2_ERROR_PROTO:
+                PyErr_SetString(PYLIBSSH2_Error, "An invalid SSH protocol response was received on the socket.");
+                break;
+            case LIBSSH2_ERROR_EAGAIN:
+                PyErr_SetString(PYLIBSSH2_Error, "Marked for non-blocking I/O but the call would block.");
+                break;
+            default:
+                PyErr_SetString(PYLIBSSH2_Error, "Failure establishing handshake.");
+                break;
+        }
     }
 }
 /* }}} */
@@ -45,16 +76,13 @@ PYLIBSSH2_Session_handshake(PYLIBSSH2_SESSION *self, PyObject *args)
 /* {{{ PYLIBSSH2_Session_set_banner
  */
 static char PYLIBSSH2_Session_set_banner_doc[] = "\
-set_banner(banner) -> int\n\
+set_banner(banner)\n\
 \n\
 Sets the banner that will be sent to remote host.\n\
 This is optional, the banner libssh2.DEFAULT_BANNER will be sent by default.\n\
 \n\
 @param  banner: an user defined banner\n\
-@type   banner: str\n\
-\n\
-@return 0 on success or negative on failure\n\
-@rtype  int";
+@type   banner: str\n";
 
 void
 PYLIBSSH2_Session_set_banner(PYLIBSSH2_SESSION *self, PyObject *args)
@@ -75,54 +103,10 @@ PYLIBSSH2_Session_set_banner(PYLIBSSH2_SESSION *self, PyObject *args)
 }
 /* }}} */
 
-/* {{{ PYLIBSSH2_Session_startup
- */
-static char PYLIBSSH2_Session_startup_doc[] = "\
-startup(socket) -> int\n\
-\n\
-Starts up the session from a socket created by socket.socket() call.\n\
-\n\
-@param  socket: a connected socket object\n\
-@type   socket: socket._socketobject\n\
-\n\
-@return 0 on success or negative on failure\n\
-@rtype  int";
-
-void
-PYLIBSSH2_Session_startup(PYLIBSSH2_SESSION *self, PyObject *args)
-{
-    int rc;
-    int fd;
-    char *last_error = "";
-    PyObject *socket;
-
-    if (!PyArg_ParseTuple(args, "O:startup", &socket)) {
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
-        return;
-    }
-
-    Py_XINCREF(socket);
-    self->socket = socket;
-    fd = PyObject_AsFileDescriptor(socket);
-    Py_BEGIN_ALLOW_THREADS
-    rc = libssh2_session_startup(self->session, fd);
-    Py_END_ALLOW_THREADS
-
-    if (rc) {
-        libssh2_session_last_error(self->session, &last_error, NULL, 0);
-        /* CLEAN: PYLIBSSH2_SESSION_STARTUP_MSG */
-        PyErr_Format(PYLIBSSH2_Error, "SSH startup: %s", last_error);
-        return;
-    }
-    
-    self->opened = 1;
-}
-/* }}} */
-
 /* {{{ PYLIBSSH2_Session_close
  */
 static char PYLIBSSH2_Session_close_doc[] = "\
-close([reason]) -> int \n\
+close([reason])\n\
 \n\
 Closes the session.\n\
 \n\
@@ -262,17 +246,14 @@ PYLIBSSH2_Session_hostkey_hash(PYLIBSSH2_SESSION *self, PyObject *args)
 /* {{{ PYLIBSSH2_Session_userauth_password
  */
 static char PYLIBSSH2_Session_userauth_password_doc[] = "\n\
-userauth_password(username, password) -> int \n\
+userauth_password(username, password)\n\
 \n\
 Authenticates a session with the given username and password.\n\
 \n\
 @param  username: user to authenticate\n\
 @type   username: str\n\
 @param  password: password to use for the authentication\n\
-@type   password: str\n\
-\n\
-@return 0 on success or raise an exception on failure\n\
-@rtype  int";
+@type   password: str\n";
 
 void
 PYLIBSSH2_Session_userauth_password(PYLIBSSH2_SESSION *self, PyObject *args)
@@ -301,7 +282,7 @@ PYLIBSSH2_Session_userauth_password(PYLIBSSH2_SESSION *self, PyObject *args)
 /* {{{ PYLIBSSH2_Session_userauth_publickey_fromfile
  */
 static char PYLIBSSH2_Session_userauth_publickey_fromfile_doc[] = "\n\
-userauth_publickey_fromfile(username, publickey, privatekey, passphrase) -> int\n\
+userauth_publickey_fromfile(username, publickey, privatekey, passphrase)\n\
 \n\
 Authenticates a session as username using a key pair found in the pulickey and\n\
 privatekey files, and passphrase if provided.\n\
@@ -313,10 +294,7 @@ privatekey files, and passphrase if provided.\n\
 @param  privatekey: path and name of private key file\n\
 @type   privatekey: str\n\
 @param  passphrase: passphrase to use when decoding private file\n\
-@type   passphrase: str\n\
-\n\
-@return 0 on success or negative on failure\n\
-@rtype  int";
+@type   passphrase: str\n";
 
 void
 PYLIBSSH2_Session_userauth_publickey_fromfile(PYLIBSSH2_SESSION *self, PyObject *args)
@@ -407,18 +385,15 @@ PYLIBSSH2_Session_session_methods(PYLIBSSH2_SESSION *self, PyObject *args)
 /* {{{ PYLIBSSH2_Session_session_method_pref
  */
 static char PYLIBSSH2_Session_session_method_pref_doc[] = "\n\
-session_method_pref(method_type, pref) -> int\n\
+session_method_pref(method_type, pref)\n\
 \n\
 Sets preferred methods to be negociated. Theses preferences must be\n\
-prior to calling startup().\n\
+prior to calling handshake().\n\
 \n\
 @param  method_type: the method type constants\n\
 @type   method_type: L{libssh2.METHOD}\n\
 @param  pref: coma delimited list of preferred methods\n\
-@type   pref: str\n\
-\n\
-@return 0 on success or negative on failure\n\
-@rtype  int";
+@type   pref: str\n";
 
 void
 PYLIBSSH2_Session_session_method_pref(PYLIBSSH2_SESSION *self, PyObject *args)
@@ -714,7 +689,7 @@ x11_callback(LIBSSH2_SESSION *session, LIBSSH2_CHANNEL *channel,
 static PyObject *py_callback_func = NULL;
 
 static void
-x11_callback_func(LIBSSH2_SESSION *session,
+stub_x11_callback_func(LIBSSH2_SESSION *session,
                    LIBSSH2_CHANNEL *channel,
                    const char *shost,
                    int sport,
@@ -796,7 +771,7 @@ PYLIBSSH2_Session_callback_set(PYLIBSSH2_SESSION *self, PyObject *args)
         py_callback_func = cb;
 
         Py_BEGIN_ALLOW_THREADS
-        libssh2_session_callback_set(self->session, cbtype, x11_callback_func);
+        libssh2_session_callback_set(self->session, cbtype, stub_x11_callback_func);
         Py_END_ALLOW_THREADS
     }
 }
@@ -913,9 +888,8 @@ PYLIBSSH2_Session_userauth_keyboardinteractive(PYLIBSSH2_SESSION *self, PyObject
 
 static PyMethodDef PYLIBSSH2_Session_methods[] =
 {
-    ADD_METHOD(handshake),
     ADD_METHOD(set_banner),
-    ADD_METHOD(startup),
+    ADD_METHOD(handshake),
     ADD_METHOD(close),
     ADD_METHOD(userauth_authenticated),
     ADD_METHOD(hostkey_hash),

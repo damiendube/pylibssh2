@@ -24,10 +24,10 @@ import tty, termios
 
 import libssh2
 
-DEBUG=False
+DEBUG = False
 
 usage = """Do a SSH connection with username@hostname
-Usage: %s <hostname> <username> <password>""" % __file__[__file__.rfind('/')+1:]
+Usage: %s <hostname> <username> <password>""" % __file__[__file__.rfind('/') + 1:]
 
 class MySSHClient:
     def __init__(self, hostname, username, password, port=22):
@@ -50,8 +50,8 @@ class MySSHClient:
             self.session = libssh2.Session()
             self.session.set_banner()
 
-            self.session.startup(self.sock)
-            
+            self.session.handshake(self.sock)
+
             # authentication
             auth_list = self.session.userauth_list(self.username)
             if DEBUG:
@@ -59,7 +59,7 @@ class MySSHClient:
             self.session.userauth_password(self.username, self.password)
 
         except Exception, e:
-            print "SSHError: Can't startup session"
+            print "SSHError: Can't handshake session"
             print e
 
     def run(self):
@@ -85,13 +85,13 @@ class MySSHClient:
                     else:
                         break
                     sys.stdout.flush()
-                    
-                r,w,x = select.select([fd],[],[],0.01)
+
+                r, w, x = select.select([fd], [], [], 0.01)
                 if sys.stdin.fileno() in r:
-                    data = sys.stdin.read(1).replace('\n','\r\n')
+                    data = sys.stdin.read(1).replace('\n', '\r\n')
                     channel.write(data)
 
-        except Exception,e:
+        except Exception, e:
             print e
         finally:
             channel.close()
@@ -109,11 +109,11 @@ if __name__ == '__main__' :
     # save terminal settings
     fd = sys.stdin.fileno()
     old_settings = termios.tcgetattr(fd)
-    
+
     # enable raw mode
     tty.setraw(fd)
 
-    myssh = MySSHClient(sys.argv[1],sys.argv[2], sys.argv[3])
+    myssh = MySSHClient(sys.argv[1], sys.argv[2], sys.argv[3])
     myssh.run()
 
     # restore terminal settings

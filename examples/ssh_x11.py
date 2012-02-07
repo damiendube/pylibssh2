@@ -30,7 +30,7 @@ import libssh2
 from libssh2 import SessionException, ChannelException
 
 usage = """Do a X11 SSH connection with username@hostname
-Usage: %s <hostname> <username> <password> <port>""" % __file__[__file__.rfind('/')+1:]
+Usage: %s <hostname> <username> <password> <port>""" % __file__[__file__.rfind('/') + 1:]
 
 def remove_node(elem):
     x11_channels.remove(elem)
@@ -47,7 +47,7 @@ def normal_mode(fd):
 
 def x11_callback(session, channel, shost, sport, abstract):
     display = os.environ["DISPLAY"]
-    display_port = display[display.index(":")+1]
+    display_port = display[display.index(":") + 1]
     _path_unix_x = "/tmp/.X11-unix/X%s" % display_port
     if display[:5] == "unix:" or display[0] == ':':
         sock = socket(AF_UNIX, SOCK_STREAM)
@@ -58,9 +58,9 @@ def x11_callback(session, channel, shost, sport, abstract):
 def trace(session):
     if DEBUG and session:
         session.set_trace(
-            libssh2.LIBSSH2_TRACE_TRANS|
-            libssh2.LIBSSH2_TRACE_CONN|
-            libssh2.LIBSSH2_TRACE_AUTH|
+            libssh2.LIBSSH2_TRACE_TRANS |
+            libssh2.LIBSSH2_TRACE_CONN |
+            libssh2.LIBSSH2_TRACE_AUTH |
             libssh2.LIBSSH2_TRACE_ERROR
         )
 
@@ -69,7 +69,7 @@ if __name__ == '__main__':
         print usage
         sys.exit(1)
 
-    DEBUG=False
+    DEBUG = False
     x11_channels = []
     buffsize = 8192
 
@@ -98,9 +98,9 @@ if __name__ == '__main__':
         session.set_banner()
         # trace session on stderr if DEBUG=True
         trace(session)
-        session.startup(sock)
+        session.handshake(sock)
     except SessionException, e:
-        print "Can't startup session: %s" % e
+        print "Can't handshake session: %s" % e
         sys.exit(1)
 
     # register X11 callback
@@ -126,7 +126,7 @@ if __name__ == '__main__':
 
         # parse xauth data
         p = subprocess.Popen(
-            ['xauth','list'], shell=False, stdout=subprocess.PIPE
+            ['xauth', 'list'], shell=False, stdout=subprocess.PIPE
         )
         xauth_data = p.communicate()[0]
         auth_protocol, auth_cookie = xauth_data.split()[1:]
@@ -153,7 +153,7 @@ if __name__ == '__main__':
                 sys.stdout.flush()
 
             if fd in r:
-                data = sys.stdin.read(1).replace('\n','\r\n')
+                data = sys.stdin.read(1).replace('\n', '\r\n')
                 channel.write(data)
 
             for sock, x11_chan in list(x11_channels):

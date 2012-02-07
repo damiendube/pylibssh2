@@ -22,10 +22,10 @@ import socket, sys
 
 import libssh2
 
-DEBUG=False
+DEBUG = False
 
 usage = """Do a SSH remote command with username@hostname
-Usage: %s <hostname> <username> <password> <command>""" % __file__[__file__.rfind('/')+1:]
+Usage: %s <hostname> <username> <password> <command>""" % __file__[__file__.rfind('/') + 1:]
 
 def my_print(args):
     if DEBUG: print(args)
@@ -42,10 +42,10 @@ class SSHRemoteClient(object):
 
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.connect((self.hostname,self.port))
-            self.session.startup(sock)
+            sock.connect((self.hostname, self.port))
+            self.session.handshake(sock)
             my_print(self.session.last_error())
-            self.session.userauth_password(self.username,self.password)
+            self.session.userauth_password(self.username, self.password)
             my_print(self.session.last_error())
         except Exception, e:
             print str(e)

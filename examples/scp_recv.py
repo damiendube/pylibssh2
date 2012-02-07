@@ -45,10 +45,10 @@ class MySCPClient:
         try:
             self.session = libssh2.Session()
             self.session.set_banner()
-            self.session.startup(self.sock)
+            self.session.handshake(self.sock)
             self.session.userauth_password(self.username, self.password)
         except Exception, e:
-            print "SSHError: Can't startup session"
+            print "SSHError: Can't handshake session"
             print e
 
     def recv(self, remote_in_path, local_out_path, mode=0644):

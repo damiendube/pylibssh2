@@ -39,25 +39,27 @@ class SessionTest(unittest.TestCase):
         session = libssh2.Session()
         self.assertTrue(isinstance(session, libssh2.session.Session))
 
-    def test_session_startup(self):
+    def test_session_handshake(self):
         import libssh2
         session = libssh2.Session()
         session.set_banner()
-        session.startup(self.socket)
+        session.handshake(self.socket)
         self.assertEqual(session.userauth_authenticated(), 0)
 
-    def test_session_login(self):
+    def test_session_password_login(self):
         import libssh2
         session = libssh2.Session()
         session.set_banner()
-        session.startup(self.socket)
+        session.handshake(self.socket)
         self.assertEqual(session.userauth_authenticated(), 0)
-
-        username = pwd.getpwuid(os.getuid())[0]
-        session.userauth_publickey_fromfile(username, os.path.expanduser("~%s/.ssh/id_rsa.pub" % (username)), os.path.expanduser("~%s/.ssh/id_rsa" % (username)), None)
-
 
         session.callback_set(libssh2.LIBSSH2_CALLBACK_DEBUG, callback_func)
+
+        username = pwd.getpwuid(os.getuid())[0]
+
+        session.userauth_publickey_fromfile(username, os.path.expanduser("~%s/.ssh/id_rsa.pub" % (username)), os.path.expanduser("~%s/.ssh/id_rsa" % (username)), "D1fference")
+
+        #session.userauth_password("ddube", "D1fference")
 
         self.assertEqual(session.userauth_authenticated(), 1)
 

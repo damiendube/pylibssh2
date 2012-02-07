@@ -23,7 +23,7 @@ import socket, sys
 import libssh2
 
 usage = """Do a SFTP file listing of <directory> with username@hostname
-Usage: %s <hostname> <username> <password> <directory>""" % __file__[__file__.rfind('/')+1:]
+Usage: %s <hostname> <username> <password> <directory>""" % __file__[__file__.rfind('/') + 1:]
 
 class MySFTPClient:
     def __init__(self, hostname, username, password, port=22):
@@ -45,10 +45,10 @@ class MySFTPClient:
         try:
             self.session = libssh2.Session()
             self.session.set_banner()
-            self.session.startup(self.sock)
+            self.session.handshake(self.sock)
             self.session.userauth_password(self.username, self.password)
         except Exception, e:
-            print "SSHError: Can't startup session"
+            print "SSHError: Can't handshake session"
             print e
 
         # use low level layer because we don't yet provide High layer for sftp
@@ -77,7 +77,7 @@ if __name__ == '__main__' :
         sys.exit(1)
     mysftp = MySFTPClient(
         hostname=sys.argv[1],
-        username=sys.argv[2], 
+        username=sys.argv[2],
         password=sys.argv[3]
     )
     mysftp.listdir(sys.argv[4])

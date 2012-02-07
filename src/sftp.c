@@ -44,7 +44,7 @@ PYLIBSSH2_Sftp_open_dir(PYLIBSSH2_SFTP *self, PyObject *args)
     }
 
     Py_BEGIN_ALLOW_THREADS
-    handle = libssh2_sftp_open_dir(self->sftp, path);
+    handle = libssh2_sftp_opendir(self->sftp, path);
     Py_END_ALLOW_THREADS
 
     if (handle == NULL) {

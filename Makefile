@@ -24,6 +24,10 @@ DEBIAN_TARGET=python-libssh2
 build: clean
 	python setup.py clean
 	python setup.py build --force
+	
+debug: clean
+	python setup.py clean
+	python setup.py build --force --debug
 
 install: build
 	sudo python setup.py install
@@ -40,7 +44,7 @@ deb:
 doc:
 	epydoc --no-private -n ${PY_TARGET} -o doc ${TARGET}
 
-test: build
+test: debug
 	python setup.py test
 
 clean:
