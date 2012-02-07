@@ -71,7 +71,6 @@ PYLIBSSH2_Sftpfile_read(PYLIBSSH2_SFTPFILE *self, PyObject *args)
     PyObject *buffer;
 
     if (!PyArg_ParseTuple(args, "i:read", &buffer_maxlen)) {
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
@@ -117,7 +116,6 @@ PYLIBSSH2_Sftpfile_write(PYLIBSSH2_SFTPFILE *self, PyObject *args)
     char *buffer;
 
     if (!PyArg_ParseTuple(args, "s#:write", &buffer, &buffer_len)) {
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
@@ -167,7 +165,6 @@ PYLIBSSH2_Sftpfile_seek(PYLIBSSH2_SFTPFILE *self, PyObject *args)
     unsigned long offset=0;
 
     if (!PyArg_ParseTuple(args, "k:seek", &offset)) {
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 

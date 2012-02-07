@@ -22,6 +22,7 @@
 #define PYLIBSSH2_MODULE
 #include "pylibssh2.h"
 
+
 /* {{{ PYLIBSSH2_Session_handshake
  */
 static char PYLIBSSH2_Session_handshake_doc[] = "\
@@ -36,41 +37,56 @@ PYLIBSSH2_Session_handshake(PYLIBSSH2_SESSION *self, PyObject *args)
 {
     int rc;
     int fd;
+
+    PyObject *socket;
+    if (!PyArg_ParseTuple(args, "O:startup", &socket)) {
+        return NULL;
+    }
+
+    Py_XINCREF(socket);
+    self->socket = socket;
     fd = PyObject_AsFileDescriptor(self->socket);
 
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_session_handshake(self->session, fd);
     Py_END_ALLOW_THREADS
-/*
+
     if(rc < 0) {
+        char *errmsg;
+        if(libssh2_session_last_error(self->session, &errmsg, NULL, 0) != rc) {
+            // This is not the error that failed, do not take the string.
+            errmsg = "";
+        }
         switch(rc) {
             case LIBSSH2_ERROR_SOCKET_NONE:
                 PyErr_SetString(PYLIBSSH2_Error, "The socket is invalid.");
-                break;
+                return NULL;
             case LIBSSH2_ERROR_BANNER_SEND:
                 PyErr_SetString(PYLIBSSH2_Error, "Unable to send banner to remote host.");
-                break;
+                return NULL;
             case LIBSSH2_ERROR_KEX_FAILURE:
                 PyErr_SetString(PYLIBSSH2_Error, "Encryption key exchange with the remote host failed.");
-                break;
+                return NULL;
             case LIBSSH2_ERROR_SOCKET_SEND:
                 PyErr_SetString(PYLIBSSH2_Error, "Unable to send data on socket.");
-                break;
+                return NULL;
             case LIBSSH2_ERROR_SOCKET_DISCONNECT:
                 PyErr_SetString(PYLIBSSH2_Error, "The socket was disconnected.");
-                break;
+                return NULL;
             case LIBSSH2_ERROR_PROTO:
                 PyErr_SetString(PYLIBSSH2_Error, "An invalid SSH protocol response was received on the socket.");
-                break;
+                return NULL;
             case LIBSSH2_ERROR_EAGAIN:
                 PyErr_SetString(PYLIBSSH2_Error, "Marked for non-blocking I/O but the call would block.");
-                break;
+                return NULL;
             default:
                 PyErr_SetString(PYLIBSSH2_Error, "Failure establishing handshake.");
-                break;
+                return NULL;
         }
     }
-    */
+
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 /* }}} */
 
@@ -91,16 +107,26 @@ PYLIBSSH2_Session_set_banner(PYLIBSSH2_SESSION *self, PyObject *args)
     char *banner = LIBSSH2_SSH_DEFAULT_BANNER"_Python";
 
     if (!PyArg_ParseTuple(args, "|s:set_banner", &banner)) {
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
     rc = libssh2_banner_set(self->session, banner);
-    if(rc) {
-        if(rc != LIBSSH2_ERROR_EAGAIN) {
-            printf("test");
-            PyErr_SetString(PYLIBSSH2_Error, "Failure to set banner.");
-            return NULL;
+    if(rc < 0) {
+        char *errmsg;
+        if(libssh2_session_last_error(self->session, &errmsg, NULL, 0) != rc) {
+            // This is not the error that failed, do not take the string.
+            errmsg = "";
+        }
+        switch(rc) {
+            case LIBSSH2_ERROR_ALLOC:
+                PyErr_SetString(PYLIBSSH2_Error, " An internal memory allocation call failed.");
+                return NULL;
+            case LIBSSH2_ERROR_EAGAIN:
+                PyErr_SetString(PYLIBSSH2_Error, "Marked for non-blocking I/O but the call would block.");
+                return NULL;
+            default:
+                PyErr_Format(PYLIBSSH2_Error, "Unknown Error %i", rc);
+                return NULL;
         }
     }
 
@@ -126,7 +152,6 @@ PYLIBSSH2_Session_close(PYLIBSSH2_SESSION *self, PyObject *args)
     char *reason = "end";
 
     if (!PyArg_ParseTuple(args, "|s:close", &reason)) {
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
@@ -185,7 +210,6 @@ PYLIBSSH2_Session_userauth_list(PYLIBSSH2_SESSION *self, PyObject *args)
     char *auth_list;
 
     if (!PyArg_ParseTuple(args, "s#:userauth_list", &username, &username_len)) {
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
@@ -221,7 +245,6 @@ PYLIBSSH2_Session_hostkey_hash(PYLIBSSH2_SESSION *self, PyObject *args)
     size_t len;
 
     if (!PyArg_ParseTuple(args, "|i:hostkey_hash", &hashtype)) {
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
@@ -271,18 +294,41 @@ PYLIBSSH2_Session_userauth_password(PYLIBSSH2_SESSION *self, PyObject *args)
     char *username;
     char *password;
 
-    if (!PyArg_ParseTuple(args, "ss:userauth_password", &username, &password))
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
+    if (!PyArg_ParseTuple(args, "ss:userauth_password", &username, &password)) {
         return NULL;
+    }
 
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_userauth_password(self->session, username, password);
     Py_END_ALLOW_THREADS
 
     if (rc < 0) {
-        /* CLEAN: PYLIBSSH2_SESSION_USERAUTH_PASSWORD_FAILED_MSG */
-        PyErr_SetString(PYLIBSSH2_Error, "Authentification by password failed.");
-        return NULL;
+        char *errmsg;
+        if(libssh2_session_last_error(self->session, &errmsg, NULL, 0) != rc) {
+            // This is not the error that failed, do not take the string.
+            errmsg = "";
+        }
+        switch(rc) {
+            case LIBSSH2_ERROR_ALLOC:
+                PyErr_Format(PYLIBSSH2_Error, "An internal memory allocation call failed: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SOCKET_SEND:
+                PyErr_Format(PYLIBSSH2_Error, "Unable to send data on socket: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_PASSWORD_EXPIRED:
+                PyErr_Format(PYLIBSSH2_Error, "LIBSSH2_ERROR_PASSWORD_EXPIRED: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_AUTHENTICATION_FAILED:
+                PyErr_Format(PYLIBSSH2_Error, "failed, invalid username/password or public/private key: %s", errmsg);
+                return NULL;
+
+            default:
+                PyErr_Format(PYLIBSSH2_Error, "Unknown Error %i: %s", rc, errmsg);
+                return NULL;
+        }
     }
 
     Py_INCREF(Py_None);
@@ -318,7 +364,6 @@ PYLIBSSH2_Session_userauth_publickey_fromfile(PYLIBSSH2_SESSION *self, PyObject 
 
     if (!PyArg_ParseTuple(args, "sss|s:userauth_publickey_fromfile", &username,
                           &publickey, &privatekey, &passphrase)) {
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
@@ -328,11 +373,40 @@ PYLIBSSH2_Session_userauth_publickey_fromfile(PYLIBSSH2_SESSION *self, PyObject 
     Py_END_ALLOW_THREADS
 
     if (rc) {
-        char *last_error;
-        libssh2_session_last_error(self->session, &last_error, NULL, 0);
-        PyErr_Format(PYLIBSSH2_Error, "Authentification by public key failed: %s",
-                     last_error);
-        return NULL;
+        char *errmsg;
+        if(libssh2_session_last_error(self->session, &errmsg, NULL, 0) != rc) {
+            // This is not the error that failed, do not take the string.
+            errmsg = "";
+        }
+        switch(rc) {
+            case LIBSSH2_ERROR_ALLOC:
+                PyErr_Format(PYLIBSSH2_Error, "An internal memory allocation call failed: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SOCKET_SEND:
+                PyErr_Format(PYLIBSSH2_Error, "Unable to send data on socket: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SOCKET_TIMEOUT:
+                PyErr_Format(PYLIBSSH2_Error, "LIBSSH2_ERROR_SOCKET_TIMEOUT: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_PUBLICKEY_UNVERIFIED:
+                PyErr_Format(PYLIBSSH2_Error, "The username/public key combination was invalid: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_AUTHENTICATION_FAILED:
+                PyErr_Format(PYLIBSSH2_Error, "Authentication using the supplied public key was not accepted: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_EAGAIN:
+                PyErr_SetString(PYLIBSSH2_Error, "Marked for non-blocking I/O but the call would block.");
+                return NULL;
+
+            default:
+                PyErr_Format(PYLIBSSH2_Error, "Unknown Error %i: %s", rc, errmsg);
+                return NULL;
+        }
     }
 
     Py_INCREF(Py_None);
@@ -365,9 +439,8 @@ PYLIBSSH2_Session_session_methods(PYLIBSSH2_SESSION *self, PyObject *args)
 
     kex = libssh2_session_methods(self->session, LIBSSH2_METHOD_KEX);
     if (kex == NULL) {
-        /* session has not yet been started no methods negociated */
-        Py_INCREF(Py_None);
-        return Py_None;
+        PyErr_SetString(PYLIBSSH2_Error, "session has not yet been started no methods negociated");
+        return NULL;
     }
     hostkey = libssh2_session_methods(self->session, LIBSSH2_METHOD_HOSTKEY);
     crypt_cs = libssh2_session_methods(self->session, LIBSSH2_METHOD_CRYPT_CS);
@@ -414,14 +487,32 @@ PYLIBSSH2_Session_session_method_pref(PYLIBSSH2_SESSION *self, PyObject *args)
 {
     int method;
     char *pref;
+    int rc;
 
     if (!PyArg_ParseTuple(args, "is:session_method_pref", &method, &pref)) {
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
-    if(libssh2_session_method_pref(self->session, method, pref) != 0) {
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
-        return NULL;
+    rc = libssh2_session_method_pref(self->session, method, pref);
+    if(rc < 0) {
+        char *errmsg;
+        if(libssh2_session_last_error(self->session, &errmsg, NULL, 0) != rc) {
+            // This is not the error that failed, do not take the string.
+            errmsg = "";
+        }
+        switch(rc) {
+            case LIBSSH2_ERROR_INVAL:
+                PyErr_SetString(PYLIBSSH2_Error, "The requested method type was invalid.");
+                return NULL;
+            case LIBSSH2_ERROR_ALLOC:
+                PyErr_SetString(PYLIBSSH2_Error, "An internal memory allocation call failed.");
+                return NULL;
+            case LIBSSH2_ERROR_METHOD_NOT_SUPPORTED:
+                PyErr_SetString(PYLIBSSH2_Error, "The requested method is not supported.");
+                return NULL;
+            default:
+                PyErr_Format(PYLIBSSH2_Error, "Unknown Error %i", rc);
+                return NULL;
+        }
     }
 
     Py_INCREF(Py_None);
@@ -445,7 +536,6 @@ PYLIBSSH2_Session_open_session(PYLIBSSH2_SESSION *self, PyObject *args)
     int dealloc = 1;
     LIBSSH2_CHANNEL *channel;
     if (!PyArg_ParseTuple(args, "|i:open_session", &dealloc)) {
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
     channel = libssh2_channel_open_session(self->session);
@@ -453,7 +543,7 @@ PYLIBSSH2_Session_open_session(PYLIBSSH2_SESSION *self, PyObject *args)
         PyErr_SetString(PYLIBSSH2_Error, "Failed to open a channel session");
         return NULL;
     }
-    return (PyObject *)PYLIBSSH2_Channel_New(channel, dealloc);
+    return (PyObject *)PYLIBSSH2_Channel_New(self->session, channel, dealloc);
 }
 /* }}} */
 
@@ -477,7 +567,6 @@ PYLIBSSH2_Session_scp_recv(PYLIBSSH2_SESSION *self, PyObject *args)
     LIBSSH2_CHANNEL *channel;
 
     if (!PyArg_ParseTuple(args, "s:scp_recv", &path)) {
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
@@ -488,7 +577,7 @@ PYLIBSSH2_Session_scp_recv(PYLIBSSH2_SESSION *self, PyObject *args)
         return NULL;
     }
     
-    return (PyObject *)PYLIBSSH2_Channel_New(channel, 1);
+    return (PyObject *)PYLIBSSH2_Channel_New(self->session, channel, 1);
 }
 /* }}} */
 
@@ -518,20 +607,37 @@ PYLIBSSH2_Session_scp_send(PYLIBSSH2_SESSION *self, PyObject *args)
     LIBSSH2_CHANNEL *channel;
 
     if (!PyArg_ParseTuple(args, "s:scp_send", &path, &mode, &filesize)) {
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
     channel = libssh2_scp_send64(self->session, path, mode, filesize, 0, 0);
     if (channel == NULL) {
         char *errmsg;
-        int errlen;
-        int err = libssh2_session_last_error(self->session, &errmsg, &errlen, 0);
-        PyErr_Format(PYLIBSSH2_Error, "SCP send error. Unable to open a session: (%d) %s\n", err, errmsg);
-        return NULL;
+        int rc = libssh2_session_last_error(self->session, &errmsg, NULL, 0);
+        switch(rc) {
+            case LIBSSH2_ERROR_ALLOC :
+                PyErr_Format(PYLIBSSH2_Error, "An internal memory allocation call failed: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SOCKET_SEND :
+                PyErr_Format(PYLIBSSH2_Error, "Unable to send data on socket: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SCP_PROTOCOL :
+                PyErr_Format(PYLIBSSH2_Error, "LIBSSH2_ERROR_SCP_PROTOCOL: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_EAGAIN :
+                PyErr_Format(PYLIBSSH2_Error, "Marked for non-blocking I/O but the call would block: %s", errmsg);
+                return NULL;
+
+            default:
+                PyErr_Format(PYLIBSSH2_Error, "Unknown Error %i: %s", rc, errmsg);
+                return NULL;
+        }
     }
 
-    return (PyObject *)PYLIBSSH2_Channel_New(channel, 1);
+    return (PyObject *)PYLIBSSH2_Channel_New(self->session, channel, 1);
 }
 /* }}} */
 
@@ -551,7 +657,6 @@ PYLIBSSH2_Session_sftp_init(PYLIBSSH2_SESSION *self, PyObject *args)
     int dealloc = 1;
 
     if (!PyArg_ParseTuple(args, "|i:sftp_init", &dealloc)) {
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
@@ -590,10 +695,8 @@ PYLIBSSH2_Session_direct_tcpip(PYLIBSSH2_SESSION *self, PyObject *args)
     /* remote port */
     int port;
     LIBSSH2_CHANNEL *channel;
-    char *last_error = "";
 
     if (!PyArg_ParseTuple(args, "si|si:direct_tcpip", &host, &port, &shost, &sport)) {
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
@@ -602,10 +705,16 @@ PYLIBSSH2_Session_direct_tcpip(PYLIBSSH2_SESSION *self, PyObject *args)
     Py_END_ALLOW_THREADS
 
     if (channel == NULL) {
-        libssh2_session_last_error(self->session, &last_error, NULL, 0);
-        /* CLEAN: PYLIBSSH2_SESSION_TCP_CONNECT_ERROR_MSG */
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to create TCP connection.");
-        return NULL;
+        char *errmsg;
+        int rc = libssh2_session_last_error(self->session, &errmsg, NULL, 0);
+        switch(rc) {
+            case LIBSSH2_ERROR_ALLOC:
+                PyErr_Format(PYLIBSSH2_Error, "An internal memory allocation call failed: %s", errmsg);
+                return NULL;
+            default:
+                PyErr_Format(PYLIBSSH2_Error, "Unknown Error %i: %s", rc, errmsg);
+                return NULL;
+        }
     }
 
     return (PyObject *)channel;
@@ -642,7 +751,6 @@ PYLIBSSH2_Session_forward_listen(PYLIBSSH2_SESSION *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "siii:forward_listen", &host, &port,
                           &bound_port, &queue_maxsize)) {
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
@@ -652,12 +760,36 @@ PYLIBSSH2_Session_forward_listen(PYLIBSSH2_SESSION *self, PyObject *args)
     Py_END_ALLOW_THREADS
 
     if (listener == NULL) {
-        /* CLEAN: PYLIBSSH2_SESSION_TCP_CONNECT_ERROR_MSG */
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to forward listen connection.");
-        return NULL;
+        char *errmsg;
+        int rc = libssh2_session_last_error(self->session, &errmsg, NULL, 0);
+        switch(rc) {
+            case LIBSSH2_ERROR_ALLOC:
+                PyErr_Format(PYLIBSSH2_Error, "An internal memory allocation call failed: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SOCKET_SEND:
+                PyErr_Format(PYLIBSSH2_Error, "Unable to send data on socket: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_PROTO:
+                PyErr_Format(PYLIBSSH2_Error, "An invalid SSH protocol response was received on the socket: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_REQUEST_DENIED:
+                PyErr_Format(PYLIBSSH2_Error, "The remote server refused the request: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_EAGAIN:
+                PyErr_Format(PYLIBSSH2_Error, "Marked for non-blocking I/O but the call would block: %s", errmsg);
+                return NULL;
+
+            default:
+                PyErr_Format(PYLIBSSH2_Error, "Unknown Error %i: %s", rc, errmsg);
+                return NULL;
+        }
     }
 
-    return (PyObject *)PYLIBSSH2_Listener_New(listener, 0);
+    return (PyObject *)PYLIBSSH2_Listener_New(self->session, listener, 0);
 }
 /* }}} */
 
@@ -678,7 +810,7 @@ PYLIBSSH2_Session_last_error(PYLIBSSH2_SESSION *self, PyObject *args)
     int rc,want_buf=0;
 
     Py_BEGIN_ALLOW_THREADS
-    rc=libssh2_session_last_error(self->session, &errmsg, NULL, want_buf);
+    rc = libssh2_session_last_error(self->session, &errmsg, NULL, want_buf);
     Py_END_ALLOW_THREADS
 
     return Py_BuildValue("(i,s)", rc, errmsg);
@@ -749,9 +881,9 @@ stub_x11_callback_func(LIBSSH2_SESSION *session,
     if (result && PyInt_Check(result)) {
         rc = PyInt_AsLong(result);
     }
-    if(rc) {
+    if(rc < 0) {
         PyErr_SetString(PyExc_TypeError, "An error occured while calling callback function");
-        return NULL;
+        return;
     }
 
     /* Restore previous thread state and release acquired resources */
@@ -779,7 +911,7 @@ PYLIBSSH2_Session_callback_set(PYLIBSSH2_SESSION *self, PyObject *args)
             return NULL;
         }
         if(cbtype == LIBSSH2_CALLBACK_X11) {
-            PyErr_SetString(PyExc_TypeError, "Only callable supported is LIBSSH2_CALLBACK_X11");
+            PyErr_SetString(PYLIBSSH2_Error, "Only callback supported is LIBSSH2_CALLBACK_X11");
             return NULL;
 
         }
@@ -815,7 +947,6 @@ PYLIBSSH2_Session_set_trace(PYLIBSSH2_SESSION *self, PyObject *args)
     int bitmask;
 
     if (!PyArg_ParseTuple(args, "i:set_trace", &bitmask)) {
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
@@ -839,7 +970,7 @@ static PyObject *kbd_callback_func = NULL;
 static char *interactive_response;
 static int interactive_response_len;
 
-static PyObject*
+void
 stub_kbd_callback_func(const char *name, int name_len,
                        const char *instruction, int instruction_len,
                        int num_prompts,
@@ -877,7 +1008,6 @@ PYLIBSSH2_Session_userauth_keyboardinteractive(PYLIBSSH2_SESSION *self, PyObject
     /*PyObject *kbd_callback;*/
 
     if(!PyArg_ParseTuple(args, "ssi:userauth_keyboardinteractive", &username, &interactive_response, &interactive_response_len)) {
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to get parameter");
         return NULL;
     }
 
@@ -886,8 +1016,27 @@ PYLIBSSH2_Session_userauth_keyboardinteractive(PYLIBSSH2_SESSION *self, PyObject
     Py_END_ALLOW_THREADS
 
     if (rc < 0) {
-        PyErr_SetString(PYLIBSSH2_Error, "Authentication by keyboard-interactive failed.");
-        return NULL;
+        char *errmsg;
+        if(libssh2_session_last_error(self->session, &errmsg, NULL, 0) != rc) {
+            // This is not the error that failed, do not take the string.
+            errmsg = "";
+        }
+        switch(rc) {
+            case LIBSSH2_ERROR_ALLOC:
+                PyErr_Format(PYLIBSSH2_Error, "An internal memory allocation call failed: %s", errmsg);
+                   return NULL;
+
+            case LIBSSH2_ERROR_SOCKET_SEND:
+                PyErr_Format(PYLIBSSH2_Error, "Unable to send data on socket: %s", errmsg);
+                   return NULL;
+
+            case LIBSSH2_ERROR_AUTHENTICATION_FAILED:
+                PyErr_Format(PYLIBSSH2_Error, "failed, invalid username/password or public/private key: %s", errmsg);
+                   return NULL;
+            default:
+                PyErr_Format(PYLIBSSH2_Error, "Unknown Error %i: %s", rc, errmsg);
+                return NULL;
+        }
     }
 
     return Py_BuildValue("i", rc);

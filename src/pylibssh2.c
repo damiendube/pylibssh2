@@ -114,7 +114,7 @@ PYLIBSSH2_Channel(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    return (PyObject *)PYLIBSSH2_Channel_New(libssh2_channel_open_session(
+    return (PyObject *)PYLIBSSH2_Channel_New(session->session, libssh2_channel_open_session(
                         session->session), dealloc);
 }
 /* }}} */
@@ -169,7 +169,7 @@ init_libssh2(void)
         PYLIBSSH2_doc
     );
     if (module == NULL) {
-        return NULL;
+        return;
     }
 
     PYLIBSSH2_API[PYLIBSSH2_Session_New_NUM] = (void *) PYLIBSSH2_Session_New;
@@ -218,6 +218,9 @@ init_libssh2(void)
     
     PyModule_AddStringConstant(module, "DEFAULT_BANNER", LIBSSH2_SSH_DEFAULT_BANNER"_Python");
     PyModule_AddStringConstant(module, "LIBSSH2_VERSION", LIBSSH2_VERSION);
+
+    PyModule_AddIntConstant(module, "CHANNEL_FLUSH_ALL", LIBSSH2_CHANNEL_FLUSH_ALL);
+    PyModule_AddIntConstant(module, "CHANNEL_FLUSH_EXTENDED_DATA", LIBSSH2_CHANNEL_FLUSH_EXTENDED_DATA);
 
     dict = PyModule_GetDict(module);
     if (!init_libssh2_Session(dict)) {

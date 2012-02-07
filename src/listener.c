@@ -41,12 +41,36 @@ PYLIBSSH2_Listener_accept(PYLIBSSH2_LISTENER *self, PyObject *args)
     Py_END_ALLOW_THREADS
 
     if (channel == NULL) {
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to accept listener on channel.");
-        Py_INCREF(Py_None);
-        return Py_None;
+        char *errmsg;
+        int rc = libssh2_session_last_error(self->session, &errmsg, NULL, 0);
+        switch(rc) {
+            case LIBSSH2_ERROR_ALLOC:
+                PyErr_Format(PYLIBSSH2_Error, "An internal memory allocation call failed: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SOCKET_SEND:
+                PyErr_Format(PYLIBSSH2_Error, "Unable to send data on socket: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_PROTO:
+                PyErr_Format(PYLIBSSH2_Error, "An invalid SSH protocol response was received on the socket: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_REQUEST_DENIED:
+                PyErr_Format(PYLIBSSH2_Error, "The remote server refused the request: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_EAGAIN:
+                PyErr_Format(PYLIBSSH2_Error, "Marked for non-blocking I/O but the call would block: %s", errmsg);
+                return NULL;
+
+            default:
+                PyErr_Format(PYLIBSSH2_Error, "Unknown Error %i: %s", rc, errmsg);
+                return NULL;
+        }
     }
 
-    return (PyObject *)PYLIBSSH2_Channel_New(channel, 1);
+    return (PyObject *)PYLIBSSH2_Channel_New(self->session, channel, 1);
 }
 /* }}} */
 
@@ -98,7 +122,7 @@ struct PyMethodDef PYLIBSSH2_Listener_methods[] = {
 /* {{{ PYLIBSSH2_Listener_New
  */
 PYLIBSSH2_LISTENER *
-PYLIBSSH2_Listener_New(LIBSSH2_LISTENER *listener, int dealloc)
+PYLIBSSH2_Listener_New(LIBSSH2_SESSION *session, LIBSSH2_LISTENER *listener, int dealloc)
 {
     PYLIBSSH2_LISTENER *self;
 
@@ -107,6 +131,7 @@ PYLIBSSH2_Listener_New(LIBSSH2_LISTENER *listener, int dealloc)
         return NULL;
     }
 
+    self->session = session;
     self->listener = listener;
     self->dealloc = dealloc;
 

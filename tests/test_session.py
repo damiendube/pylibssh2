@@ -15,6 +15,7 @@ Unit tests for Session
 import socket
 import unittest
 import os, pwd
+import _libssh2
 
 def callback_func(session, always_display, message, message_len, language, language_len, abstract):
     print message
@@ -44,23 +45,28 @@ class SessionTest(unittest.TestCase):
         session = libssh2.Session()
         session.set_banner()
         self.assertEqual(session.userauth_authenticated(), 0)
-        #session.handshake(self.socket)
-        #self.assertEqual(session.userauth_authenticated(), 0)
+        session.handshake(self.socket)
 
-    def a_test_session_password_login(self):
+    def test_session_password_login(self):
         import libssh2
         session = libssh2.Session()
         session.set_banner()
         session.handshake(self.socket)
         self.assertEqual(session.userauth_authenticated(), 0)
 
-        session.callback_set(libssh2.LIBSSH2_CALLBACK_DEBUG, callback_func)
+        session.userauth_password("ddube", "D1fference")
+        self.assertEqual(session.userauth_authenticated(), 1)
+
+    def test_session_host_login(self):
+        import libssh2
+        session = libssh2.Session()
+        session.set_banner()
+        session.handshake(self.socket)
+        self.assertEqual(session.userauth_authenticated(), 0)
 
         username = pwd.getpwuid(os.getuid())[0]
 
         session.userauth_publickey_fromfile(username, os.path.expanduser("~%s/.ssh/id_rsa.pub" % (username)), os.path.expanduser("~%s/.ssh/id_rsa" % (username)), "D1fference")
-
-        #session.userauth_password("ddube", "D1fference")
 
         self.assertEqual(session.userauth_authenticated(), 1)
 
