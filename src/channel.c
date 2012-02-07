@@ -33,7 +33,7 @@ Closes the active channel.\n\
 @param channel\n\
 @type libssh2.Channel\n";
 
-void
+static void
 PYLIBSSH2_Channel_close(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     int rc;
@@ -66,7 +66,7 @@ Requests a pty with term type on a channel.\n\
 /*
  * refer libssh2_channel_request_pty_ex()
  */
-void
+static void
 PYLIBSSH2_Channel_pty(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     int rc;
@@ -124,7 +124,7 @@ Requests a pty resize on a channel with the given width and height.\n\
 /*
  * refer libssh2_channel_request_pty_size_ex()
  */
-void
+static void
 PYLIBSSH2_Channel_pty_resize(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     int rc = -1;
@@ -163,7 +163,7 @@ shell() -> int\n\
 Requests a shell on the channel.\n\
 \n";
 
-void
+static void
 PYLIBSSH2_Channel_shell(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     int rc;
@@ -192,7 +192,7 @@ Executes command on the channel.\n\
 @type   command: str\n\
 \n";
 
-void
+static void
 PYLIBSSH2_Channel_execute(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     int rc;
@@ -227,7 +227,7 @@ Sets envrionment variable on the channel.\n\
 @param value: evironment variable value\n\
 @type  value: str\n";
 
-void
+static void
 PYLIBSSH2_Channel_setenv(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     int rc;
@@ -262,7 +262,7 @@ Sets blocking mode on the channel. Default mode is blocking.\n\
 @param  mode: blocking (1) or non blocking (0) mode\n\
 @type   mode: int";
 
-void
+static void
 PYLIBSSH2_Channel_setblocking(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     /* 1 blocking, 0 non blocking */
@@ -424,7 +424,7 @@ flush() -> int\n\
 \n\
 Flushs the read buffer for a given channel.\n";
 
-void
+static void
 PYLIBSSH2_Channel_flush(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     int rc;
@@ -496,7 +496,7 @@ send_eof() -> int\n\
 \n\
 Sends EOF status on the channel to remote server.\n";
 
-void
+static void
 PYLIBSSH2_Channel_send_eof(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     int rc;
@@ -520,7 +520,7 @@ wait_eof() -> int\n\
 \n\
 Sends EOF status on the channel to remote server.\n";
 
-void
+static void
 PYLIBSSH2_Channel_wait_eof(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     int rc;
@@ -547,7 +547,7 @@ Wait for the remote channel to ack channel close.\n\
 @param channel\n\
 @type libssh2.Channel\n";
 
-void
+static void
 PYLIBSSH2_Channel_wait_closed(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     int rc;
@@ -632,7 +632,7 @@ Requests an X11 Forwarding on the channel.\n\
 @param  display: screen number\n\
 @type  display: int\n";
 
-void
+static void
 PYLIBSSH2_Channel_x11_req(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     int rc;

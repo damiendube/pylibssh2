@@ -59,7 +59,7 @@ Arguments:\n\
 Returns:\n\
 ";
 
-void
+static void
 PYLIBSSH2_Listener_cancel(PYLIBSSH2_LISTENER *self, PyObject *args)
 {
     int rc;

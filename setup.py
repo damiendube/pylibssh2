@@ -59,15 +59,15 @@ if 'bsd' in sys.platform[:-1] or 'bsd' in os.uname()[0].lower():
     libssh2_libdir = ['/usr/local/lib/']
 if 'darwin' in sys.platform:
     libssh2_incdir = ['/opt/local/include/']
-    libssh2_libdir = ['/opt/local/lib/']  
+    libssh2_libdir = ['/opt/local/lib/']
 
 libssh2_lib = ['ssh2']
-libssh2_compile_args = ['-ggdb']
+libssh2_compile_args = []
 
 class Libssh2TestCommand(Command):
     user_options = []
-    
-    def initialize_options(self): 
+
+    def initialize_options(self):
         pass
     def finalize_options(self):
         pass
@@ -84,32 +84,32 @@ class Libssh2TestCommand(Command):
 
 
 module = Extension('_libssh2',
-                    define_macros = [
+                    define_macros=[
                         ('MAJOR_VERSION', version[0]),
                         ('MINOR_VERSION', version[2]),
                         ('PATCH_VERSION', version[4])
                     ],
-                    sources = libssh2_src,
-                    depends = libssh2_dep,
-                    include_dirs = libssh2_incdir,
-                    library_dirs = libssh2_libdir,
-                    libraries = libssh2_lib,
-                    extra_compile_args = libssh2_compile_args)
+                    sources=libssh2_src,
+                    depends=libssh2_dep,
+                    include_dirs=libssh2_incdir,
+                    library_dirs=libssh2_libdir,
+                    libraries=libssh2_lib,
+                    extra_compile_args=libssh2_compile_args)
 
 setup(name='pylibssh2',
       version=version,
-      packages    = ['libssh2'],
-      package_dir = { 
+      packages=['libssh2'],
+      package_dir={
         'libssh2' : 'libssh2'
       },
-      description = long_description,
+      description=long_description,
       author=author,
       author_email=author_email,
       url=url,
       download_url='%s/download/pylibssh2-%s.tar.gz' % (url, version),
-      ext_modules = [module],
-      license = 'LGPL',
-      platforms = ['Linux', 'BSD'],
-      long_description = long_description,
+      ext_modules=[module],
+      license='LGPL',
+      platforms=['Linux', 'BSD'],
+      long_description=long_description,
       classifiers=classifiers,
-      cmdclass= {'test' : Libssh2TestCommand})
+      cmdclass={'test' : Libssh2TestCommand})

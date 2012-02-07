@@ -104,7 +104,7 @@ Arguments:\n\
 Returns:\n\
 ";
 
-void
+static void
 PYLIBSSH2_Sftp_shutdown(PYLIBSSH2_SFTP *self, PyObject *args)
 {
     int rc;
@@ -129,7 +129,7 @@ Arguments:\n\
 Returns:\n\
 ";
 
-void
+static void
 PYLIBSSH2_Sftp_unlink(PYLIBSSH2_SFTP *self, PyObject *args)
 {
 
@@ -160,7 +160,7 @@ Arguments:\n\
 Returns:\n\
 ";
 
-void
+static void
 PYLIBSSH2_Sftp_rename(PYLIBSSH2_SFTP *self, PyObject *args)
 {
     int rc;
@@ -190,7 +190,7 @@ Arguments:\n\
 Returns:\n\
 ";
 
-void
+static void
 PYLIBSSH2_Sftp_mkdir(PYLIBSSH2_SFTP *self, PyObject *args)
 {
     int rc;
@@ -222,7 +222,7 @@ Arguments:\n\
 Returns:\n\
 ";
 
-void
+static void
 PYLIBSSH2_Sftp_rmdir(PYLIBSSH2_SFTP *self, PyObject *args)
 {
     int rc;
@@ -300,7 +300,7 @@ Arguments:\n\
 Returns:\n\
 ";
 
-void
+static void
 PYLIBSSH2_Sftp_symlink(PYLIBSSH2_SFTP *self, PyObject *args)
 {
     int rc;
@@ -368,7 +368,7 @@ Arguments:\n\
 \n\
 Returns:\n\
 ";
-void
+static void
 PYLIBSSH2_Sftp_set_stat(PYLIBSSH2_SFTP *self, PyObject *args)
 {
     int rc;

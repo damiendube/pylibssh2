@@ -216,7 +216,7 @@ init_libssh2(void)
     PyModule_AddIntConstant(module, "SFTP_STAT", LIBSSH2_SFTP_STAT);
     PyModule_AddIntConstant(module, "SFTP_LSTAT", LIBSSH2_SFTP_LSTAT);
     
-    PyModule_AddStringConstant(module, "DEFAULT_BANNER", LIBSSH2_SSH_DEFAULT_BANNER);
+    PyModule_AddStringConstant(module, "DEFAULT_BANNER", LIBSSH2_SSH_DEFAULT_BANNER"_Python");
     PyModule_AddStringConstant(module, "LIBSSH2_VERSION", LIBSSH2_VERSION);
 
     dict = PyModule_GetDict(module);

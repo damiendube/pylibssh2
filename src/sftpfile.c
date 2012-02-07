@@ -33,7 +33,7 @@ Arguments:\n\
 Returns:\n\
 ";
 
-void
+static void
 PYLIBSSH2_Sftpfile_close(PYLIBSSH2_SFTPFILE *self, PyObject *args)
 {
     int rc;
@@ -159,7 +159,7 @@ Arguments:\n\
 Returns:\n\
 ";
 
-void
+static void
 PYLIBSSH2_Sftpfile_seek(PYLIBSSH2_SFTPFILE *self, PyObject *args)
 {
     unsigned long offset=0;

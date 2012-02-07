@@ -31,7 +31,7 @@ static char PYLIBSSH2_Session_handshake_doc[] = "\
     \n\
     @param  socket: an open socket to the remote host\n\
     @type   socket: object\n";
-void
+static void
 PYLIBSSH2_Session_handshake(PYLIBSSH2_SESSION *self, PyObject *args)
 {
     int rc;
@@ -84,7 +84,7 @@ This is optional, the banner libssh2.DEFAULT_BANNER will be sent by default.\n\
 @param  banner: an user defined banner\n\
 @type   banner: str\n";
 
-void
+static void
 PYLIBSSH2_Session_set_banner(PYLIBSSH2_SESSION *self, PyObject *args)
 {
     int rc;
@@ -113,7 +113,7 @@ Closes the session.\n\
 @param  reason: human readable reason for disconnection\n\
 @type   reason: str\n";
 
-void
+static void
 PYLIBSSH2_Session_close(PYLIBSSH2_SESSION *self, PyObject *args)
 {
     int rc;
@@ -255,7 +255,7 @@ Authenticates a session with the given username and password.\n\
 @param  password: password to use for the authentication\n\
 @type   password: str\n";
 
-void
+static void
 PYLIBSSH2_Session_userauth_password(PYLIBSSH2_SESSION *self, PyObject *args)
 {
     int rc;
@@ -296,7 +296,7 @@ privatekey files, and passphrase if provided.\n\
 @param  passphrase: passphrase to use when decoding private file\n\
 @type   passphrase: str\n";
 
-void
+static void
 PYLIBSSH2_Session_userauth_publickey_fromfile(PYLIBSSH2_SESSION *self, PyObject *args)
 {
     int rc;
@@ -395,7 +395,7 @@ prior to calling handshake().\n\
 @param  pref: coma delimited list of preferred methods\n\
 @type   pref: str\n";
 
-void
+static void
 PYLIBSSH2_Session_session_method_pref(PYLIBSSH2_SESSION *self, PyObject *args)
 {
     int method;
@@ -931,7 +931,7 @@ PYLIBSSH2_Session_New(LIBSSH2_SESSION *session, int dealloc)
     self->opened = 0;
     self->socket = NULL;
 
-    libssh2_banner_set(session, LIBSSH2_SSH_DEFAULT_BANNER " Python");
+    libssh2_banner_set(session, LIBSSH2_SSH_DEFAULT_BANNER "_Python");
 
     return self;
 }

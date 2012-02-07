@@ -27,7 +27,7 @@ build: clean
 	
 debug: clean
 	python setup.py clean
-	python setup.py build --force --debug
+	OPT="-g -DDEBUG -ggdb" python setup.py build --force
 
 install: build
 	sudo python setup.py install
