@@ -46,10 +46,13 @@
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 		<project id="pylibssh2.null.613705989" name="pylibssh2"/>
 	</storageModule>
-	<storageModule moduleId="scannerConfiguration">
-		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-	</storageModule>
 	<storageModule moduleId="refreshScope" versionNumber="1">
 		<resource resourceType="PROJECT" workspacePath="/pylibssh2"/>
+	</storageModule>
+	<storageModule moduleId="scannerConfiguration">
+		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.926678384;cdt.managedbuild.toolchain.gnu.base.926678384.711131734;cdt.managedbuild.tool.gnu.c.compiler.base.1964021373;cdt.managedbuild.tool.gnu.c.compiler.input.631514096">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
 	</storageModule>
 </cproject>
