@@ -62,7 +62,6 @@ if 'darwin' in sys.platform:
     libssh2_libdir = ['/opt/local/lib/']
 
 libssh2_lib = ['ssh2']
-libssh2_compile_args = []
 
 class Libssh2TestCommand(Command):
     user_options = []
@@ -93,8 +92,7 @@ module = Extension('_libssh2',
                     depends=libssh2_dep,
                     include_dirs=libssh2_incdir,
                     library_dirs=libssh2_libdir,
-                    libraries=libssh2_lib,
-                    extra_compile_args=libssh2_compile_args)
+                    libraries=libssh2_lib)
 
 setup(name='pylibssh2',
       version=version,

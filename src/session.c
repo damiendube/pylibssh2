@@ -606,7 +606,7 @@ PYLIBSSH2_Session_scp_send(PYLIBSSH2_SESSION *self, PyObject *args)
     unsigned long filesize;
     LIBSSH2_CHANNEL *channel;
 
-    if (!PyArg_ParseTuple(args, "s:scp_send", &path, &mode, &filesize)) {
+    if (!PyArg_ParseTuple(args, "sik:scp_send", &path, &mode, &filesize)) {
         return NULL;
     }
 

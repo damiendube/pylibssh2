@@ -52,17 +52,14 @@ class MySCPClient:
             print e
 
     def recv(self, remote_in_path, local_out_path, mode=0644):
-        f = file(local_out_path, "wb", buffering=0)
+        f = file(local_out_path, "wb")
         channel = self.session.scp_recv(remote_in_path)
 
         while True:
-            buffer = f.read(1024 * 1024)
-            if len(buffer) > 0:
-                channel.write(buffer)
-            else:
-                break
-        channel.flush()
-        channel.wait_closed()
+            buf = channel.read()
+            f.write(buf)
+        f.close()
+        channel.close()
 
     def __del__(self):
         self.session.close()
