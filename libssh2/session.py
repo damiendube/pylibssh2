@@ -54,7 +54,7 @@ class Session(object):
         """
         self._session.callback_set(callback_type, callback)
 
-    def close(self, reason="Disconnect"):
+    def close(self, reason=None):
         """
         Closes the session.
 
@@ -64,7 +64,10 @@ class Session(object):
         @return: 0 on success or negative on failure
         @rtype: int
         """
-        return self._session.close(reason)
+        if reason:
+            return self._session.close(reason)
+        else:
+            return self._session.close()
 
     def direct_tcpip(self, host, port, shost, sport):
         """
@@ -287,6 +290,13 @@ class Session(object):
         else:
             self._session.userauth_publickey_fromfile(username, publickey, privatekey, passphrase)
 
+    def userauth_hostbased_fromfile(
+            self, username, publickey, privatekey, hostname, passphrase=None):
+        if passphrase == None or len(passphrase) == 0:
+            self._session.userauth_hostbased_fromfile(username, publickey, privatekey, hostname)
+        else:
+            self._session.userauth_hostbased_fromfile(username, publickey, privatekey, hostname, passphrase)
+
     def userauth_keyboardinteractive(self, username, password):
         """
         Authenticates a session with the given username using a
@@ -303,6 +313,11 @@ class Session(object):
         return self._session.userauth_keyboardinteractive(username, password,
                                                    len(password))
 
-
     def agent(self):
+        """
+        Initialize an ssh-agent handle
+        
+        @return: Initialized ssh-agent on success
+        @rtype: Agent
+        """
         return Agent(self._session.agent())

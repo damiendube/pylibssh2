@@ -46,27 +46,18 @@ class SessionTest(unittest.TestCase):
         self.assertEqual(session.userauth_authenticated(), 0)
         session.startup(self.socket)
 
-    def test_session_host_login(self):
-        session = libssh2.Session()
-        session.set_banner()
-        session.startup(self.socket)
-        self.assertEqual(session.userauth_authenticated(), 0)
-
-        username = pwd.getpwuid(os.getuid())[0]
-
-        session.userauth_publickey_fromfile(username, os.path.expanduser("~%s/.ssh/id_rsa.pub" % (username)), os.path.expanduser("~%s/.ssh/id_rsa" % (username)), "D1fference")
-
-        self.assertEqual(session.userauth_authenticated(), 1)
-
     def test_session_agent_login(self):
         session = libssh2.Session()
         session.set_banner()
         session.startup(self.socket)
+        self.assertEqual(session.userauth_authenticated(), 0)
+        username = pwd.getpwuid(os.getuid())[0]
         agent = session.agent()
         agent.connect()
-        #username = pwd.getpwuid(os.getuid())[0]
-        #agent.userauth(username)
-        #self.assertEqual(session.userauth_authenticated(), 1)
+        agent.userauth(username)
+        agent.disconnect()
+        self.assertEqual(session.userauth_authenticated(), 1)
+        session.close()
 
     def tearDown(self):
         self.socket.close()

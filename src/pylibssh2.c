@@ -69,103 +69,7 @@ userauth_publickey_fromfile() -- authenticates a session with publickey\n\
 static PyObject *
 PYLIBSSH2_Session(PyObject *self, PyObject *args)
 {
-    int dealloc = 1;
-
-    if (!PyArg_ParseTuple(args, "|i:Session", &dealloc)) {
-        return NULL;
-    }
-
-    return (PyObject *)PYLIBSSH2_Session_New(libssh2_session_init(), dealloc);
-}
-/* }}} */
-
-/* {{{ PYLIBSSH2_Channel
- */
-PyDoc_STRVAR(PYLIBSSH2_Channel_doc,
-"\n\
-This class provide SSH Channel operations.\n\
-\n\
-close() -- closes the active channel\n\
-eof() -- checks if the remote host has sent an EOF status\n\
-execute() -- executes command of the channel\n\
-exit_status() -- gets the exit code\n\
-flush() -- flushs the read buffer\n\
-poll() -- polls for activity on the channel\n\
-poll_read() -- checks if data is available on the channel\n\
-pty() -- requests a pty\n\
-pty_resize() -- requests a pty resize\n\
-read() -- reads bytes on the channel\n\
-send_eof() -- sends EOF status\n\
-wait_eof() -- wait EOF\n\
-setblocking() -- sets blocking mode\n\
-setenv() -- sets envrionment variable\n\
-shell() -- requests a shell\n\
-window_read() -- checks the status of the read window\n\
-write() -- writes data on a channel\n\
-x11_req() -- requests an X11 Forwarding channel\n\
-");
-
-static PyObject *
-PYLIBSSH2_Channel(PyObject *self, PyObject *args)
-{
-    PYLIBSSH2_SESSION *session;
-    int dealloc = 1;
-
-    if (!PyArg_ParseTuple(args, "O|i:Channel", &session, &dealloc)) {
-        return NULL;
-    }
-
-    return (PyObject *)PYLIBSSH2_Channel_New(session->session, libssh2_channel_open_session(
-                        session->session), dealloc);
-}
-/* }}} */
-
-/* {{{ PYLIBSSH2_Sftp
- */
-static char PYLIBSSH2_Sftp_doc[] = "\n\
-\n\
-Arguments:\n\
-\n\
-Returns:\n\
-";
-
-static PyObject *
-PYLIBSSH2_Sftp(PyObject *self, PyObject *args)
-{
-    PYLIBSSH2_SESSION *session;
-    int dealloc = 1;
-
-    if (!PyArg_ParseTuple(args, "O|i:Sftp", &session, &dealloc)) {
-        return NULL;
-    }
-
-    return (PyObject *)PYLIBSSH2_Sftp_New(libssh2_sftp_init(
-                        session->session), dealloc);
-}
-/* }}} */
-
-
-/* {{{ PYLIBSSH2_Agent
- */
-static char PYLIBSSH2_Agent_doc[] = "\n\
-\n\
-Arguments:\n\
-\n\
-Returns:\n\
-";
-
-static PyObject *
-PYLIBSSH2_Agent(PyObject *self, PyObject *args)
-{
-    PYLIBSSH2_SESSION *session;
-    int dealloc = 1;
-
-    if (!PyArg_ParseTuple(args, "O|i:Agent", &session, &dealloc)) {
-        return NULL;
-    }
-
-    return (PyObject *)PYLIBSSH2_Agent_New(session->session, libssh2_agent_init(
-                        session->session), dealloc);
+    return (PyObject *)PYLIBSSH2_Session_New(libssh2_session_init(), 1);
 }
 /* }}} */
 
@@ -173,9 +77,6 @@ PYLIBSSH2_Agent(PyObject *self, PyObject *args)
  */
 static PyMethodDef PYLIBSSH2_methods[] = {
     { "Session", (PyCFunction)PYLIBSSH2_Session, METH_VARARGS, PYLIBSSH2_Session_doc },
-    { "Channel", (PyCFunction)PYLIBSSH2_Channel, METH_VARARGS, PYLIBSSH2_Channel_doc },
-    { "Sftp", (PyCFunction)PYLIBSSH2_Sftp, METH_VARARGS, PYLIBSSH2_Sftp_doc },
-    { "Agent", (PyCFunction)PYLIBSSH2_Agent, METH_VARARGS, PYLIBSSH2_Agent_doc },
     { NULL, NULL }
 };
 /* }}} */

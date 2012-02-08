@@ -212,27 +212,27 @@ PYLIBSSH2_Sftpdir_getattr(PYLIBSSH2_SFTPDIR *self, char *name)
  */
 PyTypeObject PYLIBSSH2_Sftpdir_Type = {
     PyObject_HEAD_INIT(NULL)
-    0,                                     /* ob_size */
-    "Sftpdir",                          /* tp_name */
-    sizeof(PYLIBSSH2_SFTPDIR),               /* tp_basicsize */
-    0,                                     /* tp_itemsize */
-    (destructor)PYLIBSSH2_Sftpdir_dealloc,    /* tp_dealloc */
-    0,                                     /* tp_print */
-    (getattrfunc)PYLIBSSH2_Sftpdir_getattr,  /* tp_getattr */
-    0,                                     /* tp_setattr */
-    0,                                     /* tp_compare */
-    0,                                     /* tp_repr */
-    0,                                     /* tp_as_number */
-    0,                                     /* tp_as_sequence */
-    0,                                     /* tp_as_mapping */
-    0,                                     /* tp_hash  */
-    0,                                     /* tp_call */
-    0,                                     /* tp_str */
-    0,                                     /* tp_getattro */
-    0,                                     /* tp_setattro */
-    0,                                     /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT,                    /* tp_flags */
-    "Sftpdir objects",                  /* tp_doc */
+    0,                                      /* ob_size */
+    "Sftpdir",                              /* tp_name */
+    sizeof(PYLIBSSH2_SFTPDIR),              /* tp_basicsize */
+    0,                                      /* tp_itemsize */
+    (destructor)PYLIBSSH2_Sftpdir_dealloc,  /* tp_dealloc */
+    0,                                      /* tp_print */
+    (getattrfunc)PYLIBSSH2_Sftpdir_getattr, /* tp_getattr */
+    0,                                      /* tp_setattr */
+    0,                                      /* tp_compare */
+    0,                                      /* tp_repr */
+    0,                                      /* tp_as_number */
+    0,                                      /* tp_as_sequence */
+    0,                                      /* tp_as_mapping */
+    0,                                      /* tp_hash  */
+    0,                                      /* tp_call */
+    0,                                      /* tp_str */
+    0,                                      /* tp_getattro */
+    0,                                      /* tp_setattro */
+    0,                                      /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT,                     /* tp_flags */
+    "Sftpdir objects",                      /* tp_doc */
 };
 
 int

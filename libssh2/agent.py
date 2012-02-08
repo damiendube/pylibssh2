@@ -30,13 +30,22 @@ class Agent(object):
     Agent object
     """
     def __init__(self, _agent):
+        """
+        Create a new Agent object.
+        """
         self._agent = _agent
 
     def connect(self):
+        """
+        """
         self._agent.connect()
 
     def disconnect(self):
+        """
+        """
         self._agent.disconnect()
 
     def userauth(self, username):
+        """
+        """
         self._agent.userauth(username)

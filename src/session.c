@@ -59,31 +59,33 @@ PYLIBSSH2_Session_startup(PYLIBSSH2_SESSION *self, PyObject *args)
         }
         switch(rc) {
             case LIBSSH2_ERROR_SOCKET_NONE:
-                PyErr_SetString(PYLIBSSH2_Error, "The socket is invalid.");
+                PyErr_Format(PYLIBSSH2_Error, "The socket is invalid: %s", errmsg);
                 return NULL;
             case LIBSSH2_ERROR_BANNER_SEND:
-                PyErr_SetString(PYLIBSSH2_Error, "Unable to send banner to remote host.");
+                PyErr_Format(PYLIBSSH2_Error, "Unable to send banner to remote host: %s", errmsg);
                 return NULL;
             case LIBSSH2_ERROR_KEX_FAILURE:
-                PyErr_SetString(PYLIBSSH2_Error, "Encryption key exchange with the remote host failed.");
+                PyErr_Format(PYLIBSSH2_Error, "Encryption key exchange with the remote host failed: %s", errmsg);
                 return NULL;
             case LIBSSH2_ERROR_SOCKET_SEND:
-                PyErr_SetString(PYLIBSSH2_Error, "Unable to send data on socket.");
+                PyErr_Format(PYLIBSSH2_Error, "Unable to send data on socket: %s", errmsg);
                 return NULL;
             case LIBSSH2_ERROR_SOCKET_DISCONNECT:
-                PyErr_SetString(PYLIBSSH2_Error, "The socket was disconnected.");
+                PyErr_Format(PYLIBSSH2_Error, "The socket was disconnected: %s", errmsg);
                 return NULL;
             case LIBSSH2_ERROR_PROTO:
-                PyErr_SetString(PYLIBSSH2_Error, "An invalid SSH protocol response was received on the socket.");
+                PyErr_Format(PYLIBSSH2_Error, "An invalid SSH protocol response was received on the socket: %s", errmsg);
                 return NULL;
             case LIBSSH2_ERROR_EAGAIN:
-                PyErr_SetString(PYLIBSSH2_Error, "Marked for non-blocking I/O but the call would block.");
+                PyErr_Format(PYLIBSSH2_Error, "Marked for non-blocking I/O but the call would block: %s", errmsg);
                 return NULL;
             default:
-                PyErr_SetString(PYLIBSSH2_Error, "Failure establishing startup.");
+                PyErr_Format(PYLIBSSH2_Error, "Failure establishing startup %i: %s", rc, errmsg);
                 return NULL;
         }
     }
+
+    self->opened = 1;
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -159,13 +161,13 @@ PYLIBSSH2_Session_close(PYLIBSSH2_SESSION *self, PyObject *args)
     rc = libssh2_session_disconnect(self->session, reason);
     Py_END_ALLOW_THREADS
 
+    self->opened = 0;
+
     if (rc < 0) {
         /* CLEAN: PYLIBSSH2_SESSION_CLOSE_MSG */
         PyErr_SetString(PYLIBSSH2_Error, "SSH close error.");
         return NULL;
     }
-
-    self->opened = 0;
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -206,14 +208,16 @@ static PyObject *
 PYLIBSSH2_Session_userauth_list(PYLIBSSH2_SESSION *self, PyObject *args)
 {
     char *username;
-    int username_len = 0;
     char *auth_list;
 
-    if (!PyArg_ParseTuple(args, "s#:userauth_list", &username, &username_len)) {
+    if (!PyArg_ParseTuple(args, "s:userauth_list", &username)) {
         return NULL;
     }
 
-    auth_list=libssh2_userauth_list(self->session, username, username_len);
+    Py_BEGIN_ALLOW_THREADS
+    auth_list = libssh2_userauth_list(self->session, username, strlen(username));
+    Py_END_ALLOW_THREADS
+
     if (auth_list == NULL) {
        PyErr_SetString(PYLIBSSH2_Error, "Authentication methods listing failed.");
        return NULL;
@@ -415,6 +419,75 @@ PYLIBSSH2_Session_userauth_publickey_fromfile(PYLIBSSH2_SESSION *self, PyObject 
 }
 /* }}} */
 
+/* {{{ PYLIBSSH2_Session_userauth_publickey_fromfile
+ */
+static char PYLIBSSH2_Session_userauth_hostbased_fromfile_doc[] = "\n\
+userauth_hostbased_fromfile(username, publickey, privatekey, passphrase, hostname)\n\
+\n";
+
+static PyObject*
+PYLIBSSH2_Session_userauth_hostbased_fromfile(PYLIBSSH2_SESSION *self, PyObject *args)
+{
+    int rc;
+    char *username;
+    char *publickey;
+    char *privatekey;
+    char *hostname;
+    char *passphrase = "";
+
+    if (!PyArg_ParseTuple(args, "ssss|s:userauth_publickey_fromfile", &username, &publickey, &privatekey, &hostname, &passphrase)) {
+        return NULL;
+    }
+
+    Py_BEGIN_ALLOW_THREADS
+    rc = libssh2_userauth_hostbased_fromfile(self->session, username, publickey,privatekey, passphrase, hostname);
+    Py_END_ALLOW_THREADS
+
+    if (rc) {
+        char *errmsg;
+        if(libssh2_session_last_error(self->session, &errmsg, NULL, 0) != rc) {
+            // This is not the error that failed, do not take the string.
+            errmsg = "";
+        }
+        switch(rc) {
+            case LIBSSH2_ERROR_ALLOC:
+                PyErr_Format(PYLIBSSH2_Error, "An internal memory allocation call failed: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SOCKET_SEND:
+                PyErr_Format(PYLIBSSH2_Error, "Unable to send data on socket: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SOCKET_TIMEOUT:
+                PyErr_Format(PYLIBSSH2_Error, "LIBSSH2_ERROR_SOCKET_TIMEOUT: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_PUBLICKEY_UNVERIFIED:
+                PyErr_Format(PYLIBSSH2_Error, "The username/public key combination was invalid: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_AUTHENTICATION_FAILED:
+                PyErr_Format(PYLIBSSH2_Error, "Authentication using the supplied public key was not accepted: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_EAGAIN:
+                PyErr_SetString(PYLIBSSH2_Error, "Marked for non-blocking I/O but the call would block.");
+                return NULL;
+
+            case LIBSSH2_ERROR_FILE:
+                PyErr_Format(PYLIBSSH2_Error, "LIBSSH2_ERROR_FILE: %s", errmsg);
+                return NULL;
+            default:
+                PyErr_Format(PYLIBSSH2_Error, "Unknown Error %i: %s", rc, errmsg);
+                return NULL;
+        }
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+/* }}} */
+
 /* {{{ PYLIBSSH2_Session_session_methods
  */
 static char PYLIBSSH2_Session_session_methods_doc[] = "\n\
@@ -534,17 +607,14 @@ Allocates a new channel for the current session.\n\
 static PyObject *
 PYLIBSSH2_Session_open_session(PYLIBSSH2_SESSION *self, PyObject *args)
 {
-    int dealloc = 1;
     LIBSSH2_CHANNEL *channel;
-    if (!PyArg_ParseTuple(args, "|i:open_session", &dealloc)) {
-        return NULL;
-    }
+
     channel = libssh2_channel_open_session(self->session);
     if(channel == NULL) {
         PyErr_SetString(PYLIBSSH2_Error, "Failed to open a channel session");
         return NULL;
     }
-    return (PyObject *)PYLIBSSH2_Channel_New(self->session, channel, dealloc);
+    return (PyObject *)PYLIBSSH2_Channel_New(self->session, channel, 1);
 }
 /* }}} */
 
@@ -562,17 +632,14 @@ Init an ssh-agent handle.\n\
 static PyObject *
 PYLIBSSH2_Session_agent(PYLIBSSH2_SESSION *self, PyObject *args)
 {
-    int dealloc = 1;
     LIBSSH2_AGENT *agent;
-    if (!PyArg_ParseTuple(args, "|i:agent", &dealloc)) {
-        return NULL;
-    }
+
     agent = libssh2_agent_init(self->session);
     if(agent == NULL) {
         PyErr_SetString(PYLIBSSH2_Error, "Failed to init an ssh-agent handle");
         return NULL;
     }
-    return (PyObject *)PYLIBSSH2_Agent_New(self->session, agent, dealloc);
+    return (PyObject *)PYLIBSSH2_Agent_New(self->session, agent, 1);
 }
 /* }}} */
 
@@ -670,6 +737,28 @@ PYLIBSSH2_Session_scp_send(PYLIBSSH2_SESSION *self, PyObject *args)
 }
 /* }}} */
 
+
+/* {{{ PYLIBSSH2_Session_set_blocking
+ */
+static char PYLIBSSH2_Session_set_blocking_doc[] = "";
+
+static PyObject *
+PYLIBSSH2_Session_set_blocking(PYLIBSSH2_SESSION *self, PyObject *args)
+{
+    /* 1 blocking, 0 non blocking */
+    int block = 1;
+
+    if (!PyArg_ParseTuple(args, "|i:setblocking", &block)) {
+        return NULL;
+    }
+
+    libssh2_session_set_blocking(self->session, block);
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+/* }}} */
+
 /* {{{ PYLIBSSH2_Session_sftp_init
  */
 static char PYLIBSSH2_Session_sftp_init_doc[] = "\n\
@@ -683,13 +772,7 @@ Opens an SFTP Channel.\n\
 static PyObject *
 PYLIBSSH2_Session_sftp_init(PYLIBSSH2_SESSION *self, PyObject *args)
 {
-    int dealloc = 1;
-
-    if (!PyArg_ParseTuple(args, "|i:sftp_init", &dealloc)) {
-        return NULL;
-    }
-
-    return (PyObject *)PYLIBSSH2_Sftp_New(libssh2_sftp_init(self->session), dealloc);
+    return (PyObject *)PYLIBSSH2_Sftp_New(libssh2_sftp_init(self->session), 1);
 }
 /* }}} */
 
@@ -1086,27 +1169,29 @@ PYLIBSSH2_Session_userauth_keyboardinteractive(PYLIBSSH2_SESSION *self, PyObject
 
 static PyMethodDef PYLIBSSH2_Session_methods[] =
 {
-    ADD_METHOD(set_banner),
-    ADD_METHOD(startup),
+    ADD_METHOD(agent),
+    ADD_METHOD(callback_set),
     ADD_METHOD(close),
-    ADD_METHOD(userauth_authenticated),
+    ADD_METHOD(direct_tcpip),
+    ADD_METHOD(forward_listen),
     ADD_METHOD(hostkey_hash),
-    ADD_METHOD(userauth_list),
-    ADD_METHOD(session_methods),
-    ADD_METHOD(userauth_password),
-    ADD_METHOD(userauth_publickey_fromfile),
-    ADD_METHOD(session_method_pref),
+    ADD_METHOD(last_error),
     ADD_METHOD(open_session),
     ADD_METHOD(scp_recv),
     ADD_METHOD(scp_send),
-    ADD_METHOD(sftp_init),
-    ADD_METHOD(direct_tcpip),
-    ADD_METHOD(forward_listen),
-    ADD_METHOD(last_error),
-    ADD_METHOD(callback_set),
+    ADD_METHOD(session_methods),
+    ADD_METHOD(session_method_pref),
+    ADD_METHOD(set_banner),
+    ADD_METHOD(set_blocking),
     ADD_METHOD(set_trace),
+    ADD_METHOD(sftp_init),
+    ADD_METHOD(startup),
+    ADD_METHOD(userauth_authenticated),
+    ADD_METHOD(userauth_hostbased_fromfile),
     ADD_METHOD(userauth_keyboardinteractive),
-    ADD_METHOD(agent),
+    ADD_METHOD(userauth_list),
+    ADD_METHOD(userauth_password),
+    ADD_METHOD(userauth_publickey_fromfile),
     { NULL, NULL }
 };
 #undef ADD_METHOD
@@ -1142,6 +1227,7 @@ static void
 PYLIBSSH2_Session_dealloc(PYLIBSSH2_SESSION *self)
 {
     if (self->opened) {
+        PYLIBSSH2_Session_close(self, NULL);
         libssh2_session_disconnect(self->session, "end");
     }
 

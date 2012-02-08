@@ -68,6 +68,11 @@ PYLIBSSH2_Agent_disconnect(PYLIBSSH2_AGENT *self, PyObject *args)
 {
     int rc;
 
+    if(!self->opened) {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_agent_disconnect(self->agent);
     Py_END_ALLOW_THREADS
@@ -102,6 +107,11 @@ PYLIBSSH2_Agent_userauth(PYLIBSSH2_AGENT *self, PyObject *args)
     int rc;
     struct libssh2_agent_publickey *store = NULL;
     const char *username;
+
+    if(!self->opened) {
+        PyErr_Format(PYLIBSSH2_Error, "Not connected to agent");
+        return NULL;
+    }
 
     if (!PyArg_ParseTuple(args, "s:userauth", &username)) {
         return NULL;
@@ -189,16 +199,21 @@ PYLIBSSH2_Agent_New(LIBSSH2_SESSION *session, LIBSSH2_AGENT *agent, int dealloc)
 static void
 PYLIBSSH2_Agent_dealloc(PYLIBSSH2_AGENT *self)
 {
-    if (self->opened) {
-        PYLIBSSH2_Agent_disconnect(self, NULL);
-    }
-
-    if (self->dealloc) {
-        libssh2_agent_free(self->agent);
-    }
-
     if (self) {
+        if (self->opened) {
+            PYLIBSSH2_Agent_disconnect(self, NULL);
+            self->opened = 0;
+        }
+
+        if (self->dealloc) {
+            if(self->agent) {
+                libssh2_agent_free(self->agent);
+                self->agent = NULL;
+            }
+        }
+
         PyObject_Del(self);
+        self = NULL;
     }
 }
 /* }}} */
@@ -219,12 +234,12 @@ PYLIBSSH2_Agent_getattr(PYLIBSSH2_AGENT *self, char *name)
 PyTypeObject PYLIBSSH2_Agent_Type = {
     PyObject_HEAD_INIT(NULL)
     0,                                       /* ob_size */
-    "Agent",                              /* tp_name */
-    sizeof(PYLIBSSH2_AGENT),              /* tp_basicsize */
+    "Agent",                                 /* tp_name */
+    sizeof(PYLIBSSH2_AGENT),                 /* tp_basicsize */
     0,                                       /* tp_itemsize */
-    (destructor)PYLIBSSH2_Agent_dealloc,  /* tp_dealloc */
+    (destructor)PYLIBSSH2_Agent_dealloc,     /* tp_dealloc */
     0,                                       /* tp_print */
-    (getattrfunc)PYLIBSSH2_Agent_getattr, /* tp_getattr */
+    (getattrfunc)PYLIBSSH2_Agent_getattr,    /* tp_getattr */
     0,                                       /* tp_setattr */
     0,                                       /* tp_compare */
     0,                                       /* tp_repr */
