@@ -35,17 +35,8 @@ class Agent(object):
     def connect(self):
         self._agent.connect()
 
-    def userauth(self, username, identity=None):
-        if identity:
-            self._agent.userauth(username, identity)
-        else:
-            self._agent.userauth(username)
-
-    def identities(self):
-        return self._agent.identities()
-
     def disconnect(self):
         self._agent.disconnect()
 
-    def get_identities(self):
-        return self._agent.get_identities()
+    def userauth(self, username):
+        self._agent.userauth(username)

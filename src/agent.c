@@ -20,25 +20,6 @@
 #include "pylibssh2.h"
 
 
- int hex2str(char *out, const void *buffer, const unsigned long int size) {
-    unsigned long int i;
-    const unsigned char *cbuf = (const unsigned char *)buffer;
-    char byte_str[3];
-
-    for (*out = 0, i = 0; i < size; i++) {
-        if(cbuf[i] >= 32 && cbuf[i] <=126) {
-            snprintf(byte_str, sizeof(byte_str), "%c", cbuf[i]);
-        }
-        else {
-            snprintf(byte_str, sizeof(byte_str), "%02x", cbuf[i]);
-        }
-        strncat(out, byte_str, sizeof(byte_str));
-    }
-
-    return (strlen(out));
-}
-
-
 /* {{{ PYLIBSSH2_Agent_connect
  */
 static char PYLIBSSH2_Agent_connect_doc[] = "";
@@ -47,6 +28,11 @@ static PyObject *
 PYLIBSSH2_Agent_connect(PYLIBSSH2_AGENT *self, PyObject *args)
 {
     int rc;
+
+    if(self->opened) {
+        PyErr_Format(PYLIBSSH2_Error, "Already connected to agent");
+        return NULL;
+    }
 
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_agent_connect(self->agent);
@@ -174,7 +160,17 @@ PYLIBSSH2_Agent_New(LIBSSH2_SESSION *session, LIBSSH2_AGENT *agent, int dealloc)
 {
     PYLIBSSH2_AGENT *self;
 
+    if(!session) {
+        //TODO add exception
+        return NULL;
+    }
+
+    if(!agent) {
+        //TODO add exception
+        return NULL;
+    }
     self = PyObject_New(PYLIBSSH2_AGENT, &PYLIBSSH2_Agent_Type);
+
     if (self == NULL) {
         return NULL;
     }
@@ -193,6 +189,10 @@ PYLIBSSH2_Agent_New(LIBSSH2_SESSION *session, LIBSSH2_AGENT *agent, int dealloc)
 static void
 PYLIBSSH2_Agent_dealloc(PYLIBSSH2_AGENT *self)
 {
+    if (self->opened) {
+        PYLIBSSH2_Agent_disconnect(self, NULL);
+    }
+
     if (self->dealloc) {
         libssh2_agent_free(self->agent);
     }
@@ -238,7 +238,7 @@ PyTypeObject PYLIBSSH2_Agent_Type = {
     0,                                       /* tp_setattro */
     0,                                       /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT,                      /* tp_flags */
-    "Agent objects",                      /* tp_doc */
+    "Agent objects",                         /* tp_doc */
 };
 /* }}} */
 

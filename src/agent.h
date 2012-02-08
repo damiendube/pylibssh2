@@ -21,7 +21,7 @@
 #include <Python.h>
 #include <libssh2.h>
 
-extern int init_libssh2_agent(PyObject *);
+extern int init_libssh2_Agent(PyObject *);
 
 extern PyTypeObject PYLIBSSH2_Agent_Type;
 

@@ -46,6 +46,9 @@ doc:
 
 test: debug
 	python setup.py test
+	
+pdbtest: debug
+	pdb setup.py test
 
 clean:
 	rm -rf build dist

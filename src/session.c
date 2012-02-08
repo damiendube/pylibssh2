@@ -1205,6 +1205,8 @@ init_libssh2_Session(PyObject *dict)
     PYLIBSSH2_Session_Type.ob_type = &PyType_Type;
     Py_INCREF(&PYLIBSSH2_Session_Type);
     PyDict_SetItemString(dict, "SessionType", (PyObject *)&PYLIBSSH2_Session_Type);
-    
+
     return 1;
 }
+/* }}} */
+

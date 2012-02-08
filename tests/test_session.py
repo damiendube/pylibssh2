@@ -58,6 +58,16 @@ class SessionTest(unittest.TestCase):
 
         self.assertEqual(session.userauth_authenticated(), 1)
 
+    def test_session_agent_login(self):
+        session = libssh2.Session()
+        session.set_banner()
+        session.startup(self.socket)
+        agent = session.agent()
+        agent.connect()
+        #username = pwd.getpwuid(os.getuid())[0]
+        #agent.userauth(username)
+        #self.assertEqual(session.userauth_authenticated(), 1)
+
     def tearDown(self):
         self.socket.close()
 

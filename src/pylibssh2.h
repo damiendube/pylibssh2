@@ -80,7 +80,7 @@ extern PyObject *PYLIBSSH2_Error;
 
 #define PYLIBSSH2_Agent_New_NUM                 6
 #define PYLIBSSH2_Agent_New_RETURN              PYLIBSSH2_AGENT *
-#define PYLIBSSH2_Agent_New_PROTO               (LIBSSH2_SESSION*, LIBSSH2_AGENT*, int)
+#define PYLIBSSH2_Agent_New_PROTO               (LIBSSH2_SESSION *, LIBSSH2_AGENT *, int)
 
 #define PYLIBSSH2_API_pointers                  7
 

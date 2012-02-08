@@ -45,6 +45,7 @@ PyDoc_STRVAR(PYLIBSSH2_Session_doc,
 "\n\
 This class provide SSH Session operations.\n\
 \n\
+agent() -- init an ssh-agent\
 close() -- closes the session\n\
 direct_tcpip() -- tunnels a TCP connection\n\
 forward_listen() -- forwards a TCP connection\n\
@@ -144,12 +145,37 @@ PYLIBSSH2_Sftp(PyObject *self, PyObject *args)
 /* }}} */
 
 
+/* {{{ PYLIBSSH2_Agent
+ */
+static char PYLIBSSH2_Agent_doc[] = "\n\
+\n\
+Arguments:\n\
+\n\
+Returns:\n\
+";
+
+static PyObject *
+PYLIBSSH2_Agent(PyObject *self, PyObject *args)
+{
+    PYLIBSSH2_SESSION *session;
+    int dealloc = 1;
+
+    if (!PyArg_ParseTuple(args, "O|i:Agent", &session, &dealloc)) {
+        return NULL;
+    }
+
+    return (PyObject *)PYLIBSSH2_Agent_New(session->session, libssh2_agent_init(
+                        session->session), dealloc);
+}
+/* }}} */
+
 /* {{{ PYLIBSSH2_methods[]
  */
 static PyMethodDef PYLIBSSH2_methods[] = {
     { "Session", (PyCFunction)PYLIBSSH2_Session, METH_VARARGS, PYLIBSSH2_Session_doc },
     { "Channel", (PyCFunction)PYLIBSSH2_Channel, METH_VARARGS, PYLIBSSH2_Channel_doc },
     { "Sftp", (PyCFunction)PYLIBSSH2_Sftp, METH_VARARGS, PYLIBSSH2_Sftp_doc },
+    { "Agent", (PyCFunction)PYLIBSSH2_Agent, METH_VARARGS, PYLIBSSH2_Agent_doc },
     { NULL, NULL }
 };
 /* }}} */
@@ -177,6 +203,7 @@ init_libssh2(void)
     PYLIBSSH2_API[PYLIBSSH2_Sftp_New_NUM] = (void *) PYLIBSSH2_Sftp_New;
     PYLIBSSH2_API[PYLIBSSH2_Sftpfile_New_NUM] = (void *) PYLIBSSH2_Sftpfile_New;
     PYLIBSSH2_API[PYLIBSSH2_Sftpdir_New_NUM] = (void *) PYLIBSSH2_Sftpdir_New;
+    PYLIBSSH2_API[PYLIBSSH2_Agent_New_NUM] = (void *) PYLIBSSH2_Agent_New;
 
     c_api_object = PyCObject_FromVoidPtr((void *)PYLIBSSH2_API, NULL);
     if (c_api_object != NULL) {
@@ -236,6 +263,9 @@ init_libssh2(void)
         goto error;
     }
     if (!init_libssh2_Sftpdir(dict)) {
+        goto error;
+    }
+    if (!init_libssh2_Agent(dict)) {
         goto error;
     }
 
