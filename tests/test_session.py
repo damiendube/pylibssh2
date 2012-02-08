@@ -15,10 +15,11 @@ Unit tests for Session
 import socket
 import unittest
 import os, pwd
-import _libssh2
-
-def callback_func(session, always_display, message, message_len, language, language_len, abstract):
-    print message
+try:
+    import libssh2
+except:
+    # Let test_import fail
+    pass
 
 class SessionTest(unittest.TestCase):
     def setUp(self):
@@ -36,19 +37,16 @@ class SessionTest(unittest.TestCase):
         self.assertTrue(ok)
 
     def test_session_create(self):
-        import libssh2
         session = libssh2.Session()
         self.assertTrue(isinstance(session, libssh2.session.Session))
 
     def test_session_handshake(self):
-        import libssh2
         session = libssh2.Session()
         session.set_banner()
         self.assertEqual(session.userauth_authenticated(), 0)
         session.handshake(self.socket)
 
     def test_session_password_login(self):
-        import libssh2
         session = libssh2.Session()
         session.set_banner()
         session.handshake(self.socket)
@@ -58,7 +56,6 @@ class SessionTest(unittest.TestCase):
         self.assertEqual(session.userauth_authenticated(), 1)
 
     def test_session_host_login(self):
-        import libssh2
         session = libssh2.Session()
         session.set_banner()
         session.handshake(self.socket)
