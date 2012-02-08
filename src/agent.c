@@ -20,7 +20,26 @@
 #include "pylibssh2.h"
 
 
-/* {{{ PYLIBSSH2_Channel_close
+ int hex2str(char *out, const void *buffer, const unsigned long int size) {
+    unsigned long int i;
+    const unsigned char *cbuf = (const unsigned char *)buffer;
+    char byte_str[3];
+
+    for (*out = 0, i = 0; i < size; i++) {
+        if(cbuf[i] >= 32 && cbuf[i] <=126) {
+            snprintf(byte_str, sizeof(byte_str), "%c", cbuf[i]);
+        }
+        else {
+            snprintf(byte_str, sizeof(byte_str), "%02x", cbuf[i]);
+        }
+        strncat(out, byte_str, sizeof(byte_str));
+    }
+
+    return (strlen(out));
+}
+
+
+/* {{{ PYLIBSSH2_Agent_connect
  */
 static char PYLIBSSH2_Agent_connect_doc[] = "";
 
@@ -54,7 +73,7 @@ PYLIBSSH2_Agent_connect(PYLIBSSH2_AGENT *self, PyObject *args)
 /* }}} */
 
 
-/* {{{ PYLIBSSH2_Channel_close
+/* {{{ PYLIBSSH2_Agent_disconnect
  */
 static char PYLIBSSH2_Agent_disconnect_doc[] = "";
 
@@ -87,43 +106,48 @@ PYLIBSSH2_Agent_disconnect(PYLIBSSH2_AGENT *self, PyObject *args)
 }
 /* }}} */
 
-/* {{{ PYLIBSSH2_Agent_get_identity
+/* {{{ PYLIBSSH2_Agent_userauth
  */
-static char PYLIBSSH2_Agent_get_identities_doc[] = "";
+static char PYLIBSSH2_Agent_userauth_doc[] = "";
 
 static PyObject *
-PYLIBSSH2_Agent_get_identities(PYLIBSSH2_AGENT *self, PyObject *args)
+PYLIBSSH2_Agent_userauth(PYLIBSSH2_AGENT *self, PyObject *args)
 {
     int rc;
     struct libssh2_agent_publickey *store = NULL;
+    const char *username;
 
-    rc = libssh2_agent_list_identities(self->agent);
-    if (rc) {
-        PyErr_Format(PYLIBSSH2_Error, "Unknown Error");
+    if (!PyArg_ParseTuple(args, "s:userauth", &username)) {
         return NULL;
     }
 
-    PyObject* pyList = PyList_New(0);
+    rc = libssh2_agent_list_identities(self->agent);
+    if (rc) {
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to list identities");
+        return NULL;
+    }
 
     while(1) {
         rc = libssh2_agent_get_identity(self->agent, &store, store);
         if (rc < 0) {
-            PyErr_Format(PYLIBSSH2_Error, "Unknown Error");
+            PyErr_SetString(PYLIBSSH2_Error, "Unable to get identity");
             return NULL;
         }
-        else if(rc == 0){
-            PyList_Append(pyList, (PyObject*)PYLIBSSH2_Agent_PublicKey_New(store));
+
+        if(libssh2_agent_userauth(self->agent, username, store) == 0) {
+            Py_INCREF(Py_None);
+            return Py_None;
         }
-        else if(rc == 1){
+
+        if(rc == 1){
             break;
         }
     }
 
-    Py_XINCREF(pyList);
-    return pyList;
+    PyErr_SetString(PYLIBSSH2_Error, "Unable to establish a connection using agent public keys");
+    return NULL;
 }
 /* }}} */
-
 
 /* {{{ PYLIBSSH2_Agent_methods[]
  *
@@ -137,7 +161,7 @@ PYLIBSSH2_Agent_get_identities(PYLIBSSH2_AGENT *self, PyObject *args)
 struct PyMethodDef PYLIBSSH2_Agent_methods[] = {
     ADD_METHOD(connect),
     ADD_METHOD(disconnect),
-    ADD_METHOD(get_identities),
+    ADD_METHOD(userauth),
     { NULL, NULL }
 };
 #undef ADD_METHOD

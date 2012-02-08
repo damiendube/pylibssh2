@@ -34,7 +34,7 @@ Requirements
 
     - python 2.6+ <http://www.python.org>
       (older version before 2.5 aren't supported and not recommended)
-    - libssh2 1.2.1+ <http://www.libssh2.org>
+    - libssh2 1.2.2+ <http://www.libssh2.org>
       (older version after 0.18 can works too)
 
 Linux Debian/Ubuntu::

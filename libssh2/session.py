@@ -17,6 +17,7 @@
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
+from libssh2.agent import Agent
 """
 Abstraction for libssh2 L{Session} object
 """
@@ -301,3 +302,7 @@ class Session(object):
         """
         return self._session.userauth_keyboardinteractive(username, password,
                                                    len(password))
+
+
+    def agent(self):
+        return Agent(self._session.agent())

@@ -46,15 +46,6 @@ class SessionTest(unittest.TestCase):
         self.assertEqual(session.userauth_authenticated(), 0)
         session.startup(self.socket)
 
-    def test_session_password_login(self):
-        session = libssh2.Session()
-        session.set_banner()
-        session.startup(self.socket)
-        self.assertEqual(session.userauth_authenticated(), 0)
-
-        session.userauth_password("ddube", "D1fference")
-        self.assertEqual(session.userauth_authenticated(), 1)
-
     def test_session_host_login(self):
         session = libssh2.Session()
         session.set_banner()

@@ -266,6 +266,7 @@ PYLIBSSH2_Session_hostkey_hash(PYLIBSSH2_SESSION *self, PyObject *args)
             break;
         default:
             len = 0;
+            break;
     }
 
     memcpy(buff, hash, len);
