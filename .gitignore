@@ -3,3 +3,4 @@ build/
 dist/
 doc/
 pylibssh2.egg-info/
+/MANIFEST

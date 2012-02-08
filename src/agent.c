@@ -22,7 +22,7 @@
 
 /* {{{ PYLIBSSH2_Channel_close
  */
-static char PYLIBSSH2_Channel_close_doc[] = "";
+static char PYLIBSSH2_Agent_connect_doc[] = "";
 
 static PyObject *
 PYLIBSSH2_Agent_connect(PYLIBSSH2_AGENT *self, PyObject *args)
@@ -56,6 +56,8 @@ PYLIBSSH2_Agent_connect(PYLIBSSH2_AGENT *self, PyObject *args)
 
 /* {{{ PYLIBSSH2_Channel_close
  */
+static char PYLIBSSH2_Agent_disconnect_doc[] = "";
+
 static PyObject *
 PYLIBSSH2_Agent_disconnect(PYLIBSSH2_AGENT *self, PyObject *args)
 {
@@ -87,6 +89,8 @@ PYLIBSSH2_Agent_disconnect(PYLIBSSH2_AGENT *self, PyObject *args)
 
 /* {{{ PYLIBSSH2_Agent_get_identity
  */
+static char PYLIBSSH2_Agent_get_identities_doc[] = "";
+
 static PyObject *
 PYLIBSSH2_Agent_get_identities(PYLIBSSH2_AGENT *self, PyObject *args)
 {
@@ -99,7 +103,7 @@ PYLIBSSH2_Agent_get_identities(PYLIBSSH2_AGENT *self, PyObject *args)
         return NULL;
     }
 
-    PyObject* pyList = PyList_New(NULL);
+    PyObject* pyList = PyList_New(0);
 
     while(1) {
         rc = libssh2_agent_get_identity(self->agent, &store, store);
@@ -108,7 +112,7 @@ PYLIBSSH2_Agent_get_identities(PYLIBSSH2_AGENT *self, PyObject *args)
             return NULL;
         }
         else if(rc == 0){
-            PyList_Append(pyList, PYLIBSSH2_Agent_PublicKey_New(store));
+            PyList_Append(pyList, (PyObject*)PYLIBSSH2_Agent_PublicKey_New(store));
         }
         else if(rc == 1){
             break;
