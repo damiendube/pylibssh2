@@ -40,16 +40,16 @@ class SessionTest(unittest.TestCase):
         session = libssh2.Session()
         self.assertTrue(isinstance(session, libssh2.session.Session))
 
-    def test_session_handshake(self):
+    def test_session_startup(self):
         session = libssh2.Session()
         session.set_banner()
         self.assertEqual(session.userauth_authenticated(), 0)
-        session.handshake(self.socket)
+        session.startup(self.socket)
 
     def test_session_password_login(self):
         session = libssh2.Session()
         session.set_banner()
-        session.handshake(self.socket)
+        session.startup(self.socket)
         self.assertEqual(session.userauth_authenticated(), 0)
 
         session.userauth_password("ddube", "D1fference")
@@ -58,7 +58,7 @@ class SessionTest(unittest.TestCase):
     def test_session_host_login(self):
         session = libssh2.Session()
         session.set_banner()
-        session.handshake(self.socket)
+        session.startup(self.socket)
         self.assertEqual(session.userauth_authenticated(), 0)
 
         username = pwd.getpwuid(os.getuid())[0]

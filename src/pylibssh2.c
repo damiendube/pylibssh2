@@ -57,7 +57,7 @@ session_method_pref() -- sets preferred methods to be negociated\n\
 session_methods() -- returns a dictionnary with the currently active algorithms\n\
 set_banner() -- sets the banner that will be sent to remote host\n\
 sftp_init() -- opens an SFTP Channel\n\
-handhshake() -- perform the SSH handshake\n\
+startup() -- perform the SSH startup\n\
 userauth_authenticated() -- returns authentification status\n\
 userauth_list() -- lists the authentification methods\n\
 userauth_password() -- authenticates a session with credentials\n\

@@ -80,8 +80,7 @@ static char PYLIBSSH2_Listener_cancel_doc[] = "\n\
 \n\
 Arguments:\n\
 \n\
-Returns:\n\
-";
+Returns:\n";
 
 static PyObject*
 PYLIBSSH2_Listener_cancel(PYLIBSSH2_LISTENER *self, PyObject *args)
@@ -122,7 +121,7 @@ struct PyMethodDef PYLIBSSH2_Listener_methods[] = {
 /* {{{ PYLIBSSH2_Listener_New
  */
 PYLIBSSH2_LISTENER *
-PYLIBSSH2_Listener_New(LIBSSH2_SESSION *session, LIBSSH2_LISTENER *listener, int dealloc)
+PYLIBSSH2_Listener_New(LIBSSH2_SESSION *session, LIBSSH2_LISTENER *listener)
 {
     PYLIBSSH2_LISTENER *self;
 
@@ -133,7 +132,6 @@ PYLIBSSH2_Listener_New(LIBSSH2_SESSION *session, LIBSSH2_LISTENER *listener, int
 
     self->session = session;
     self->listener = listener;
-    self->dealloc = dealloc;
 
     return self;
 }

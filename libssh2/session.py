@@ -174,7 +174,7 @@ class Session(object):
     def session_method_pref(self, method_type, pref):
         """
         Sets preferred methods to be negociated. Theses preferences must be
-        prior to calling L{handshake}.
+        prior to calling L{startup}.
 
         @param method_type: the method type constants
         @type method_type: int
@@ -218,7 +218,7 @@ class Session(object):
         """
         return Sftp(self._session.sftp_init())
 
-    def handshake(self, sock):
+    def startup(self, sock):
         """
         Starts up the session form a socket created by a socket.socket() call.
 
@@ -228,7 +228,7 @@ class Session(object):
         @return: 0 on success or negative on failure
         @rtype: int
         """
-        self._session.handshake(sock)
+        self._session.startup(sock)
 
     def userauth_authenticated(self):
         """

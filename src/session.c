@@ -23,17 +23,17 @@
 #include "pylibssh2.h"
 
 
-/* {{{ PYLIBSSH2_Session_handshake
+/* {{{ PYLIBSSH2_Session_startup
  */
-static char PYLIBSSH2_Session_handshake_doc[] = "\
-    handshake(socket)\n\
+static char PYLIBSSH2_Session_startup_doc[] = "\
+    startup(socket)\n\
     \n\
-    Perform the SSH handshake.\n\
+    Perform the SSH startup.\n\
     \n\
     @param  socket: an open socket to the remote host\n\
     @type   socket: object\n";
 static PyObject*
-PYLIBSSH2_Session_handshake(PYLIBSSH2_SESSION *self, PyObject *args)
+PYLIBSSH2_Session_startup(PYLIBSSH2_SESSION *self, PyObject *args)
 {
     int rc;
     int fd;
@@ -48,7 +48,7 @@ PYLIBSSH2_Session_handshake(PYLIBSSH2_SESSION *self, PyObject *args)
     fd = PyObject_AsFileDescriptor(self->socket);
 
     Py_BEGIN_ALLOW_THREADS
-    rc = libssh2_session_handshake(self->session, fd);
+    rc = libssh2_session_startup(self->session, fd);
     Py_END_ALLOW_THREADS
 
     if(rc < 0) {
@@ -80,7 +80,7 @@ PYLIBSSH2_Session_handshake(PYLIBSSH2_SESSION *self, PyObject *args)
                 PyErr_SetString(PYLIBSSH2_Error, "Marked for non-blocking I/O but the call would block.");
                 return NULL;
             default:
-                PyErr_SetString(PYLIBSSH2_Error, "Failure establishing handshake.");
+                PyErr_SetString(PYLIBSSH2_Error, "Failure establishing startup.");
                 return NULL;
         }
     }
@@ -475,7 +475,7 @@ static char PYLIBSSH2_Session_session_method_pref_doc[] = "\n\
 session_method_pref(method_type, pref)\n\
 \n\
 Sets preferred methods to be negociated. Theses preferences must be\n\
-prior to calling handshake().\n\
+prior to calling startup().\n\
 \n\
 @param  method_type: the method type constants\n\
 @type   method_type: L{libssh2.METHOD}\n\
@@ -544,6 +544,34 @@ PYLIBSSH2_Session_open_session(PYLIBSSH2_SESSION *self, PyObject *args)
         return NULL;
     }
     return (PyObject *)PYLIBSSH2_Channel_New(self->session, channel, dealloc);
+}
+/* }}} */
+
+
+/* {{{ PYLIBSSH2_Session_agent
+ */
+static char PYLIBSSH2_Session_agent_doc[] = "\n\
+agent() -> libssh2.Agent\n\
+\n\
+Init an ssh-agent handle.\n\
+\n\
+@return new agent opened\n\
+@rtype  libssh2.Agent";
+
+static PyObject *
+PYLIBSSH2_Session_agent(PYLIBSSH2_SESSION *self, PyObject *args)
+{
+    int dealloc = 1;
+    LIBSSH2_AGENT *agent;
+    if (!PyArg_ParseTuple(args, "|i:agent", &dealloc)) {
+        return NULL;
+    }
+    agent = libssh2_agent_init(self->session);
+    if(agent == NULL) {
+        PyErr_SetString(PYLIBSSH2_Error, "Failed to init an ssh-agent handle");
+        return NULL;
+    }
+    return (PyObject *)PYLIBSSH2_Agent_New(self->session, agent, dealloc);
 }
 /* }}} */
 
@@ -789,7 +817,7 @@ PYLIBSSH2_Session_forward_listen(PYLIBSSH2_SESSION *self, PyObject *args)
         }
     }
 
-    return (PyObject *)PYLIBSSH2_Listener_New(self->session, listener, 0);
+    return (PyObject *)PYLIBSSH2_Listener_New(self->session, listener);
 }
 /* }}} */
 
@@ -1058,7 +1086,7 @@ PYLIBSSH2_Session_userauth_keyboardinteractive(PYLIBSSH2_SESSION *self, PyObject
 static PyMethodDef PYLIBSSH2_Session_methods[] =
 {
     ADD_METHOD(set_banner),
-    ADD_METHOD(handshake),
+    ADD_METHOD(startup),
     ADD_METHOD(close),
     ADD_METHOD(userauth_authenticated),
     ADD_METHOD(hostkey_hash),
@@ -1077,6 +1105,7 @@ static PyMethodDef PYLIBSSH2_Session_methods[] =
     ADD_METHOD(callback_set),
     ADD_METHOD(set_trace),
     ADD_METHOD(userauth_keyboardinteractive),
+    ADD_METHOD(agent),
     { NULL, NULL }
 };
 #undef ADD_METHOD
