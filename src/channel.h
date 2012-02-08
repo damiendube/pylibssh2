@@ -35,6 +35,7 @@ typedef struct {
     LIBSSH2_SESSION *session;
     LIBSSH2_CHANNEL *channel;
     int             dealloc;
+    int 			opened;
 } PYLIBSSH2_CHANNEL;
 
 #endif /* _PYLIBSSH2_CHANNEL_H_ */

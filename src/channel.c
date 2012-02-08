@@ -59,6 +59,8 @@ PYLIBSSH2_Channel_close(PYLIBSSH2_CHANNEL *self, PyObject *args)
         }
     }
 
+    self->opened = 0;
+
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -942,6 +944,46 @@ PYLIBSSH2_Channel_poll_read(PYLIBSSH2_CHANNEL *self, PyObject *args)
 }
 /* }}} */
 
+
+/* {{{ PYLIBSSH2_Channel_receive_window_adjust
+ */
+static char PYLIBSSH2_Channel_receive_window_adjust_doc[] = "\n\
+receive_window_adjust(adjustment, [force]) -> int\n\
+\n\
+Adjust the channel window.\n\
+\n\
+@param  adjustment: adjustment bytes\n\
+@type   adjustment: int\n\
+\n\
+@param  force: force\n\
+@type   force: int\n\
+\n\
+@return window size\n\
+@rtype  int";
+
+static PyObject *
+PYLIBSSH2_Channel_receive_window_adjust(PYLIBSSH2_CHANNEL *self, PyObject *args)
+{
+    int rc;
+    int adjustment;
+    int force = 0;
+    unsigned int window;
+
+    if (!PyArg_ParseTuple(args, "i|i:receive_window_adjust", &adjustment, &force)) {
+        return NULL;
+    }
+
+    rc = libssh2_channel_receive_window_adjust2(self->channel, adjustment, force, &window);
+
+    if(rc < 0) {
+		PyErr_Format(PYLIBSSH2_Error, "Unknown Error %i", rc);
+		return NULL;
+    }
+    return Py_BuildValue("i", window);
+}
+/* }}} */
+
+
 /* {{{ PYLIBSSH2_Channel_methods[]
  *
  * ADD_METHOD(name) expands to a correct PyMethodDef declaration
@@ -973,6 +1015,7 @@ static PyMethodDef PYLIBSSH2_Channel_methods[] =
     ADD_METHOD(window_write),
     ADD_METHOD(poll_read),
     ADD_METHOD(x11_req),
+    ADD_METHOD(receive_window_adjust),
     { NULL, NULL }
 };
 #undef ADD_METHOD
@@ -993,6 +1036,7 @@ PYLIBSSH2_Channel_New(LIBSSH2_SESSION *session, LIBSSH2_CHANNEL *channel, int de
     self->session = session;
     self->channel = channel;
     self->dealloc = dealloc;
+    self->opened = 1;
 
     return self;
 }
@@ -1003,6 +1047,14 @@ PYLIBSSH2_Channel_New(LIBSSH2_SESSION *session, LIBSSH2_CHANNEL *channel, int de
 static void
 PYLIBSSH2_Channel_dealloc(PYLIBSSH2_CHANNEL *self)
 {
+    if (self->opened) {
+    	PYLIBSSH2_Channel_close(self, NULL);
+    }
+
+    if (self->dealloc) {
+    	libssh2_channel_free(self->channel);
+    }
+
     PyObject_Del(self);
 }
 /* }}} */
