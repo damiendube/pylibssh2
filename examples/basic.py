@@ -11,7 +11,5 @@ session.startup(sock)
 username = pwd.getpwuid(os.getuid())[0]
 
 
-agent = session.agent()
-agent.connect()
-agent.userauth(username)
-
+session.userauth_agent(username)
+print session.userauth_authenticated()

@@ -184,7 +184,7 @@ Returns authentification status for the given session.\n\
 @return non-zero if authenticated or 0 if not\n\
 @rtype  int";
 
-static PyObject * 
+static PyObject *
 PYLIBSSH2_Session_userauth_authenticated(PYLIBSSH2_SESSION *self, PyObject *args)
 {
     return Py_BuildValue("i", libssh2_userauth_authenticated(self->session));
@@ -488,6 +488,74 @@ PYLIBSSH2_Session_userauth_hostbased_fromfile(PYLIBSSH2_SESSION *self, PyObject 
 }
 /* }}} */
 
+
+/* {{{ PYLIBSSH2_Session_userauth_publickey_fromfile
+ */
+static char PYLIBSSH2_Session_userauth_agent_doc[] = "\n\
+agent(username, publickey, privatekey, passphrase, hostname)\n\
+\n";
+
+static PyObject*
+PYLIBSSH2_Session_userauth_agent(PYLIBSSH2_SESSION *self, PyObject *args)
+{
+    int rc;
+    char *username;
+    struct libssh2_agent_publickey *store = NULL;
+    LIBSSH2_AGENT * agent = NULL;
+
+    if (!PyArg_ParseTuple(args, "s:userauth_agent", &username)) {
+        return NULL;
+    }
+
+    agent = libssh2_agent_init(self->session);
+    if(agent) {
+        PyErr_SetString(PYLIBSSH2_Error, "Unable to list identities");
+        return NULL;
+    }
+
+    Py_BEGIN_ALLOW_THREADS
+    rc = libssh2_agent_connect(agent);
+    Py_END_ALLOW_THREADS
+
+    if (rc == 0) {
+        rc = libssh2_agent_list_identities(agent);
+        if(rc) {
+            while(rc == 0) {
+                rc = libssh2_agent_get_identity(agent, &store, store);
+                if(rc < 0) {
+                    PyErr_SetString(PYLIBSSH2_Error, "Unable to get identity");
+                    break;
+                }
+                if(libssh2_agent_userauth(agent, username, store) == 0) {
+                    break;
+                }
+                if(rc == 1) {
+                    PyErr_SetString(PYLIBSSH2_Error, "Unable userauth using agent identities");
+                }
+            }
+        }
+        else {
+            PyErr_SetString(PYLIBSSH2_Error, "Unable to list identities");
+        }
+
+        Py_BEGIN_ALLOW_THREADS
+        libssh2_agent_disconnect(agent);
+        Py_END_ALLOW_THREADS
+    }
+
+    libssh2_agent_free(agent);
+
+    if(PyErr_Occurred()) {
+        return NULL;
+    }
+    else {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+}
+/* }}} */
+
+
 /* {{{ PYLIBSSH2_Session_session_methods
  */
 static char PYLIBSSH2_Session_session_methods_doc[] = "\n\
@@ -619,30 +687,6 @@ PYLIBSSH2_Session_open_session(PYLIBSSH2_SESSION *self, PyObject *args)
 /* }}} */
 
 
-/* {{{ PYLIBSSH2_Session_agent
- */
-static char PYLIBSSH2_Session_agent_doc[] = "\n\
-agent() -> libssh2.Agent\n\
-\n\
-Init an ssh-agent handle.\n\
-\n\
-@return new agent opened\n\
-@rtype  libssh2.Agent";
-
-static PyObject *
-PYLIBSSH2_Session_agent(PYLIBSSH2_SESSION *self, PyObject *args)
-{
-    LIBSSH2_AGENT *agent;
-
-    agent = libssh2_agent_init(self->session);
-    if(agent == NULL) {
-        PyErr_SetString(PYLIBSSH2_Error, "Failed to init an ssh-agent handle");
-        return NULL;
-    }
-    return (PyObject *)PYLIBSSH2_Agent_New(self->session, agent, 1);
-}
-/* }}} */
-
 /* {{{ PYLIBSSH2_Session_scp_recv
  */
 static char PYLIBSSH2_Session_scp_recv_doc[] = "\n\
@@ -672,7 +716,7 @@ PYLIBSSH2_Session_scp_recv(PYLIBSSH2_SESSION *self, PyObject *args)
         PyErr_SetString(PYLIBSSH2_Error, "SCP receive error.");
         return NULL;
     }
-    
+
     return (PyObject *)PYLIBSSH2_Channel_New(self->session, channel, 1);
 }
 /* }}} */
@@ -943,7 +987,7 @@ Set (or reset) a callback function\n\
 
 /*
 void
-x11_callback(LIBSSH2_SESSION *session, LIBSSH2_CHANNEL *channel, 
+x11_callback(LIBSSH2_SESSION *session, LIBSSH2_CHANNEL *channel,
              const char *shost, int sport, void **abstract)
 */
 
@@ -959,7 +1003,7 @@ stub_x11_callback_func(LIBSSH2_SESSION *session,
     int rc=0;
 
     PYLIBSSH2_SESSION *pysession;
-    PYLIBSSH2_CHANNEL *pychannel; 
+    PYLIBSSH2_CHANNEL *pychannel;
     PyObject *pyabstract;
 
     /* Ensure current thread is ready to call Python C API */
@@ -1071,7 +1115,7 @@ PYLIBSSH2_Session_set_trace(PYLIBSSH2_SESSION *self, PyObject *args)
 /* }}} */
 
 /* 
-void 
+void
 kbd_callback(const char *name, int name_len, const char *instruction,
              int instruction_len, int num_prompts,
              const LIBSSH2_USERAUTH_KBDINT_PROMPT *prompts,
@@ -1152,7 +1196,7 @@ PYLIBSSH2_Session_userauth_keyboardinteractive(PYLIBSSH2_SESSION *self, PyObject
     }
 
     return Py_BuildValue("i", rc);
-    
+
 }
 
 /* }}} */
@@ -1169,7 +1213,6 @@ PYLIBSSH2_Session_userauth_keyboardinteractive(PYLIBSSH2_SESSION *self, PyObject
 
 static PyMethodDef PYLIBSSH2_Session_methods[] =
 {
-    ADD_METHOD(agent),
     ADD_METHOD(callback_set),
     ADD_METHOD(close),
     ADD_METHOD(direct_tcpip),
@@ -1186,6 +1229,7 @@ static PyMethodDef PYLIBSSH2_Session_methods[] =
     ADD_METHOD(set_trace),
     ADD_METHOD(sftp_init),
     ADD_METHOD(startup),
+    ADD_METHOD(userauth_agent),
     ADD_METHOD(userauth_authenticated),
     ADD_METHOD(userauth_hostbased_fromfile),
     ADD_METHOD(userauth_keyboardinteractive),
