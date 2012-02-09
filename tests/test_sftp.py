@@ -21,7 +21,7 @@ except:
     # Let test_import fail
     pass
 
-class SessionTest(unittest.TestCase):
+class SFTPTest(unittest.TestCase):
     def setUp(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect(("localhost", 22))

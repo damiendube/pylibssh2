@@ -23,8 +23,12 @@ except:
 
 class SessionTest(unittest.TestCase):
     def setUp(self):
+        self.username = pwd.getpwuid(os.getuid())[0]
+        self.hostname = "localhost"
+        self.publickey = os.path.expanduser("~/.ssh/id_rsa.pub")
+        self.privatekey = os.path.expanduser("~/.ssh/id_rsa")
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.connect(("localhost", 22))
+        self.socket.connect((self.hostname, 22))
 
     def test_import(self):
         ok = False
@@ -46,16 +50,26 @@ class SessionTest(unittest.TestCase):
         self.assertEqual(session.userauth_authenticated(), 0)
         session.startup(self.socket)
 
-    def test_session_agent_login(self):
+    def test_session_userauth_publickey(self):
         session = libssh2.Session()
-        session.set_banner()
+        session.startup(self.socket)
+        self.assertEqual(session.userauth_authenticated(), 0)
+        session.userauth_publickey_fromfile(self.username, self.publickey, self.privatekey)
+        self.assertEqual(session.userauth_authenticated(), 1)
+
+    def test_session_userauth_hostbased(self):
+        session = libssh2.Session()
+        session.startup(self.socket)
+        self.assertEqual(session.userauth_authenticated(), 0)
+        session.userauth_hostbased_fromfile(self.username, self.publickey, self.privatekey, self.hostname)
+        self.assertEqual(session.userauth_authenticated(), 1)
+
+    def test_session_userauth_agent(self):
+        session = libssh2.Session()
         session.startup(self.socket)
         self.assertEqual(session.userauth_authenticated(), 0)
         username = pwd.getpwuid(os.getuid())[0]
-        agent = session.agent()
-        agent.connect()
-        agent.userauth(username)
-        agent.disconnect()
+        session.userauth_agent(username)
         self.assertEqual(session.userauth_authenticated(), 1)
         session.close()
 

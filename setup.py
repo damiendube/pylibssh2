@@ -74,9 +74,13 @@ class Libssh2TestCommand(Command):
     def run(self):
         import unittest
         from test_session import SessionTest
+        from test_scp import SCPTest
+        from test_sftp import SFTPTest
 
         suite = unittest.TestSuite()
         suite.addTest(unittest.makeSuite(SessionTest))
+        suite.addTest(unittest.makeSuite(SCPTest))
+        suite.addTest(unittest.makeSuite(SFTPTest))
 
         runner = unittest.TextTestRunner()
         runner.run(suite)

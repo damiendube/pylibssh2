@@ -22,10 +22,11 @@
 Abstraction for libssh2 L{Session} object
 """
 
-import _libssh2
-
 from channel import Channel
 from sftp import Sftp
+import _libssh2
+import os
+
 
 class SessionException(Exception):
     """
@@ -154,12 +155,13 @@ class Session(object):
         @param remote_path: absolute path of remote file to transfer
         @type remote_path: str
 
-        @return: new channel opened
-        @rtype: L{Channel}
+        @return: new channel opened, mode, size
+        @rtype: L{Channel}, mode, size
         """
-        return Channel(self._session.scp_recv(remote_path))
+        _channel, mode, size = self._session.scp_recv(remote_path)
+        return (Channel(_channel), mode, size)
 
-    def scp_send(self, path, mode, size):
+    def scp_send(self, path, mode, size, mtime=0, atime=0):
         """
         Sends a file to remote host via SCP protocol.
 
@@ -173,7 +175,66 @@ class Session(object):
         @return: new channel opened
         @rtype: L{Channel}
         """
-        return Channel(self._session.scp_send(path, mode, size))
+        return Channel(self._session.scp_send(path, mode, size, mtime, atime))
+
+    def scp_send_file(self, in_file_path, out_file_path):
+        write_len = 4096
+        f = open(in_file_path, "rb")
+        stat = os.stat(in_file_path)
+        channel = self.scp_send(out_file_path, stat.st_mode, stat.st_size, stat.st_mtime, stat.st_atime)
+        if not channel:
+            print "Failed to open channel"
+            return
+        buf = f.read(write_len)
+        while True:
+            if len(buf) > 0:
+                written = channel.write(buf)
+                if written == 0:
+                    continue
+                elif written == write_len:
+                    buf = f.read(write_len)
+                else:
+                    buf = buf[written:-1]
+            else:
+                break
+        print "Finished pushing"
+        channel.flush()
+        channel.send_eof()
+        channel.wait_eof()
+        try:
+            channel.wait_closed()
+            channel.close()
+        except Exception, detail:
+            print "Failed to close %s" % (detail)
+
+    def scp_recv_file(self, in_file_path, out_file_path):
+        read_len = 4096
+        f = open(in_file_path, "wb")
+        channel, mode, file_size = self.scp_recv(in_file_path)
+        if not channel:
+            print "Failed to open channel"
+            return
+
+        got = 0
+        while True:
+            to_read = min(read_len, file_size - got)
+            buf = channel.read(to_read)
+            if len(buf) > 0:
+                f.write(buf)
+                got += len(buf)
+
+            if got >= file_size:
+                break
+            print "got %i remain %i" % (got, file_size - got)
+
+        print "Finished pushing"
+        #try:
+        #    channel.close()
+        #except Exception, detail:
+        #    print "Failed to close %s" % (detail)
+
+        f.close()
+        os.chmod(out_file_path, mode)
 
     def session_method_pref(self, method_type, pref):
         """
