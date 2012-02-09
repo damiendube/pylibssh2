@@ -763,8 +763,8 @@ PYLIBSSH2_Session_scp_send(PYLIBSSH2_SESSION *self, PyObject *args)
     char *path;
     int mode;
     unsigned long filesize;
-    long mtime = 0;
-    long atime = 0;
+    int mtime = 0;
+    int atime = 0;
     LIBSSH2_CHANNEL *channel;
 
     if (!PyArg_ParseTuple(args, "sik|ii:scp_send", &path, &mode, &filesize, &mtime, &atime)) {

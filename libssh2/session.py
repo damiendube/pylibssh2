@@ -181,7 +181,7 @@ class Session(object):
         write_len = 4096
         f = open(in_file_path, "rb")
         stat = os.stat(in_file_path)
-        channel = self.scp_send(out_file_path, stat.st_mode, stat.st_size, stat.st_mtime, stat.st_atime)
+        channel = self.scp_send(out_file_path, 0644, stat.st_size, int(stat.st_mtime), int(stat.st_atime))
         if not channel:
             print "Failed to open channel"
             return

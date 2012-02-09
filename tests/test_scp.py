@@ -30,7 +30,7 @@ class SCPTest(unittest.TestCase):
         self.assertEqual(self.session.userauth_authenticated(), 1)
 
 
-    def a_test_send(self):
+    def test_send(self):
         # Initialize file that will be used
         IN_FILE_PATH = "/tmp/test_scp_send_file_in"
         OUT_FILE_PATH = "/tmp/test_scp_send_file_out"
@@ -58,7 +58,7 @@ class SCPTest(unittest.TestCase):
         if os.path.exists(IN_FILE_PATH):
             os.remove(IN_FILE_PATH)
 
-    def test_recv(self):
+    def a_test_recv(self):
         # Initialize file that will be used
         IN_FILE_PATH = "/tmp/test_scp_send_file_in"
         OUT_FILE_PATH = "/tmp/test_scp_send_file_out"
