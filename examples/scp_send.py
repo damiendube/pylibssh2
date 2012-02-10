@@ -54,8 +54,7 @@ class MySCPClient:
     def send(self, local_in_path, remote_out_path, mode=0644):
         write_len = 4096
         f = file(local_in_path, "rb")
-        stat = os.stat(local_in_path)
-        channel = self.session.scp_send(remote_out_path, oct(stat[os.stat.ST_MODE]), stat.st_size)
+        channel = self.session.scp_send(remote_out_path, mode, stat.st_size)
         if not channel:
             print "Failed to open channel"
             return
@@ -71,7 +70,6 @@ class MySCPClient:
                     buf = buf[written:-1]
             else:
                 break
-        print "Finished pushing"
         channel.flush()
         channel.send_eof()
         channel.wait_eof()

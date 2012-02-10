@@ -178,19 +178,21 @@ get_attrs(LIBSSH2_SFTP_ATTRIBUTES *attr)
 {
     PyObject *attrs=NULL;
 
-    attrs = PyList_New(0);
-    PyList_Append(attrs, PyLong_FromUnsignedLong(
+    attrs = PyDict_New();
+    PyDict_SetItem(attrs, PyString_FromString("st_size"), PyLong_FromUnsignedLong(
         (unsigned long)attr->filesize));
-    PyList_Append(attrs, PyLong_FromUnsignedLong(
+    PyDict_SetItem(attrs, PyString_FromString("st_uid"), PyLong_FromUnsignedLong(
         (unsigned long)attr->uid));
-    PyList_Append(attrs, PyLong_FromUnsignedLong(
+    PyDict_SetItem(attrs, PyString_FromString("st_gid"), PyLong_FromUnsignedLong(
         (unsigned long)attr->gid));
-    PyList_Append(attrs, PyLong_FromUnsignedLong(
+    PyDict_SetItem(attrs, PyString_FromString("st_mode"), PyLong_FromUnsignedLong(
         (unsigned long)attr->permissions));
-    PyList_Append(attrs, PyLong_FromUnsignedLong(
+    PyDict_SetItem(attrs, PyString_FromString("st_atime"), PyLong_FromUnsignedLong(
         (unsigned long)attr->atime));
-    PyList_Append(attrs, PyLong_FromUnsignedLong(
+    PyDict_SetItem(attrs, PyString_FromString("st_mtime"), PyLong_FromUnsignedLong(
         (unsigned long)attr->mtime));
+    PyDict_SetItem(attrs, PyString_FromString("st_flags"), PyLong_FromUnsignedLong(
+        (unsigned long)attr->flags));
 
     return attrs;
 }

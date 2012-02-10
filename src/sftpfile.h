@@ -32,10 +32,12 @@ extern PyTypeObject PYLIBSSH2_Sftpfile_Type;
 
 typedef struct {
     PyObject_HEAD
-    LIBSSH2_SFTP_HANDLE *handle;
-    int dealloc;
+    LIBSSH2_SESSION      *session;
+    LIBSSH2_SFTP         *sftp;
+    LIBSSH2_SFTP_HANDLE  *handle;
+    int                   dealloc;
 } PYLIBSSH2_SFTPFILE;
 
-PYLIBSSH2_SFTPFILE * PYLIBSSH2_Sftpfile_New(LIBSSH2_SFTP_HANDLE *, int);
+PYLIBSSH2_SFTPFILE * PYLIBSSH2_Sftpfile_New(LIBSSH2_SESSION *, LIBSSH2_SFTP *, LIBSSH2_SFTP_HANDLE *, int);
 
 #endif /* _PYLIBSSH2_SFTPFILE_H_ */

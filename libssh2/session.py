@@ -26,7 +26,7 @@ from channel import Channel
 from sftp import Sftp
 import _libssh2
 import os
-
+import math
 
 class SessionException(Exception):
     """
@@ -175,13 +175,13 @@ class Session(object):
         @return: new channel opened
         @rtype: L{Channel}
         """
-        return Channel(self._session.scp_send(path, mode, size, mtime, atime))
+        return Channel(self._session.scp_send(path, int(mode), size, int(mtime), int(atime)))
 
     def scp_send_file(self, in_file_path, out_file_path):
         write_len = 4096
         f = open(in_file_path, "rb")
-        stat = os.stat(in_file_path)
-        channel = self.scp_send(out_file_path, 0644, stat.st_size, int(stat.st_mtime), int(stat.st_atime))
+        file_stat = os.stat(in_file_path)
+        channel = self.scp_send(out_file_path, file_stat.st_mode & 0777, file_stat.st_size, int(file_stat.st_mtime), int(file_stat.st_atime))
         if not channel:
             print "Failed to open channel"
             return
@@ -197,7 +197,6 @@ class Session(object):
                     buf = buf[written:-1]
             else:
                 break
-        print "Finished pushing"
         channel.flush()
         channel.send_eof()
         channel.wait_eof()
@@ -227,7 +226,6 @@ class Session(object):
                 break
             print "got %i remain %i" % (got, file_size - got)
 
-        print "Finished pushing"
         #try:
         #    channel.close()
         #except Exception, detail:

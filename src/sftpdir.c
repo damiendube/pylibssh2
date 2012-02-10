@@ -70,7 +70,6 @@ PYLIBSSH2_Sftpdir_read(PYLIBSSH2_SFTPDIR *self, PyObject *args)
     int buffer_maxlen = 0;
     int longentry_maxlen = 255;
     PyObject *buffer;
-    PyObject *list;
 
     buffer = PyString_FromStringAndSize(NULL, longentry_maxlen);
     if (buffer == NULL) {
@@ -98,11 +97,8 @@ PYLIBSSH2_Sftpdir_read(PYLIBSSH2_SFTPDIR *self, PyObject *args)
         return Py_None;
     }
 
-    list = PyList_New(0);
-    PyList_Append(list, buffer);
-    PyList_Append(list, get_attrs(&attrs));
-
-    return list;
+    PyObject *dict = get_attrs(&attrs);
+    return Py_BuildValue("NO", buffer, dict);
 }
 /* }}} */
 
@@ -180,7 +176,7 @@ static PyMethodDef PYLIBSSH2_Sftpdir_methods[] =
 #undef ADD_METHOD
 
 PYLIBSSH2_SFTPDIR *
-PYLIBSSH2_Sftpdir_New(LIBSSH2_SFTP_HANDLE *handle, int dealloc)
+PYLIBSSH2_Sftpdir_New(LIBSSH2_SESSION* session, LIBSSH2_SFTP* sftp, LIBSSH2_SFTP_HANDLE *handle, int dealloc)
 {
     PYLIBSSH2_SFTPDIR *self;
 
@@ -189,6 +185,8 @@ PYLIBSSH2_Sftpdir_New(LIBSSH2_SFTP_HANDLE *handle, int dealloc)
         return NULL;
     }
 
+    self->session = session;
+    self->sftp = sftp;
     self->handle = handle;
     self->dealloc = dealloc;
 

@@ -37,6 +37,7 @@ PYLIBSSH2_Sftp_open_dir(PYLIBSSH2_SFTP *self, PyObject *args)
 {
     LIBSSH2_SFTP_HANDLE *handle;
     char *path;
+    int sftp_err;
 
     if (!PyArg_ParseTuple(args, "s:open_dir", &path)) {
         return NULL;
@@ -47,12 +48,38 @@ PYLIBSSH2_Sftp_open_dir(PYLIBSSH2_SFTP *self, PyObject *args)
     Py_END_ALLOW_THREADS
 
     if (handle == NULL) {
-        /* CLEAN: PYLIBSSH2_SFTPDIR_CANT_OPENDIR_MSG */
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to open sftp directory.");
-        return NULL;
+        char* errmsg;
+        int rc;
+        rc = libssh2_session_last_error(self->session, &errmsg, NULL, 0);
+        switch(rc) {
+            case LIBSSH2_ERROR_ALLOC:
+                PyErr_Format(PYLIBSSH2_Error, "An internal memory allocation call failed: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SOCKET_SEND:
+                PyErr_Format(PYLIBSSH2_Error, "Unable to send data on socket: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SOCKET_TIMEOUT:
+                PyErr_Format(PYLIBSSH2_Error, ": %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SFTP_PROTOCOL:
+                sftp_err = libssh2_sftp_last_error(self->sftp);
+                PyErr_Format(PYLIBSSH2_Error, " An invalid SFTP protocol response was received on the socket, or an SFTP operation caused an errorcode to be returned by the server %s: %s", libssh2_sftp_errno_to_str(sftp_err), errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_EAGAIN:
+                PyErr_Format(PYLIBSSH2_Error, "Marked for non-blocking I/O but the call would block: %s", errmsg);
+                return NULL;
+
+            default:
+                PyErr_Format(PYLIBSSH2_Error, "Unable to open sftp directory %i: %s", rc, errmsg);
+                return NULL;
+        }
     }
 
-    return (PyObject *)PYLIBSSH2_Sftpdir_New(handle, 1);
+    return (PyObject *)PYLIBSSH2_Sftpdir_New(self->session, self->sftp, handle, 1);
 }
 /* }}} */
 
@@ -73,6 +100,7 @@ PYLIBSSH2_Sftp_open_file(PYLIBSSH2_SFTP *self, PyObject *args)
     char *path;
     char *flags = "r";
     long mode = 0755;
+    int sftp_err;
 
     if (!PyArg_ParseTuple(args, "s|si:open", &path, &flags, &mode)) {
         return NULL;
@@ -83,13 +111,38 @@ PYLIBSSH2_Sftp_open_file(PYLIBSSH2_SFTP *self, PyObject *args)
     Py_END_ALLOW_THREADS
 
     if (handle == NULL) {
-        /* CLEAN: PYLIBSSH2_SFTP_CANT_OPEN_MSG */
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to sftp open.");
-        return NULL;
+        char* errmsg;
+        int rc;
+        rc = libssh2_session_last_error(self->session, &errmsg, NULL, 0);
+        switch(rc) {
+            case LIBSSH2_ERROR_ALLOC:
+                PyErr_Format(PYLIBSSH2_Error, "An internal memory allocation call failed: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SOCKET_SEND:
+                PyErr_Format(PYLIBSSH2_Error, "Unable to send data on socket: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SOCKET_TIMEOUT:
+                PyErr_Format(PYLIBSSH2_Error, ": %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SFTP_PROTOCOL:
+                sftp_err = libssh2_sftp_last_error(self->sftp);
+                PyErr_Format(PYLIBSSH2_Error, " An invalid SFTP protocol response was received on the socket, or an SFTP operation caused an errorcode to be returned by the server %s: %s", libssh2_sftp_errno_to_str(sftp_err), errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_EAGAIN:
+                PyErr_Format(PYLIBSSH2_Error, "Marked for non-blocking I/O but the call would block: %s", errmsg);
+                return NULL;
+
+            default:
+                PyErr_Format(PYLIBSSH2_Error, "Unable to open sftp file %i: %s", rc, errmsg);
+                return NULL;
+        }
     }
 
-    return (PyObject *)PYLIBSSH2_Sftpfile_New(handle, 1);
-    
+    return (PyObject *)PYLIBSSH2_Sftpfile_New(self->session, self->sftp, handle, 1);
 }
 /* }}} */
 
@@ -110,9 +163,19 @@ PYLIBSSH2_Sftp_shutdown(PYLIBSSH2_SFTP *self, PyObject *args)
     rc=libssh2_sftp_shutdown(self->sftp);
 
     if (rc < 0) {
-        /* CLEAN: PYLIBSSH2_SFTP_CANT_SHUTDOWN_MSG */
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to shutdown sftp.");
-        return NULL;
+        char* errmsg;
+        if(libssh2_session_last_error(self->session, &errmsg, NULL, 0) != rc) {
+            errmsg = "";
+        }
+        switch(rc) {
+            case LIBSSH2_ERROR_EAGAIN:
+                PyErr_Format(PYLIBSSH2_Error, "Marked for non-blocking I/O but the call would block: %s", errmsg);
+                return NULL;
+
+            default:
+                PyErr_Format(PYLIBSSH2_Error, "Unable to shutdown sftp %i: %s", rc, errmsg);
+                return NULL;
+        }
     }
 
     Py_INCREF(Py_None);
@@ -136,6 +199,7 @@ PYLIBSSH2_Sftp_unlink(PYLIBSSH2_SFTP *self, PyObject *args)
 
     int rc;
     char *path;
+    int sftp_err;
 
     if (!PyArg_ParseTuple(args, "s:unlink", &path)) {
         return NULL;
@@ -145,8 +209,32 @@ PYLIBSSH2_Sftp_unlink(PYLIBSSH2_SFTP *self, PyObject *args)
     rc = libssh2_sftp_unlink(self->sftp, path);
     Py_END_ALLOW_THREADS
     if(rc) {
-        PyErr_SetString(PYLIBSSH2_Error, "Error while unlink an SFTP file.");
-        return NULL;
+        char* errmsg;
+        if(libssh2_session_last_error(self->session, &errmsg, NULL, 0) != rc) {
+            errmsg = "";
+        }
+        switch(rc) {
+            case LIBSSH2_ERROR_ALLOC:
+                PyErr_Format(PYLIBSSH2_Error, "An internal memory allocation call failed: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SOCKET_SEND:
+                PyErr_Format(PYLIBSSH2_Error, "Unable to send data on socket: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SOCKET_TIMEOUT:
+                PyErr_Format(PYLIBSSH2_Error, "LIBSSH2_ERROR_SOCKET_TIMEOUT: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SFTP_PROTOCOL:
+                sftp_err = libssh2_sftp_last_error(self->sftp);
+                PyErr_Format(PYLIBSSH2_Error, "An invalid SFTP protocol response was received on the socket, or an SFTP operation caused an errorcode to be returned by the server %s: %s", libssh2_sftp_errno_to_str(sftp_err), errmsg);
+                return NULL;
+
+            default:
+                PyErr_Format(PYLIBSSH2_Error, "Error while unlink an SFTP file %i: %s", rc, errmsg);
+                return NULL;
+        }
     }
 
     Py_INCREF(Py_None);
@@ -166,7 +254,7 @@ Returns:\n\
 static PyObject*
 PYLIBSSH2_Sftp_rename(PYLIBSSH2_SFTP *self, PyObject *args)
 {
-    int rc;
+    int rc, sftp_err;
     char *src, *dst;
     
     if (!PyArg_ParseTuple(args, "ss:rename", &src, &dst)) {
@@ -177,8 +265,32 @@ PYLIBSSH2_Sftp_rename(PYLIBSSH2_SFTP *self, PyObject *args)
     rc = libssh2_sftp_rename(self->sftp, src, dst);
     Py_END_ALLOW_THREADS
     if(rc) {
-        PyErr_SetString(PYLIBSSH2_Error, "Error while renaming an SFTP file.");
-        return NULL;
+        char* errmsg;
+        if(libssh2_session_last_error(self->session, &errmsg, NULL, 0) != rc) {
+            errmsg = "";
+        }
+        switch(rc) {
+            case LIBSSH2_ERROR_ALLOC:
+                PyErr_Format(PYLIBSSH2_Error, "An internal memory allocation call failed: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SOCKET_SEND:
+                PyErr_Format(PYLIBSSH2_Error, "Unable to send data on socket: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SOCKET_TIMEOUT:
+                PyErr_Format(PYLIBSSH2_Error, "LIBSSH2_ERROR_SOCKET_TIMEOUT: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SFTP_PROTOCOL:
+                sftp_err = libssh2_sftp_last_error(self->sftp);
+                PyErr_Format(PYLIBSSH2_Error, "An invalid SFTP protocol response was received on the socket, or an SFTP operation caused an errorcode to be returned by the server %s: %s", libssh2_sftp_errno_to_str(sftp_err), errmsg);
+                return NULL;
+
+            default:
+                PyErr_Format(PYLIBSSH2_Error, "Error while renaming an SFTP file %i: %s", rc, errmsg);
+                return NULL;
+        }
     }
 
     Py_INCREF(Py_None);
@@ -198,7 +310,7 @@ Returns:\n\
 static PyObject*
 PYLIBSSH2_Sftp_mkdir(PYLIBSSH2_SFTP *self, PyObject *args)
 {
-    int rc;
+    int rc, sftp_err;
     char *path;
     long mode = 0755;
     
@@ -210,8 +322,32 @@ PYLIBSSH2_Sftp_mkdir(PYLIBSSH2_SFTP *self, PyObject *args)
     rc = libssh2_sftp_mkdir(self->sftp, path, mode);
     Py_END_ALLOW_THREADS
     if(rc) {
-        PyErr_SetString(PYLIBSSH2_Error, "Error while creating a directory on the remote file system.");
-        return NULL;
+        char* errmsg;
+        if(libssh2_session_last_error(self->session, &errmsg, NULL, 0) != rc) {
+            errmsg = "";
+        }
+        switch(rc) {
+            case LIBSSH2_ERROR_ALLOC:
+                PyErr_Format(PYLIBSSH2_Error, "An internal memory allocation call failed: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SOCKET_SEND:
+                PyErr_Format(PYLIBSSH2_Error, "Unable to send data on socket: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SOCKET_TIMEOUT:
+                PyErr_Format(PYLIBSSH2_Error, "LIBSSH2_ERROR_SOCKET_TIMEOUT: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SFTP_PROTOCOL:
+                sftp_err = libssh2_sftp_last_error(self->sftp);
+                PyErr_Format(PYLIBSSH2_Error, "An invalid SFTP protocol response was received on the socket, or an SFTP operation caused an errorcode to be returned by the server %s: %s", libssh2_sftp_errno_to_str(sftp_err), errmsg);
+                return NULL;
+
+            default:
+                PyErr_Format(PYLIBSSH2_Error, "Error while creating a directory on the remote file system %i: %s", rc, errmsg);
+                return NULL;
+        }
     }
 
     Py_INCREF(Py_None);
@@ -231,7 +367,7 @@ Returns:\n\
 static PyObject*
 PYLIBSSH2_Sftp_rmdir(PYLIBSSH2_SFTP *self, PyObject *args)
 {
-    int rc;
+    int rc, sftp_err;
     char *path;
 
     if (!PyArg_ParseTuple(args, "s:rmdir", &path)) {
@@ -241,9 +377,33 @@ PYLIBSSH2_Sftp_rmdir(PYLIBSSH2_SFTP *self, PyObject *args)
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_sftp_rmdir(self->sftp, path);
     Py_END_ALLOW_THREADS
-    if(rc) {
-        PyErr_SetString(PYLIBSSH2_Error, "Error while removing an SFTP directory.");
-        return NULL;
+    if(rc < 0) {
+        char* errmsg;
+        if(libssh2_session_last_error(self->session, &errmsg, NULL, 0) != rc) {
+            errmsg = "";
+        }
+        switch(rc) {
+            case LIBSSH2_ERROR_ALLOC:
+                PyErr_Format(PYLIBSSH2_Error, "An internal memory allocation call failed: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SOCKET_SEND:
+                PyErr_Format(PYLIBSSH2_Error, "Unable to send data on socket: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SOCKET_TIMEOUT:
+                PyErr_Format(PYLIBSSH2_Error, "LIBSSH2_ERROR_SOCKET_TIMEOUT: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SFTP_PROTOCOL:
+                sftp_err = libssh2_sftp_last_error(self->sftp);
+                PyErr_Format(PYLIBSSH2_Error, "An invalid SFTP protocol response was received on the socket, or an SFTP operation caused an errorcode to be returned by the server %s: %s", libssh2_sftp_errno_to_str(sftp_err), errmsg);
+                return NULL;
+
+            default:
+                PyErr_Format(PYLIBSSH2_Error, "Error while removing an SFTP directory %i: %s", rc, errmsg);
+                return NULL;
+        }
     }
 
     Py_INCREF(Py_None);
@@ -263,38 +423,113 @@ Returns:\n\
 static PyObject *
 PYLIBSSH2_Sftp_realpath(PYLIBSSH2_SFTP *self, PyObject *args)
 {
-    int rc, path_len = 0, target_len = 1024;
-    int type = LIBSSH2_SFTP_REALPATH;
+    int rc, target_len = 2096, sftp_err;
     char *path;
-    PyObject *target;
+    char target[target_len];
 
-    if (!PyArg_ParseTuple(args, "s#|i:realpath", &path, &path_len, &type)) {
+    if (!PyArg_ParseTuple(args, "s:realpath", &path)) {
         return NULL;
     }
 
-    target = PyString_FromStringAndSize(NULL, target_len);
-    if (target == NULL) {
-        Py_INCREF(Py_None);
-        return Py_None;
+    Py_BEGIN_ALLOW_THREADS
+    rc = libssh2_sftp_realpath(self->sftp, path, target, target_len);
+    Py_END_ALLOW_THREADS
+
+    if (rc < 0) {
+        char* errmsg;
+        if(libssh2_session_last_error(self->session, &errmsg, NULL, 0) != rc) {
+            errmsg = "";
+        }
+        switch(rc) {
+            case LIBSSH2_ERROR_ALLOC:
+                PyErr_Format(PYLIBSSH2_Error, "An internal memory allocation call failed: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SOCKET_SEND:
+                PyErr_Format(PYLIBSSH2_Error, "Unable to send data on socket: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SOCKET_TIMEOUT:
+                PyErr_Format(PYLIBSSH2_Error, "LIBSSH2_ERROR_SOCKET_TIMEOUT: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SFTP_PROTOCOL:
+                sftp_err = libssh2_sftp_last_error(self->sftp);
+                PyErr_Format(PYLIBSSH2_Error, "An invalid SFTP protocol response was received on the socket, or an SFTP operation caused an errorcode to be returned by the server %s: %s", libssh2_sftp_errno_to_str(sftp_err), errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_BUFFER_TOO_SMALL:
+                PyErr_Format(PYLIBSSH2_Error, "LIBSSH2_ERROR_BUFFER_TOO_SMALL: %s", errmsg);
+                return NULL;
+
+            default:
+                PyErr_Format(PYLIBSSH2_Error, "Error while realpath %i: %s", rc, errmsg);
+                return NULL;
+        }
+    }
+
+    return PyString_FromStringAndSize(target, rc);
+}
+/* }}} */
+
+/* {{{ PYLIBSSH2_Sftp_realpath
+ */
+static char PYLIBSSH2_Sftp_readlink_doc[] = "\n\
+\n\
+Arguments:\n\
+\n\
+Returns:\n\
+";
+
+static PyObject *
+PYLIBSSH2_Sftp_readlink(PYLIBSSH2_SFTP *self, PyObject *args)
+{
+    int rc, target_len = 2096, sftp_err;
+    char *path;
+    char target[target_len];
+
+    if (!PyArg_ParseTuple(args, "s:readlink", &path)) {
+        return NULL;
     }
 
     Py_BEGIN_ALLOW_THREADS
-    rc = libssh2_sftp_symlink_ex(self->sftp, path, path_len, 
-            PyString_AsString(target), target_len, type);
+    rc = libssh2_sftp_readlink(self->sftp, path, target, target_len);
     Py_END_ALLOW_THREADS
 
-    if (rc > 0) {
-        if (rc != target_len && _PyString_Resize(&target, rc) < 0) {
-            Py_INCREF(Py_None);
-            return Py_None;
+    if (rc < 0) {
+        char* errmsg;
+        if(libssh2_session_last_error(self->session, &errmsg, NULL, 0) != rc) {
+            errmsg = "";
         }
-        return target;
+        switch(rc) {
+            case LIBSSH2_ERROR_ALLOC:
+                PyErr_Format(PYLIBSSH2_Error, "An internal memory allocation call failed: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SOCKET_SEND:
+                PyErr_Format(PYLIBSSH2_Error, "Unable to send data on socket: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SOCKET_TIMEOUT:
+                PyErr_Format(PYLIBSSH2_Error, "LIBSSH2_ERROR_SOCKET_TIMEOUT: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SFTP_PROTOCOL:
+                sftp_err = libssh2_sftp_last_error(self->sftp);
+                PyErr_Format(PYLIBSSH2_Error, "An invalid SFTP protocol response was received on the socket, or an SFTP operation caused an errorcode to be returned by the server %s: %s", libssh2_sftp_errno_to_str(sftp_err), errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_BUFFER_TOO_SMALL:
+                PyErr_Format(PYLIBSSH2_Error, "LIBSSH2_ERROR_BUFFER_TOO_SMALL: %s", errmsg);
+                return NULL;
+
+            default:
+                PyErr_Format(PYLIBSSH2_Error, "Error while readlink %i: %s", rc, errmsg);
+                return NULL;
+        }
     }
 
-    Py_XDECREF(target);
-    Py_INCREF(Py_None);
-
-    return Py_None;
+    return PyString_FromStringAndSize(target, rc);
 }
 /* }}} */
 
@@ -310,7 +545,7 @@ Returns:\n\
 static PyObject*
 PYLIBSSH2_Sftp_symlink(PYLIBSSH2_SFTP *self, PyObject *args)
 {
-    int rc;
+    int rc, sftp_err;
     char *path, *target;
 
     if (!PyArg_ParseTuple(args, "ss:symlink", &path, &target)) {
@@ -322,9 +557,36 @@ PYLIBSSH2_Sftp_symlink(PYLIBSSH2_SFTP *self, PyObject *args)
     Py_END_ALLOW_THREADS
 
     if (rc < 0) {
-        /* CLEAN: PYLIBSSH2_SFTP_CANT_SYMLINK_MSG */
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to sftp symlink.");
-        return NULL;
+        char* errmsg;
+        if(libssh2_session_last_error(self->session, &errmsg, NULL, 0) != rc) {
+            errmsg = "";
+        }
+        switch(rc) {
+            case LIBSSH2_ERROR_ALLOC:
+                PyErr_Format(PYLIBSSH2_Error, "An internal memory allocation call failed: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SOCKET_SEND:
+                PyErr_Format(PYLIBSSH2_Error, "Unable to send data on socket: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SOCKET_TIMEOUT:
+                PyErr_Format(PYLIBSSH2_Error, "LIBSSH2_ERROR_SOCKET_TIMEOUT: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SFTP_PROTOCOL:
+                sftp_err = libssh2_sftp_last_error(self->sftp);
+                PyErr_Format(PYLIBSSH2_Error, "An invalid SFTP protocol response was received on the socket, or an SFTP operation caused an errorcode to be returned by the server %s: %s", libssh2_sftp_errno_to_str(sftp_err), errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_BUFFER_TOO_SMALL:
+                PyErr_Format(PYLIBSSH2_Error, "LIBSSH2_ERROR_BUFFER_TOO_SMALL: %s", errmsg);
+                return NULL;
+
+            default:
+                PyErr_Format(PYLIBSSH2_Error, "Unable to sftp symlink %i: %s", rc, errmsg);
+                return NULL;
+        }
     }
 
     Py_INCREF(Py_None);
@@ -344,7 +606,7 @@ Returns:\n\
 static PyObject *
 PYLIBSSH2_Sftp_get_stat(PYLIBSSH2_SFTP *self, PyObject *args)
 {
-    int rc;
+    int rc, sftp_err;
     char *path;
     int path_len = 0;
     int type = LIBSSH2_SFTP_STAT;
@@ -359,9 +621,32 @@ PYLIBSSH2_Sftp_get_stat(PYLIBSSH2_SFTP *self, PyObject *args)
     Py_END_ALLOW_THREADS
 
     if (rc < 0) {
-        /* CLEAN: PYLIBSSH2_SFTP_CANT_GETSTAT_MSG */
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to get stat.");
-        return NULL;
+        char* errmsg;
+        if(libssh2_session_last_error(self->session, &errmsg, NULL, 0) != rc) {
+            errmsg = "";
+        }
+        switch(rc) {
+            case LIBSSH2_ERROR_ALLOC:
+                PyErr_Format(PYLIBSSH2_Error, "An internal memory allocation call failed: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SOCKET_SEND:
+                PyErr_Format(PYLIBSSH2_Error, "Unable to send data on socket: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SOCKET_TIMEOUT:
+                PyErr_Format(PYLIBSSH2_Error, "LIBSSH2_ERROR_SOCKET_TIMEOUT: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SFTP_PROTOCOL:
+                sftp_err = libssh2_sftp_last_error(self->sftp);
+                PyErr_Format(PYLIBSSH2_Error, "An invalid SFTP protocol response was received on the socket, or an SFTP operation caused an errorcode to be returned by the server %s: %s", libssh2_sftp_errno_to_str(sftp_err), errmsg);
+                return NULL;
+
+            default:
+                PyErr_Format(PYLIBSSH2_Error, "Unable to get stat %i: %s", rc, errmsg);
+                return NULL;
+        }
     }
 
     return get_attrs(&attr);
@@ -379,7 +664,7 @@ Returns:\n\
 static PyObject*
 PYLIBSSH2_Sftp_set_stat(PYLIBSSH2_SFTP *self, PyObject *args)
 {
-    int rc;
+    int rc, sftp_err;
     char *path;
     LIBSSH2_SFTP_ATTRIBUTES attr;
     PyObject *attrs;
@@ -389,32 +674,32 @@ PYLIBSSH2_Sftp_set_stat(PYLIBSSH2_SFTP *self, PyObject *args)
     }
 
     attr.flags = 0;
-    if (PyMapping_HasKeyString(attrs, "perms")) {
+    if (PyMapping_HasKeyString(attrs, "st_mode")) {
         attr.flags |= LIBSSH2_SFTP_ATTR_PERMISSIONS;
-        attr.permissions = PyLong_AsLong(PyDict_GetItemString(attrs, "perms"));
+        attr.permissions = PyLong_AsLong(PyDict_GetItemString(attrs, "st_mode"));
     }
 
-    if (PyMapping_HasKeyString(attrs, "uid") && 
-        PyMapping_HasKeyString(attrs, "gid")) {
-        if (PyMapping_HasKeyString(attrs, "uid")) {
+    if (PyMapping_HasKeyString(attrs, "st_uid") &&
+        PyMapping_HasKeyString(attrs, "st_gid")) {
+        if (PyMapping_HasKeyString(attrs, "st_uid")) {
             attr.flags |= LIBSSH2_SFTP_ATTR_UIDGID;
-            attr.uid = PyLong_AsLong(PyDict_GetItemString(attrs,"uid"));
+            attr.uid = PyLong_AsLong(PyDict_GetItemString(attrs,"st_uid"));
         }
-        if (PyMapping_HasKeyString(attrs, "gid")) {
+        if (PyMapping_HasKeyString(attrs, "st_gid")) {
             attr.flags |= LIBSSH2_SFTP_ATTR_UIDGID;
-            attr.uid = PyLong_AsLong(PyDict_GetItemString(attrs,"gid"));
+            attr.uid = PyLong_AsLong(PyDict_GetItemString(attrs,"st_gid"));
         }
     }
 
-    if (PyMapping_HasKeyString(attrs, "atime") &&
-        PyMapping_HasKeyString(attrs, "mtime")) {
-        if (PyMapping_HasKeyString(attrs, "atime")) {
+    if (PyMapping_HasKeyString(attrs, "st_atime") &&
+        PyMapping_HasKeyString(attrs, "st_mtime")) {
+        if (PyMapping_HasKeyString(attrs, "st_atime")) {
             attr.flags |= LIBSSH2_SFTP_ATTR_ACMODTIME;
-            attr.uid = PyLong_AsLong(PyDict_GetItemString(attrs,"atime"));
+            attr.uid = PyLong_AsLong(PyDict_GetItemString(attrs,"st_atime"));
         }
-        if (PyMapping_HasKeyString(attrs, "mtime")) {
+        if (PyMapping_HasKeyString(attrs, "st_mtime")) {
             attr.flags |= LIBSSH2_SFTP_ATTR_ACMODTIME;
-            attr.uid = PyLong_AsLong(PyDict_GetItemString(attrs,"mtime"));
+            attr.uid = PyLong_AsLong(PyDict_GetItemString(attrs,"st_mtime"));
         }
     }
 
@@ -423,8 +708,32 @@ PYLIBSSH2_Sftp_set_stat(PYLIBSSH2_SFTP *self, PyObject *args)
     Py_END_ALLOW_THREADS
 
     if (rc < 0) {
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to stat.");
-        return NULL;
+        char* errmsg;
+        if(libssh2_session_last_error(self->session, &errmsg, NULL, 0) != rc) {
+            errmsg = "";
+        }
+        switch(rc) {
+            case LIBSSH2_ERROR_ALLOC:
+                PyErr_Format(PYLIBSSH2_Error, "An internal memory allocation call failed: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SOCKET_SEND:
+                PyErr_Format(PYLIBSSH2_Error, "Unable to send data on socket: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SOCKET_TIMEOUT:
+                PyErr_Format(PYLIBSSH2_Error, "LIBSSH2_ERROR_SOCKET_TIMEOUT: %s", errmsg);
+                return NULL;
+
+            case LIBSSH2_ERROR_SFTP_PROTOCOL:
+                sftp_err = libssh2_sftp_last_error(self->sftp);
+                PyErr_Format(PYLIBSSH2_Error, "An invalid SFTP protocol response was received on the socket, or an SFTP operation caused an errorcode to be returned by the server %s: %s", libssh2_sftp_errno_to_str(sftp_err), errmsg);
+                return NULL;
+
+            default:
+                PyErr_Format(PYLIBSSH2_Error, "Unable to set file stat %i: %s", rc, errmsg);
+                return NULL;
+        }
     }
 
     Py_INCREF(Py_None);
@@ -451,6 +760,7 @@ static PyMethodDef PYLIBSSH2_Sftp_methods[] =
     ADD_METHOD(mkdir),
     ADD_METHOD(rmdir),
     ADD_METHOD(realpath),
+    ADD_METHOD(readlink),
     ADD_METHOD(symlink),
     ADD_METHOD(get_stat),
     ADD_METHOD(set_stat),
@@ -463,7 +773,7 @@ static PyMethodDef PYLIBSSH2_Sftp_methods[] =
 /* {{{ PYLIBSSH2_Sftp_New
  */
 PYLIBSSH2_SFTP *
-PYLIBSSH2_Sftp_New(LIBSSH2_SFTP *sftp, int dealloc)
+PYLIBSSH2_Sftp_New(LIBSSH2_SESSION *session, LIBSSH2_SFTP *sftp, int dealloc)
 {
     PYLIBSSH2_SFTP *self;
 
@@ -472,6 +782,7 @@ PYLIBSSH2_Sftp_New(LIBSSH2_SFTP *sftp, int dealloc)
         return NULL;
     }
 
+    self->session = session;
     self->sftp = sftp;
     self->dealloc = dealloc;
 
@@ -537,5 +848,37 @@ init_libssh2_Sftp(PyObject *dict)
     PyDict_SetItemString(dict, "SFTPType", (PyObject *) &PYLIBSSH2_Sftp_Type);
 
     return 1;
+}
+/* }}} */
+
+/* {{{ libssh2_sftp_errno_to_str
+ */
+const char* libssh2_sftp_errno_to_str(int err)
+{
+    switch(err) {
+        case 0: return "LIBSSH2_FX_OK";
+        case 1: return "LIBSSH2_FX_EOF";
+        case 2: return "LIBSSH2_FX_NO_SUCH_FILE";
+        case 3: return "LIBSSH2_FX_PERMISSION_DENIED";
+        case 4: return "LIBSSH2_FX_FAILURE";
+        case 5: return "LIBSSH2_FX_BAD_MESSAGE";
+        case 6: return "LIBSSH2_FX_NO_CONNECTION";
+        case 7: return "LIBSSH2_FX_CONNECTION_LOST";
+        case 8: return "LIBSSH2_FX_OP_UNSUPPORTED";
+        case 9: return "LIBSSH2_FX_INVALID_HANDLE";
+        case 10: return "LIBSSH2_FX_NO_SUCH_PATH";
+        case 11: return "LIBSSH2_FX_FILE_ALREADY_EXISTS";
+        case 12: return "LIBSSH2_FX_WRITE_PROTECT";
+        case 13: return "LIBSSH2_FX_NO_MEDIA";
+        case 14: return "LIBSSH2_FX_NO_SPACE_ON_FILESYSTEM";
+        case 15: return "LIBSSH2_FX_QUOTA_EXCEEDED";
+        case 16: return "LIBSSH2_FX_UNKNOWN_PRINCIPAL";
+        case 17: return "LIBSSH2_FX_LOCK_CONFLICT";
+        case 18: return "LIBSSH2_FX_DIR_NOT_EMPTY";
+        case 19: return "LIBSSH2_FX_NOT_A_DIRECTORY";
+        case 20: return "LIBSSH2_FX_INVALID_FILENAME";
+        case 21: return "LIBSSH2_FX_LINK_LOOP";
+        default: return "UNKNOWN ERROR";
+    }
 }
 /* }}} */

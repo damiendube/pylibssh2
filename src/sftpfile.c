@@ -197,7 +197,7 @@ static PyMethodDef PYLIBSSH2_Sftpfile_methods[] =
 #undef ADD_METHOD
 
 PYLIBSSH2_SFTPFILE *
-PYLIBSSH2_Sftpfile_New(LIBSSH2_SFTP_HANDLE *handle, int dealloc)
+PYLIBSSH2_Sftpfile_New(LIBSSH2_SESSION * session, LIBSSH2_SFTP * sftp, LIBSSH2_SFTP_HANDLE *handle, int dealloc)
 {
     PYLIBSSH2_SFTPFILE *self;
 
@@ -206,6 +206,8 @@ PYLIBSSH2_Sftpfile_New(LIBSSH2_SFTP_HANDLE *handle, int dealloc)
         return NULL;
     }
 
+    self->session = session;
+    self->sftp = sftp;
     self->handle = handle;
     self->dealloc = dealloc;
 

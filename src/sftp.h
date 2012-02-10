@@ -25,6 +25,7 @@
 #include <libssh2.h>
 
 extern int init_libssh2_Sftp(PyObject *);
+const char* libssh2_sftp_errno_to_str(int);
 
 extern PyTypeObject PYLIBSSH2_Sftp_Type;
 
@@ -32,6 +33,7 @@ extern PyTypeObject PYLIBSSH2_Sftp_Type;
 
 typedef struct {
     PyObject_HEAD
+    LIBSSH2_SESSION *session;
     LIBSSH2_SFTP    *sftp;
     int             dealloc;
 } PYLIBSSH2_SFTP;

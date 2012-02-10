@@ -63,15 +63,15 @@ extern PyObject *PYLIBSSH2_Error;
 
 #define PYLIBSSH2_Sftp_New_NUM                  2
 #define PYLIBSSH2_Sftp_New_RETURN               PYLIBSSH2_SFTP *
-#define PYLIBSSH2_Sftp_New_PROTO                (LIBSSH2_SFTP *, int)
+#define PYLIBSSH2_Sftp_New_PROTO                (LIBSSH2_SESSION*, LIBSSH2_SFTP *, int)
 
 #define PYLIBSSH2_Sftpfile_New_NUM              3
 #define PYLIBSSH2_Sftpfile_New_RETURN           PYLIBSSH2_SFTPFILE *
-#define PYLIBSSH2_Sftpfile_New_PROTO            (LIBSSH2_SFTP_HANDLE *, int)
+#define PYLIBSSH2_Sftpfile_New_PROTO            (LIBSSH2_SESSION*, LIBSSH2_SFTP *, LIBSSH2_SFTP_HANDLE *, int)
 
 #define PYLIBSSH2_Sftpdir_New_NUM               4
 #define PYLIBSSH2_Sftpdir_New_RETURN            PYLIBSSH2_SFTPDIR *
-#define PYLIBSSH2_Sftpdir_New_PROTO             (LIBSSH2_SFTP_HANDLE *, int)
+#define PYLIBSSH2_Sftpdir_New_PROTO             (LIBSSH2_SESSION*, LIBSSH2_SFTP *, LIBSSH2_SFTP_HANDLE *, int)
 
 #define PYLIBSSH2_Listener_New_NUM              5
 #define PYLIBSSH2_Listener_New_RETURN           PYLIBSSH2_LISTENER *

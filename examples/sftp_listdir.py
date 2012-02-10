@@ -65,7 +65,7 @@ class MySFTPClient:
             for file, attribute in self.sftp.listdir(handle):
                 print file, attribute
 
-        self.sftp.close(handle)
+        self.sftp.shutdown(handle)
 
     def __del__(self):
         self.session.close()

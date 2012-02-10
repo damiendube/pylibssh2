@@ -837,7 +837,7 @@ Opens an SFTP Channel.\n\
 static PyObject *
 PYLIBSSH2_Session_sftp_init(PYLIBSSH2_SESSION *self, PyObject *args)
 {
-    return (PyObject *)PYLIBSSH2_Sftp_New(libssh2_sftp_init(self->session), 1);
+    return (PyObject *)PYLIBSSH2_Sftp_New(self->session, libssh2_sftp_init(self->session), 1);
 }
 /* }}} */
 
