@@ -212,8 +212,36 @@ class SFTPTest(unittest.TestCase):
         out_file = sftp_file.read()
         self.assertEqual(out_file, CONTENT[at:at + len(out_file)])
         at += len(out_file)
+        #
+        #
+        # Read and tell
+        at = 0
+        sftp_file.seek(at)
+        #self.assertEqual(sftp_file.tell(), at)
+        out_file = sftp_file.read(1)
+        self.assertEqual(out_file, CONTENT[at:at + len(out_file)])
+        at += len(out_file)
+        #
+        #
+        # Read and tell
+        at = 4
+        sftp_file.seek(at)
+        #self.assertEqual(sftp_file.tell(), at)
+        out_file = sftp_file.read(2)
+        self.assertEqual(out_file, CONTENT[at:at + len(out_file)])
+        at += len(out_file)
+        #
+        #
+        # Read and tell
+        at = 5
+        sftp_file.seek(at)
+        #self.assertEqual(sftp_file.tell(), at)
+        out_file = sftp_file.read(3)
+        self.assertEqual(out_file, CONTENT[at:at + len(out_file)])
+        at += len(out_file)
 
         #
+        os.remove(FILE)
         sftp.shutdown()
 
     def test_file(self):

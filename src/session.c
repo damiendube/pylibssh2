@@ -765,15 +765,20 @@ PYLIBSSH2_Session_scp_send(PYLIBSSH2_SESSION *self, PyObject *args)
     char *path;
     int mode;
     unsigned long filesize;
-    int mtime = 0;
-    int atime = 0;
+    int mtime;
+    int atime;
     LIBSSH2_CHANNEL *channel;
 
-    if (!PyArg_ParseTuple(args, "sik|ii:scp_send", &path, &mode, &filesize, &mtime, &atime)) {
+    if (!PyArg_ParseTuple(args, "sikii:scp_send", &path, &mode, &filesize, &mtime, &atime)) {
         return NULL;
     }
 
+#if LIBSSH2_VERSION_NUM >= 0x010206
+    channel = libssh2_scp_send64(self->session, path, mode, filesize, mtime, atime);
+#else
     channel = libssh2_scp_send_ex(self->session, path, mode, filesize, mtime, atime);
+#endif
+
     if (channel == NULL) {
         char *errmsg;
         int rc = libssh2_session_last_error(self->session, &errmsg, NULL, 0);

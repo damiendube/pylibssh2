@@ -16,7 +16,6 @@ import socket
 import unittest
 import os, pwd
 import libssh2
-import math
 
 class SCPTest(unittest.TestCase):
     def setUp(self):

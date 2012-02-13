@@ -170,6 +170,10 @@ class Session(object):
         @type mode: int
         @param size: size of file being transmitted
         @type size: int
+        @param size: modified time in seconds of file on remote system
+        @type size: int
+        @param size: access time in seconds of file on remote system
+        @type size: int
 
         @return: new channel opened
         @rtype: L{Channel}
@@ -178,8 +182,8 @@ class Session(object):
 
     def scp_send_file(self, in_file_path, out_file_path):
         write_len = 4096
-        f = open(in_file_path, "rb")
         file_stat = os.stat(in_file_path)
+        f = open(in_file_path, "rb")
         channel = self.scp_send(out_file_path, file_stat.st_mode & 0777, file_stat.st_size, int(file_stat.st_mtime), int(file_stat.st_atime))
         if not channel:
             print "Failed to open channel"

@@ -145,7 +145,7 @@ Returns:\n\
 static PyObject *
 PYLIBSSH2_Sftpfile_tell(PYLIBSSH2_SFTPFILE *self, PyObject *args)
 {
-    return PyInt_FromLong(libssh2_sftp_tell(self->handle));
+    return PyInt_FromLong(libssh2_sftp_tell64(self->handle));
 }
 /* }}} */
 
@@ -168,7 +168,7 @@ PYLIBSSH2_Sftpfile_seek(PYLIBSSH2_SFTPFILE *self, PyObject *args)
     }
 
     Py_BEGIN_ALLOW_THREADS
-    libssh2_sftp_seek(self->handle, offset);
+    libssh2_sftp_seek64(self->handle, offset);
     Py_END_ALLOW_THREADS
 
     Py_INCREF(Py_None);
