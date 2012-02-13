@@ -409,50 +409,49 @@ PYLIBSSH2_Channel_read(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     int rc = 0;
     int buffer_size;
-    /* buffer to read as a python object */
-    PyObject *buffer;
+    char * cbuf;
 
     if (!PyArg_ParseTuple(args, "i:read", &buffer_size)) {
         return NULL;
     }
 
-    buffer = PyString_FromStringAndSize(NULL, buffer_size);
-    if (buffer == NULL) {
-        return NULL;
-    }
+    if (libssh2_channel_eof(self->channel) != 1) {
 
-    Py_BEGIN_ALLOW_THREADS
-    rc = libssh2_channel_read(self->channel, PyString_AsString(buffer), buffer_size);
-    Py_END_ALLOW_THREADS
-
-    if (rc >= 0) {
-        if (rc != buffer_size && _PyString_Resize(&buffer, rc) < 0) {
-            Py_XDECREF(buffer);
+        cbuf = malloc(buffer_size);
+        if (cbuf == NULL) {
             return NULL;
         }
-        return Py_BuildValue("N", buffer);
-    }
-    else {
-        char *errmsg;
-        if(libssh2_session_last_error(self->session, &errmsg, NULL, 0) != rc) {
-            // This is not the error that failed, do not take the string.
-            errmsg = "";
+
+        Py_BEGIN_ALLOW_THREADS
+        rc = libssh2_channel_read(self->channel, cbuf, buffer_size);
+        Py_END_ALLOW_THREADS
+
+        if(rc >= 0) {
+            PyObject* returnObj = PyByteArray_FromStringAndSize(cbuf, rc);
+            free(cbuf);
+            return returnObj;
         }
-        switch(rc) {
-            case LIBSSH2_ERROR_SOCKET_SEND:
-                PyErr_Format(PYLIBSSH2_Error, "Unable to send data on socket: %s", errmsg);
-                Py_XDECREF(buffer);
-                return NULL;
+        else if (rc < 0) {
+            free(cbuf);
 
-            case LIBSSH2_ERROR_CHANNEL_CLOSED:
-                PyErr_Format(PYLIBSSH2_Error, "The channel has been closed: %s", errmsg);
-                Py_XDECREF(buffer);
-                return NULL;
+            char *errmsg;
+            if(libssh2_session_last_error(self->session, &errmsg, NULL, 0) != rc) {
+                // This is not the error that failed, do not take the string.
+                errmsg = "";
+            }
+            switch(rc) {
+                case LIBSSH2_ERROR_SOCKET_SEND:
+                    PyErr_Format(PYLIBSSH2_Error, "Unable to send data on socket: %s", errmsg);
+                    return NULL;
 
-            default:
-                PyErr_Format(PYLIBSSH2_Error, "Unknown Error %i: %s", rc, errmsg);
-                Py_XDECREF(buffer);
-                return NULL;
+                case LIBSSH2_ERROR_CHANNEL_CLOSED:
+                    PyErr_Format(PYLIBSSH2_Error, "The channel has been closed: %s", errmsg);
+                    return NULL;
+
+                default:
+                    PyErr_Format(PYLIBSSH2_Error, "Unknown Error %i: %s", rc, errmsg);
+                    return NULL;
+            }
         }
     }
 }

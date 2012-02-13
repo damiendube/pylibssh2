@@ -215,9 +215,9 @@ stat_to_statdict(struct stat *attr){
     PyDict_SetItem(attrs, PyString_FromString("st_mode"), PyLong_FromUnsignedLong(
         (unsigned long)attr->st_mode));
     PyDict_SetItem(attrs, PyString_FromString("st_atime"), PyFloat_FromDouble(
-        attr->st_atim.tv_sec + attr->st_mtim.tv_nsec / 0.000000001));
+        attr->st_atim.tv_sec + attr->st_mtim.tv_nsec * 0.000000001));
     PyDict_SetItem(attrs, PyString_FromString("st_mtime"), PyFloat_FromDouble(
-        attr->st_mtim.tv_sec + attr->st_mtim.tv_nsec / 0.000000001));
+        attr->st_mtim.tv_sec + attr->st_mtim.tv_nsec * 0.000000001));
 
     return attrs;
 }

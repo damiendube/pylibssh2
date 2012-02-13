@@ -81,17 +81,18 @@ class SCPTest(unittest.TestCase):
             out_file_state = os.stat(OUT_FILE_PATH)
             self.assertEqual(in_file_state.st_mode & 0777, out_file_state.st_mode & 0777)
             self.assertEqual(in_file_state.st_size, out_file_state.st_size)
-            self.assertEqual(in_file_state.st_mtime, int(out_file_state.st_mtime))
+            self.assertEqual(int(in_file_state.st_atime), int(out_file_state.st_atime))
+            self.assertEqual(int(in_file_state.st_mtime), int(out_file_state.st_mtime))
             self.assertEqual(in_file_state.st_uid, out_file_state.st_uid)
             self.assertEqual(in_file_state.st_gid, out_file_state.st_gid)
             f = open(OUT_FILE_PATH, "r")
             self.assertEqual(f.read(), "CONTENT")
-            #os.remove(OUT_FILE_PATH)
+            os.remove(OUT_FILE_PATH)
         else:
             self.assertTrue(False, "File was not recv")
 
-        #if os.path.exists(IN_FILE_PATH):
-        #    os.remove(IN_FILE_PATH)
+        if os.path.exists(IN_FILE_PATH):
+            os.remove(IN_FILE_PATH)
 
     def tearDown(self):
         self.session.close()

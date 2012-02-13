@@ -26,7 +26,6 @@ from channel import Channel
 from sftp import Sftp
 import _libssh2
 import os
-import math
 
 class SessionException(Exception):
     """
@@ -215,12 +214,11 @@ class Session(object):
 
         f = open(out_file_path, "wb")
         file_size = fileInfo['st_size']
-
         got = 0
         buf = None
         while got < file_size:
             try:
-                buf = channel.read(read_len)
+                buf = channel.read(min(read_len, file_size - got))
                 if len(buf) > 0:
                     f.write(buf)
                     got += len(buf)
@@ -237,6 +235,7 @@ class Session(object):
 
         f.close()
         os.chmod(out_file_path, fileInfo['st_mode'])
+        os.utime(out_file_path, (fileInfo['st_mtime'], fileInfo['st_atime']))
 
     def session_method_pref(self, method_type, pref):
         """
