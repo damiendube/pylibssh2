@@ -16,7 +16,6 @@ import socket
 import unittest
 import os, pwd
 import libssh2
-import math
 
 class SFTPTest(unittest.TestCase):
     def setUp(self):
@@ -147,8 +146,6 @@ class SFTPTest(unittest.TestCase):
         sftp.set_stat(FILE, s1)
         s2 = os.stat(FILE)
         self.assertEqual(s1['st_mode'] & 0777, s2.st_mode & 0777)
-        #self.assertEqual(s1['st_atime'], int(s2.st_atime))
-        self.assertEqual(s1['st_mtime'], int(s2.st_mtime))
         os.remove(FILE)
         #
         sftp.shutdown()
