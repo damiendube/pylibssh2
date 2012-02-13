@@ -47,10 +47,11 @@ class SCPTest(unittest.TestCase):
 
         if os.path.exists(OUT_FILE_PATH):
             out_file_state = os.stat(OUT_FILE_PATH)
-            self.assertEqual(int(in_file_state.st_mode / 4096), int(out_file_state.st_mode / 4096))
-            self.assertEqual(int(in_file_state.st_atime), int(out_file_state.st_atime))
+            self.assertEqual(int(in_file_state.st_mode & 0777), int(out_file_state.st_mode & 0777))
             self.assertEqual(int(in_file_state.st_mtime), int(out_file_state.st_mtime))
             self.assertEqual(in_file_state.st_size, out_file_state.st_size)
+            self.assertEqual(in_file_state.st_uid, out_file_state.st_uid)
+            self.assertEqual(in_file_state.st_gid, out_file_state.st_gid)
             f = open(OUT_FILE_PATH, "r")
             self.assertEqual(f.read(), "CONTENT")
             f.close()
@@ -61,10 +62,10 @@ class SCPTest(unittest.TestCase):
         if os.path.exists(IN_FILE_PATH):
             os.remove(IN_FILE_PATH)
 
-    def a_test_recv(self):
+    def test_recv(self):
         # Initialize file that will be used
-        IN_FILE_PATH = "/tmp/test_scp_send_file_in"
-        OUT_FILE_PATH = "/tmp/test_scp_send_file_out"
+        IN_FILE_PATH = "/tmp/test_scp_test_recv_in"
+        OUT_FILE_PATH = "/tmp/test_scp_test_recv_out"
         FILE_CONTENT = "CONTENT"
         if os.path.exists(IN_FILE_PATH):
             os.remove(IN_FILE_PATH)
@@ -78,15 +79,19 @@ class SCPTest(unittest.TestCase):
 
         if os.path.exists(OUT_FILE_PATH):
             out_file_state = os.stat(OUT_FILE_PATH)
-            self.assertEqual(in_file_state, out_file_state)
+            self.assertEqual(in_file_state.st_mode & 0777, out_file_state.st_mode & 0777)
+            self.assertEqual(in_file_state.st_size, out_file_state.st_size)
+            self.assertEqual(in_file_state.st_mtime, int(out_file_state.st_mtime))
+            self.assertEqual(in_file_state.st_uid, out_file_state.st_uid)
+            self.assertEqual(in_file_state.st_gid, out_file_state.st_gid)
             f = open(OUT_FILE_PATH, "r")
             self.assertEqual(f.read(), "CONTENT")
-            os.remove(OUT_FILE_PATH)
+            #os.remove(OUT_FILE_PATH)
         else:
             self.assertTrue(False, "File was not recv")
 
-        if os.path.exists(IN_FILE_PATH):
-            os.remove(IN_FILE_PATH)
+        #if os.path.exists(IN_FILE_PATH):
+        #    os.remove(IN_FILE_PATH)
 
     def tearDown(self):
         self.session.close()

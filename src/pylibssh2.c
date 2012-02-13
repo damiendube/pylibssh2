@@ -171,10 +171,10 @@ init_libssh2(void)
 }
 /* }}} */
 
-/* {{{ get_attrs
+/* {{{ sftp_attrs_to_statdict
  */
 PyObject *
-get_attrs(LIBSSH2_SFTP_ATTRIBUTES *attr)
+sftp_attrs_to_statdict(LIBSSH2_SFTP_ATTRIBUTES *attr)
 {
     PyObject *attrs=NULL;
 
@@ -193,6 +193,31 @@ get_attrs(LIBSSH2_SFTP_ATTRIBUTES *attr)
         (unsigned long)attr->mtime));
     PyDict_SetItem(attrs, PyString_FromString("st_flags"), PyLong_FromUnsignedLong(
         (unsigned long)attr->flags));
+
+    return attrs;
+}
+/* }}} */
+
+
+/* {{{ stat_to_statdict
+ */
+PyObject *
+stat_to_statdict(struct stat *attr){
+    PyObject *attrs=NULL;
+
+    attrs = PyDict_New();
+    PyDict_SetItem(attrs, PyString_FromString("st_size"), PyLong_FromUnsignedLong(
+        (unsigned long)attr->st_size));
+    PyDict_SetItem(attrs, PyString_FromString("st_uid"), PyLong_FromUnsignedLong(
+        (unsigned long)attr->st_uid));
+    PyDict_SetItem(attrs, PyString_FromString("st_gid"), PyLong_FromUnsignedLong(
+        (unsigned long)attr->st_gid));
+    PyDict_SetItem(attrs, PyString_FromString("st_mode"), PyLong_FromUnsignedLong(
+        (unsigned long)attr->st_mode));
+    PyDict_SetItem(attrs, PyString_FromString("st_atime"), PyFloat_FromDouble(
+        attr->st_atim.tv_sec + attr->st_mtim.tv_nsec / 0.000000001));
+    PyDict_SetItem(attrs, PyString_FromString("st_mtime"), PyFloat_FromDouble(
+        attr->st_mtim.tv_sec + attr->st_mtim.tv_nsec / 0.000000001));
 
     return attrs;
 }

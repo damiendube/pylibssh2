@@ -724,19 +724,21 @@ PYLIBSSH2_Session_scp_recv(PYLIBSSH2_SESSION *self, PyObject *args)
 {
     char *path;
     LIBSSH2_CHANNEL *channel;
-    struct stat cb;
+    struct stat fileinfo;
     if (!PyArg_ParseTuple(args, "s:scp_recv", &path)) {
         return NULL;
     }
 
-    channel = libssh2_scp_recv(self->session, path, &cb);
+    Py_BEGIN_ALLOW_THREADS
+    channel = libssh2_scp_recv(self->session, path, &fileinfo);
+    Py_END_ALLOW_THREADS
     if (channel == NULL) {
         /* CLEAN: PYLIBSSH2_CHANNEL_SCP_RECV_ERROR_MSG */
         PyErr_SetString(PYLIBSSH2_Error, "SCP receive error.");
         return NULL;
     }
 
-    return Py_BuildValue("Oii", (PyObject *)PYLIBSSH2_Channel_New(self->session, channel, 1), cb.st_mode, cb.st_size);
+    return Py_BuildValue("OO", (PyObject *)PYLIBSSH2_Channel_New(self->session, channel, 1), stat_to_statdict(&fileinfo));
 }
 /* }}} */
 

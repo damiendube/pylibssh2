@@ -80,7 +80,10 @@ extern PyObject *PYLIBSSH2_Error;
 #define PYLIBSSH2_API_pointers                  6
 
 PyObject *
-get_attrs(LIBSSH2_SFTP_ATTRIBUTES *attr);
+sftp_attrs_to_statdict(LIBSSH2_SFTP_ATTRIBUTES *attr);
+
+PyObject *
+stat_to_statdict(struct stat *attr);
 
 
 #ifdef PYLIBSSH2_MODULE

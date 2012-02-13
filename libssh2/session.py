@@ -158,8 +158,8 @@ class Session(object):
         @return: new channel opened, mode, size
         @rtype: L{Channel}, mode, size
         """
-        _channel, mode, size = self._session.scp_recv(remote_path)
-        return (Channel(_channel), mode, size)
+        _channel, fileInfo = self._session.scp_recv(remote_path)
+        return (Channel(_channel), fileInfo)
 
     def scp_send(self, path, mode, size, mtime=0, atime=0):
         """
@@ -207,32 +207,36 @@ class Session(object):
             print "Failed to close %s" % (detail)
 
     def scp_recv_file(self, in_file_path, out_file_path):
-        read_len = 4096
-        f = open(in_file_path, "wb")
-        channel, mode, file_size = self.scp_recv(in_file_path)
+        read_len = 1024
+        channel, fileInfo = self.scp_recv(in_file_path)
         if not channel:
             print "Failed to open channel"
             return
 
+        f = open(out_file_path, "wb")
+        file_size = fileInfo['st_size']
+
         got = 0
-        while True:
-            to_read = min(read_len, file_size - got)
-            buf = channel.read(to_read)
-            if len(buf) > 0:
-                f.write(buf)
-                got += len(buf)
+        buf = None
+        while got < file_size:
+            try:
+                buf = channel.read(read_len)
+                if len(buf) > 0:
+                    f.write(buf)
+                    got += len(buf)
+                buf = None
+            except Exception, detail:
+                f.close()
+                channel.close()
+                raise
 
-            if got >= file_size:
-                break
-            print "got %i remain %i" % (got, file_size - got)
-
-        #try:
-        #    channel.close()
-        #except Exception, detail:
-        #    print "Failed to close %s" % (detail)
+        try:
+            channel.close()
+        except Exception, detail:
+            print "Failed to close %s" % (detail)
 
         f.close()
-        os.chmod(out_file_path, mode)
+        os.chmod(out_file_path, fileInfo['st_mode'])
 
     def session_method_pref(self, method_type, pref):
         """

@@ -649,7 +649,7 @@ PYLIBSSH2_Sftp_get_stat(PYLIBSSH2_SFTP *self, PyObject *args)
         }
     }
 
-    return get_attrs(&attr);
+    return sftp_attrs_to_statdict(&attr);
 }
 /* }}} */
 

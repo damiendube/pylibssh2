@@ -53,7 +53,7 @@ class MySCPClient:
 
     def recv(self, remote_in_path, local_out_path, mode=0644):
         f = file(local_out_path, "wb")
-        channel = self.session.scp_recv(remote_in_path)
+        channel, fileInfo = self.session.scp_recv(remote_in_path)
 
         while True:
             buf = channel.read()

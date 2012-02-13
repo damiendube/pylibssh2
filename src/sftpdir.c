@@ -97,7 +97,7 @@ PYLIBSSH2_Sftpdir_read(PYLIBSSH2_SFTPDIR *self, PyObject *args)
         return Py_None;
     }
 
-    PyObject *dict = get_attrs(&attrs);
+    PyObject *dict = sftp_attrs_to_statdict(&attrs);
     return Py_BuildValue("NO", buffer, dict);
 }
 /* }}} */
@@ -149,7 +149,7 @@ PYLIBSSH2_Sftpdir_list(PYLIBSSH2_SFTPDIR *self, PyObject *args)
 
         list = PyList_New(0);
         PyList_Append(list, buffer);
-        PyList_Append(list, get_attrs(&attrs));
+        PyList_Append(list, sftp_attrs_to_statdict(&attrs));
         PyList_Append(all, list);
     }
 
