@@ -74,10 +74,22 @@ class Sftp(object):
         """
         self._sftp.unlink(path)
 
+    def remove(self, path):
+        """
+        Alias
+        """
+        self.unlink(path)
+
     def rename(self, src, dst):
         """
         """
         self._sftp.rename(src, dst)
+
+    def move(self, src, dst):
+        """
+        Alias
+        """
+        self.rename(src, dst)
 
     def copy_file(self, src, dst):
         src_file = self.open_file(src, "r")

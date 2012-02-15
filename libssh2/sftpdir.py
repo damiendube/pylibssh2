@@ -47,7 +47,7 @@ class SftpDir(object):
         """
         return self._handle.read()
 
-    def list(self):
+    def list_files(self):
         """
         """
-        return self._handle.read()
+        return self._handle.list_files()

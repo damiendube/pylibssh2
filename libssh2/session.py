@@ -26,6 +26,7 @@ from channel import Channel
 from sftp import Sftp
 import _libssh2
 import os
+import stat
 
 class SessionException(Exception):
     """
@@ -184,7 +185,7 @@ class Session(object):
         write_len = 4096
         file_stat = os.stat(in_file_path)
         f = open(in_file_path, "rb")
-        channel = self.scp_send(out_file_path, file_stat.st_mode & 0777, file_stat.st_size, int(file_stat.st_mtime), int(file_stat.st_atime))
+        channel = self.scp_send(out_file_path, stat.S_IMODE(file_stat.st_mode), file_stat.st_size, int(file_stat.st_mtime), int(file_stat.st_atime))
         if not channel:
             print "Failed to open channel"
             return

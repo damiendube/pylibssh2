@@ -104,7 +104,7 @@ PYLIBSSH2_Sftpdir_read(PYLIBSSH2_SFTPDIR *self, PyObject *args)
 
 /* {{{ PYLIBSSH2_Sftpdir_listdir
  */
-static char PYLIBSSH2_Sftpdir_list_doc[] = "\n\
+static char PYLIBSSH2_Sftpdir_list_files_doc[] = "\n\
 \n\
 Arguments:\n\
 \n\
@@ -112,16 +112,15 @@ Returns:\n\
 ";
 
 static PyObject *
-PYLIBSSH2_Sftpdir_list(PYLIBSSH2_SFTPDIR *self, PyObject *args)
+PYLIBSSH2_Sftpdir_list_files(PYLIBSSH2_SFTPDIR *self, PyObject *args)
 {
     LIBSSH2_SFTP_ATTRIBUTES attrs;
     int buffer_maxlen = 0;
     int longentry_maxlen = 255;
     PyObject *buffer;
-    PyObject *all = NULL;
-    PyObject *list = NULL;
+    PyObject *dict = NULL;
 
-    all = PyList_New(0);
+    dict = PyDict_New();
     while (1) {
         buffer = PyString_FromStringAndSize(NULL, longentry_maxlen);
         if (buffer == NULL) {
@@ -147,13 +146,10 @@ PYLIBSSH2_Sftpdir_list(PYLIBSSH2_SFTPDIR *self, PyObject *args)
             return Py_None;
         }
 
-        list = PyList_New(0);
-        PyList_Append(list, buffer);
-        PyList_Append(list, sftp_attrs_to_statdict(&attrs));
-        PyList_Append(all, list);
+        PyDict_SetItem(dict, buffer, sftp_attrs_to_statdict(&attrs));
     }
 
-    return all;
+    return dict;
 }
 /* }}} */
 
@@ -170,7 +166,7 @@ static PyMethodDef PYLIBSSH2_Sftpdir_methods[] =
 {
     ADD_METHOD(close),
     ADD_METHOD(read),
-    ADD_METHOD(list),
+    ADD_METHOD(list_files),
     { NULL, NULL }
 };
 #undef ADD_METHOD

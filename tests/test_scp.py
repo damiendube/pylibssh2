@@ -18,6 +18,7 @@ import pwd
 import socket
 import time
 import unittest
+import stat
 
 class SCPTest(unittest.TestCase):
     def setUp(self):
@@ -49,7 +50,7 @@ class SCPTest(unittest.TestCase):
 
         if os.path.exists(OUT_FILE_PATH):
             out_file_state = os.stat(OUT_FILE_PATH)
-            self.assertEqual(int(in_file_state.st_mode & 0777), int(out_file_state.st_mode & 0777))
+            self.assertEqual(stat.S_IMODE(in_file_state.st_mode), stat.S_IMODE(out_file_state.st_mode))
             self.assertEqual(int(in_file_state.st_mtime), int(out_file_state.st_mtime))
             self.assertEqual(in_file_state.st_size, out_file_state.st_size)
             self.assertEqual(in_file_state.st_uid, out_file_state.st_uid)
@@ -82,7 +83,7 @@ class SCPTest(unittest.TestCase):
 
         if os.path.exists(OUT_FILE_PATH):
             out_file_state = os.stat(OUT_FILE_PATH)
-            self.assertEqual(in_file_state.st_mode & 0777, out_file_state.st_mode & 0777)
+            self.assertEqual(stat.S_IMODE(in_file_state.st_mode), stat.S_IMODE(out_file_state.st_mode))
             self.assertEqual(in_file_state.st_size, out_file_state.st_size)
             self.assertEqual(int(in_file_state.st_atime), int(out_file_state.st_atime))
             self.assertEqual(int(in_file_state.st_mtime), int(out_file_state.st_mtime))

@@ -17,6 +17,8 @@ import unittest
 import os, pwd
 import libssh2
 import shutil
+import stat
+
 
 class SFTPTest(unittest.TestCase):
     def setUp(self):
@@ -155,7 +157,7 @@ class SFTPTest(unittest.TestCase):
         open(FILE, "w").close()
         s1 = sftp.get_stat(FILE)
         s2 = os.stat(FILE)
-        self.assertEqual(s1['st_mode'] & 0777, s2.st_mode & 0777)
+        self.assertEqual(stat.S_IMODE(s1['st_mode']), stat.S_IMODE(s2.st_mode))
         self.assertEqual(s1['st_size'], s2.st_size)
         #self.assertEqual(s1['st_atime'], int(s2.st_atime))
         self.assertEqual(s1['st_mtime'], int(s2.st_mtime))
@@ -174,7 +176,7 @@ class SFTPTest(unittest.TestCase):
         s1 = {"st_mode" : 0400 }
         sftp.set_stat(FILE, s1)
         s2 = os.stat(FILE)
-        self.assertEqual(s1['st_mode'] & 0777, s2.st_mode & 0777)
+        self.assertEqual(stat.S_IMODE(s1['st_mode']), stat.S_IMODE(s2.st_mode))
         os.remove(FILE)
         #
         sftp.shutdown()
@@ -368,6 +370,38 @@ class SFTPTest(unittest.TestCase):
         #
         os.remove(FILE)
         sftp.shutdown()
+
+    def test_dir(self):
+        sftp = self.session.sftp_init()
+        self.assertTrue(sftp != None, "got an sftp object")
+        DIR = "/tmp/test_sftp_test_dir"
+        SUB_DIR = "/tmp/test_sftp_test_dir/dir"
+        FILE1 = "/tmp/test_sftp_test_dir/file1"
+        FILE2 = "/tmp/test_sftp_test_dir/file2"
+        #
+        shutil.rmtree(DIR, ignore_errors=True)
+        #
+        sftp.mkdir(DIR)
+        sftp.mkdir(SUB_DIR)
+        sftp.open_file(FILE1, "w").close()
+        sftp.open_file(FILE2, "w").close()
+        sftp_dir = sftp.open_dir(DIR)
+        files = sftp_dir.list_files()
+        #
+        fileNames = [key for key in files.keys() if not stat.S_ISDIR(files[key]["st_mode"])]
+        dirNames = [key for key in files.keys() if stat.S_ISDIR(files[key]["st_mode"])]
+        #
+        self.assertTrue(len(fileNames) == 2, "Number if files listed %s" % (len(files)))
+        self.assertTrue(len(dirNames) == 3, "Number if files listed %s" % (len(files)))
+        self.assertTrue("." in dirNames)
+        self.assertTrue(".." in dirNames)
+        self.assertTrue(os.path.basename(SUB_DIR) in dirNames)
+        self.assertTrue(os.path.basename(FILE1) in fileNames)
+        self.assertTrue(os.path.basename(FILE2) in fileNames)
+        #
+        shutil.rmtree(DIR, ignore_errors=True)
+        sftp.shutdown()
+        #
 
     def tearDown(self):
         self.session.close()
