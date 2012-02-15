@@ -12,19 +12,21 @@
 Unit tests for Session
 """
 
-import socket
-import unittest
-import os, pwd
 import libssh2
+import os
+import pwd
+import socket
+import time
+import unittest
 
 class SCPTest(unittest.TestCase):
     def setUp(self):
         self.username = pwd.getpwuid(os.getuid())[0]
         self.hostname = "localhost"
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.connect((self.hostname, 22))
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.connect((self.hostname, 22))
         self.session = libssh2.Session()
-        self.session.startup(self.socket)
+        self.session.startup(self.sock)
         self.session.userauth_agent(self.username)
         self.assertEqual(self.session.userauth_authenticated(), 1)
 
@@ -42,6 +44,7 @@ class SCPTest(unittest.TestCase):
         f.write(FILE_CONTENT)
         f.close()
         in_file_state = os.stat(IN_FILE_PATH)
+        time.sleep(1)
         self.session.scp_send_file(IN_FILE_PATH, OUT_FILE_PATH)
 
         if os.path.exists(OUT_FILE_PATH):
@@ -74,6 +77,7 @@ class SCPTest(unittest.TestCase):
         f.write(FILE_CONTENT)
         f.close()
         in_file_state = os.stat(IN_FILE_PATH)
+        time.sleep(1)
         self.session.scp_recv_file(IN_FILE_PATH, OUT_FILE_PATH)
 
         if os.path.exists(OUT_FILE_PATH):
@@ -95,7 +99,7 @@ class SCPTest(unittest.TestCase):
 
     def tearDown(self):
         self.session.close()
-        self.socket.close()
+        self.sock.close()
 
 if __name__ == '__main__':
     unittest.main()

@@ -408,10 +408,10 @@ static PyObject *
 PYLIBSSH2_Channel_read(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     int rc = 0;
-    int buffer_size;
+    int buffer_size= 1024;
     char * cbuf;
 
-    if (!PyArg_ParseTuple(args, "i:read", &buffer_size)) {
+    if (!PyArg_ParseTuple(args, "|i:read", &buffer_size)) {
         return NULL;
     }
 
@@ -431,7 +431,7 @@ PYLIBSSH2_Channel_read(PYLIBSSH2_CHANNEL *self, PyObject *args)
             free(cbuf);
             return returnObj;
         }
-        else if (rc < 0) {
+        else {
             free(cbuf);
 
             char *errmsg;
@@ -476,13 +476,13 @@ static PyObject *
 PYLIBSSH2_Channel_read_ex(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     int rc;
-    int buffer_size;
+    int buffer_size = 1024;
     int stream_id = 0;
     /* buffer to read as a python object */
     PyObject *buffer;
     char * cbuf;
 
-    if (!PyArg_ParseTuple(args, "i|i:read_ex", &buffer_size, &stream_id)) {
+    if (!PyArg_ParseTuple(args, "|ii:read_ex", &buffer_size, &stream_id)) {
         return NULL;
     }
     buffer = PyString_FromStringAndSize(NULL, buffer_size);

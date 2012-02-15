@@ -46,10 +46,23 @@ class Sftp(object):
         """
         return SftpDir(self._sftp.open_dir(path))
 
-    def open_file(self, path):
+    def open_file(self, path, flags, mode=None):
         """
         """
-        return SftpFile(self._sftp.open_file(path))
+        if mode:
+            return SftpFile(self._sftp.open_file(path, flags, mode))
+        else:
+            return SftpFile(self._sftp.open_file(path, flags))
+
+    def exists(self, path):
+        try:
+            real_path = self.realpath(path)
+            if real_path and len(real_path):
+                return True
+            else:
+                return False
+        except IOError:
+            return False
 
     def shutdown(self):
         """
@@ -61,12 +74,19 @@ class Sftp(object):
         """
         self._sftp.unlink(path)
 
-    def rename(self, old_path, new_path):
+    def rename(self, src, dst):
         """
         """
-        self._sftp.rename(old_path, new_path)
+        self._sftp.rename(src, dst)
 
-    def mkdir(self, path, mode):
+    def copy_file(self, src, dst):
+        src_file = self.open_file(src, "r")
+        dst_file = self.open_file(dst, "w")
+        dst_file.write(src_file.read(-1))
+        src_file.close()
+        dst_file.close()
+
+    def mkdir(self, path, mode=0755):
         """
         """
         self._sftp.mkdir(path, mode)

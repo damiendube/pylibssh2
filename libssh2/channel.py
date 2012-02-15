@@ -39,8 +39,6 @@ class Channel(object):
         @type _channel: L{_libssh2.Channel}
         """
         self._channel = _channel
-        self.closed = False
-        self.flushed = False
 
     def close(self):
         """
@@ -49,7 +47,6 @@ class Channel(object):
         @return: 0 on success or negative on failure
         @rtype: int
         """
-        self.closed = True
         return self._channel.close()
 
     def wait_closed(self):
@@ -59,7 +56,6 @@ class Channel(object):
         @return: 0 on success or negative on failure
         @rtype: int
         """
-        self.closed = True
         return self._channel.wait_closed()
 
     def eof(self):
@@ -81,7 +77,6 @@ class Channel(object):
         @return: 0 on success or negative on failure
         @rtype: int
         """
-        self.closed = True
         return self._channel.execute(command)
 
     def exit_status(self):
@@ -100,7 +95,6 @@ class Channel(object):
         @return: 0 on sucess or negative on failure
         @rtype: int
         """
-        self.flushed = True
         return self._channel.flush()
 
     def poll_read(self, extended):
@@ -155,7 +149,21 @@ class Channel(object):
         @return: bytes readed or negative on failure
         @rtype: str
         """
-        return self._channel.read(size)
+        if size == -1:
+            buf = ""
+            while True:
+                try:
+                    new_buf = self._channel.read()
+                except Exception:
+                    new_buf = ""
+
+                if new_buf and len(new_buf) > 0:
+                    buf += new_buf
+                else:
+                    break
+            return buf
+        else:
+            return self._channel.read(size)
 
     def read_ex(self, size=1024, stream_id=0):
         """

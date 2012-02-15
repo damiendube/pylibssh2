@@ -334,7 +334,7 @@ class Session(object):
         @return: 0 on success or negative on failure
         @rtype: int
         """
-        return self._session.userauth_password(username, password)
+        self._session.userauth_password(username, password)
 
     def userauth_publickey_fromfile(
             self, username, publickey, privatekey, passphrase=None):
@@ -376,11 +376,10 @@ class Session(object):
         @return: 0 on success or negative on failure
         @rtype: int
         """
-        return self._session.userauth_keyboardinteractive(username, password,
-                                                   len(password))
+        self._session.userauth_keyboardinteractive(username, password, len(password))
 
     def userauth_agent(self, username):
         """
         Initialize an ssh-agent handle
         """
-        return self._session.userauth_agent(username)
+        self._session.userauth_agent(username)

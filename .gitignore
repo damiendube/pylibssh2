@@ -4,3 +4,4 @@ dist/
 doc/
 pylibssh2.egg-info/
 /MANIFEST
+/_libssh2.so

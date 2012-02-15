@@ -28,8 +28,9 @@ from platform import python_version
 
 import os, sys, glob
 
+build_path = "build/lib.%s-%s" % (get_platform(), python_version()[:3])
 sys.path.append('tests')
-sys.path.append("build/lib.%s-%s" % (get_platform(), python_version()[:3]))
+sys.path.append(build_path)
 sys.path.append('libssh2')
 
 import version as info
@@ -76,11 +77,13 @@ class Libssh2TestCommand(Command):
         from test_session import SessionTest
         from test_scp import SCPTest
         from test_sftp import SFTPTest
+        from test_ssh import SSHTest
 
         suite = unittest.TestSuite()
         suite.addTest(unittest.makeSuite(SessionTest))
         suite.addTest(unittest.makeSuite(SCPTest))
         suite.addTest(unittest.makeSuite(SFTPTest))
+        suite.addTest(unittest.makeSuite(SSHTest))
 
         runner = unittest.TextTestRunner()
         runner.run(suite)
@@ -115,3 +118,9 @@ setup(name='pylibssh2',
       long_description=long_description,
       classifiers=classifiers,
       cmdclass={'test' : Libssh2TestCommand})
+
+try:
+    os.symlink(os.path.join(build_path, "_libssh2.so"), "./_libssh2.so")
+except:
+    pass
+

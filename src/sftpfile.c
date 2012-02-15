@@ -67,10 +67,10 @@ static PyObject *
 PYLIBSSH2_Sftpfile_read(PYLIBSSH2_SFTPFILE *self, PyObject *args)
 {
     int rc;
-    int buffer_maxlen;
+    int buffer_maxlen = 1024;
     PyObject *buffer;
 
-    if (!PyArg_ParseTuple(args, "i:read", &buffer_maxlen)) {
+    if (!PyArg_ParseTuple(args, "|i:read", &buffer_maxlen)) {
         return NULL;
     }
 

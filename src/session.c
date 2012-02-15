@@ -452,7 +452,7 @@ PYLIBSSH2_Session_userauth_hostbased_fromfile(PYLIBSSH2_SESSION *self, PyObject 
     char *publickey;
     char *privatekey;
     char *hostname;
-    char *passphrase = "";
+    char *passphrase = NULL;
 
     if (!PyArg_ParseTuple(args, "ssss|s:userauth_publickey_fromfile", &username, &publickey, &privatekey, &hostname, &passphrase)) {
         return NULL;
@@ -1176,9 +1176,7 @@ userauth_keyboardinteractive(username)\n\
 \n\
 Authenticate a session using a challenge-response authentication\n\
 \n\
-@param username: name of user to attempt authentication\n\
-@return 0 on success or negative on failure\n\
-@rtype ";
+@param username: name of user to attempt authentication\n";
 
 /* {{{ PYLIBSSH2_Session_userauth_keyboardinteractive
  */
@@ -1222,7 +1220,8 @@ PYLIBSSH2_Session_userauth_keyboardinteractive(PYLIBSSH2_SESSION *self, PyObject
         }
     }
 
-    return Py_BuildValue("i", rc);
+    Py_INCREF(Py_None);
+    return Py_None;
 
 }
 

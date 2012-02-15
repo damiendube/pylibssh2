@@ -45,12 +45,26 @@ class SftpFile(object):
     def read(self, maxlen=4096):
         """
         """
-        return self._handle.read(maxlen)
+        if maxlen == -1:
+            buf = ""
+            while True:
+                try:
+                    new_buf = self._handle.read()
+                except Exception:
+                    new_buf = ""
+
+                if new_buf and len(new_buf) > 0:
+                    buf += new_buf
+                else:
+                    break
+            return buf
+        else:
+            return self._handle.read(maxlen)
 
     def write(self, message):
         """
         """
-        return self._handle.write(message, len(message))
+        return self._handle.write(message)
 
     def tell(self):
         """

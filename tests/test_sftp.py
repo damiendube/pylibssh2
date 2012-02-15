@@ -16,15 +16,16 @@ import socket
 import unittest
 import os, pwd
 import libssh2
+import shutil
 
 class SFTPTest(unittest.TestCase):
     def setUp(self):
         self.username = pwd.getpwuid(os.getuid())[0]
         self.hostname = "localhost"
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.connect((self.hostname, 22))
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.connect((self.hostname, 22))
         self.session = libssh2.Session()
-        self.session.startup(self.socket)
+        self.session.startup(self.sock)
         self.session.userauth_agent(self.username)
         self.assertEqual(self.session.userauth_authenticated(), 1)
 
@@ -51,6 +52,20 @@ class SFTPTest(unittest.TestCase):
         open(FILE1, "w").close()
         sftp.rename(FILE1, FILE2)
         self.assertFalse(os.path.exists(FILE1))
+        self.assertTrue(os.path.exists(FILE2))
+        os.remove(FILE2)
+        #
+        sftp.shutdown()
+
+    def test_copy_file(self):
+        sftp = self.session.sftp_init()
+        self.assertTrue(sftp != None, "got an sftp object")
+        #
+        FILE1 = "/tmp/../tmp/test_sftp_test_copy_file"
+        FILE2 = "/tmp/../tmp/test_sftp_test_test_copy_file_newname"
+        open(FILE1, "w").close()
+        sftp.copy_file(FILE1, FILE2)
+        self.assertTrue(os.path.exists(FILE1))
         self.assertTrue(os.path.exists(FILE2))
         os.remove(FILE2)
         #
@@ -84,24 +99,38 @@ class SFTPTest(unittest.TestCase):
         sftp = self.session.sftp_init()
         self.assertTrue(sftp != None, "got an sftp object")
         FILE = "/tmp/../tmp/test_sftp_test_realpath"
+        FAKE_FILE = "/tmp/../tmp/test_sftp_test_realpath.fake"
         open(FILE, "w").close()
         real = sftp.realpath(FILE)
         self.assertEqual(os.path.abspath(FILE), real)
-        os.remove(FILE)
+        try:
+            sftp.realpath(FAKE_FILE)
+        except:
+            pass
+        else:
+            self.assertTrue(False, "sftp.realpath on unexistant file")
         #
+        os.remove(FILE)
         sftp.shutdown()
 
     def test_readlink(self):
         sftp = self.session.sftp_init()
         self.assertTrue(sftp != None, "got an sftp object")
         FILE = "/tmp/../tmp/test_sftp_test_readlink"
+        FAKE_FILE = "/tmp/../tmp/test_sftp_test_readlink.fake"
         SYM = "/tmp/../tmp/test_sftp_test_readlink_sym"
         open(FILE, "w").close()
         os.symlink(FILE, SYM)
         self.assertEqual(os.readlink(SYM), sftp.readlink(SYM))
+        try:
+            sftp.symlink(FAKE_FILE)
+        except:
+            pass
+        else:
+            self.assertTrue(False, "sftp.readlink on unexistant file")
+        #
         os.remove(SYM)
         os.remove(FILE)
-        #
         sftp.shutdown()
 
     def test_symlink(self):
@@ -160,7 +189,7 @@ class SFTPTest(unittest.TestCase):
         f.write(CONTENT)
         f.close()
         #
-        sftp_file = sftp.open_file(FILE)
+        sftp_file = sftp.open_file(FILE, "r")
         # Seek and tell test
         sftp_file.seek(0)
         self.assertEqual(sftp_file.tell(), 0)
@@ -244,12 +273,105 @@ class SFTPTest(unittest.TestCase):
         os.remove(FILE)
         sftp.shutdown()
 
-    def test_file(self):
-        pass
+    def test_open(self):
+        sftp = self.session.sftp_init()
+        self.assertTrue(sftp != None, "got an sftp object")
+        #
+        FILE = "/tmp/test_sftp_test_open.file"
+        DIR = "/tmp/test_sftp_test_open.dir"
+        NOT_A_FILE = "/tmp/test_sftp_test_open.not_a_file"
+        try:
+            open(FILE, "w").close()
+        except:
+            pass
+        try:
+            os.mkdir(DIR)
+        except:
+            pass
+
+        try:
+            sftp.open_file(FILE, "r")
+        except Exception, detail:
+            self.assertTrue(False, "Failed sftp.open_file %s" % (detail))
+
+        try:
+            sftp.open_file(DIR, "r")
+        except Exception, detail:
+            pass
+        else:
+            # For some reason this works...
+            #self.assertTrue(False, "Did not failed sftp.open_file on a directory!")
+            pass
+
+        try:
+            sftp.open_dir(DIR)
+        except Exception, detail:
+            self.assertTrue(False, "Failed sftp.open_dir %s" % (detail))
+
+        try:
+            sftp.open_dir(FILE)
+        except Exception, detail:
+            pass
+        else:
+            self.assertTrue(False, "Did not failed sftp.open_dir on a file")
+
+        try:
+            sftp.open_file(NOT_A_FILE, "r")
+        except Exception, detail:
+            pass
+        else:
+            self.assertTrue(False, "Did not fail sftp.open_file on a inexistant directory")
+
+        try:
+            sftp.open_dir(NOT_A_FILE)
+        except Exception, detail:
+            pass
+        else:
+            self.assertTrue(False, "Did not fail sftp.open_dir on a inexistant directory")
+
+
+        shutil.rmtree(DIR, ignore_errors=True)
+        os.remove(FILE)
+        sftp.shutdown()
+
+    def test_read(self):
+        sftp = self.session.sftp_init()
+        self.assertTrue(sftp != None, "got an sftp object")
+        #
+        FILE = "/tmp/../tmp/test_sftp_test_read"
+        CONTENT = "0123456789\n9876543210"
+        f = open(FILE, "w")
+        f.write(CONTENT)
+        f.close()
+        #
+        sftp_file = sftp.open_file(FILE, "r")
+        out_content = sftp_file.read(-1)
+        self.assertEqual(CONTENT, out_content)
+        sftp_file.close()
+        #
+        os.remove(FILE)
+        sftp.shutdown()
+
+    def test_write(self):
+        sftp = self.session.sftp_init()
+        self.assertTrue(sftp != None, "got an sftp object")
+        #
+        FILE = "/tmp/test_sftp_test_read"
+        CONTENT = "0123456789\n9876543210"
+        #
+        sftp_file = sftp.open_file(FILE, "w", 0644)
+        sftp_file.write(CONTENT)
+        sftp_file.close()
+        f = open(FILE)
+        self.assertEqual(f.read(), CONTENT)
+        f.close()
+        #
+        os.remove(FILE)
+        sftp.shutdown()
 
     def tearDown(self):
         self.session.close()
-        self.socket.close()
+        self.sock.close()
 
 if __name__ == '__main__':
     unittest.main()

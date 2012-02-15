@@ -24,11 +24,11 @@ except:
 class SessionTest(unittest.TestCase):
     def setUp(self):
         self.username = pwd.getpwuid(os.getuid())[0]
-        self.hostname = "localhost"
-        self.publickey = os.path.expanduser("~/.ssh/id_rsa.pub")
-        self.privatekey = os.path.expanduser("~/.ssh/id_rsa")
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.connect((self.hostname, 22))
+        self.hostname = socket.gethostname()
+        self.publickey = os.path.expanduser("~%s/.ssh/id_dsa.pub" % (self.username))
+        self.privatekey = os.path.expanduser("~%s/.ssh/id_dsa" % (self.username))
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.connect((self.hostname, 22))
 
     def test_import(self):
         ok = False
@@ -48,25 +48,25 @@ class SessionTest(unittest.TestCase):
         session = libssh2.Session()
         session.set_banner()
         self.assertEqual(session.userauth_authenticated(), 0)
-        session.startup(self.socket)
+        session.startup(self.sock)
 
     def test_session_userauth_publickey(self):
         session = libssh2.Session()
-        session.startup(self.socket)
+        session.startup(self.sock)
         self.assertEqual(session.userauth_authenticated(), 0)
         session.userauth_publickey_fromfile(self.username, self.publickey, self.privatekey)
         self.assertEqual(session.userauth_authenticated(), 1)
 
     def test_session_userauth_hostbased(self):
         session = libssh2.Session()
-        session.startup(self.socket)
+        session.startup(self.sock)
         self.assertEqual(session.userauth_authenticated(), 0)
         session.userauth_hostbased_fromfile(self.username, self.publickey, self.privatekey, self.hostname)
         self.assertEqual(session.userauth_authenticated(), 1)
 
     def test_session_userauth_agent(self):
         session = libssh2.Session()
-        session.startup(self.socket)
+        session.startup(self.sock)
         self.assertEqual(session.userauth_authenticated(), 0)
         username = pwd.getpwuid(os.getuid())[0]
         session.userauth_agent(username)
@@ -74,7 +74,7 @@ class SessionTest(unittest.TestCase):
         session.close()
 
     def tearDown(self):
-        self.socket.close()
+        self.sock.close()
 
 if __name__ == '__main__':
     unittest.main()

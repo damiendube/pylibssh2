@@ -51,6 +51,7 @@ pdbtest: debug
 	pdb setup.py test
 
 clean:
+	rm -f _libssh2.so
 	rm -rf build dist
 	rm -rf MANIFEST *.egg-info
 	rm -rf ${PY_TARGET}/*pyc
