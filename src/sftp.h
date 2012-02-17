@@ -35,7 +35,6 @@ typedef struct {
     PyObject_HEAD
     LIBSSH2_SESSION *session;
     LIBSSH2_SFTP    *sftp;
-    int             dealloc;
 } PYLIBSSH2_SFTP;
 
 #endif /* _PYLIBSSH2_SFTP_H_ */

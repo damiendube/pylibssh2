@@ -37,6 +37,13 @@ PYLIBSSH2_Sftp_open_dir(PYLIBSSH2_SFTP *self, PyObject *args)
     LIBSSH2_SFTP_HANDLE *handle;
     char *path;
     int sftp_err;
+    char* errmsg;
+    int rc;
+
+    if(self->sftp == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Sftp object has been closed/shutdown.");
+        return NULL;
+    }
 
     if (!PyArg_ParseTuple(args, "s:open_dir", &path)) {
         return NULL;
@@ -47,8 +54,6 @@ PYLIBSSH2_Sftp_open_dir(PYLIBSSH2_SFTP *self, PyObject *args)
     Py_END_ALLOW_THREADS
 
     if (handle == NULL) {
-        char* errmsg;
-        int rc;
         rc = libssh2_session_last_error(self->session, &errmsg, NULL, 0);
         switch (rc) {
             case LIBSSH2_ERROR_ALLOC:
@@ -78,7 +83,7 @@ PYLIBSSH2_Sftp_open_dir(PYLIBSSH2_SFTP *self, PyObject *args)
         }
     }
 
-    return (PyObject *) PYLIBSSH2_Sftpdir_New(self->session, self->sftp, handle, 1);
+    return (PyObject *) PYLIBSSH2_Sftpdir_New(self->session, self->sftp, handle);
 }
 /* }}} */
 
@@ -99,6 +104,13 @@ PYLIBSSH2_Sftp_open_file(PYLIBSSH2_SFTP *self, PyObject *args)
     char *flags = "r";
     long mode = 0755;
     int sftp_err;
+    char* errmsg;
+    int rc;
+
+    if(self->sftp == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Sftp object has been closed/shutdown.");
+        return NULL;
+    }
 
     if (!PyArg_ParseTuple(args, "ss|i:open", &path, &flags, &mode)) {
         return NULL;
@@ -109,8 +121,6 @@ PYLIBSSH2_Sftp_open_file(PYLIBSSH2_SFTP *self, PyObject *args)
     Py_END_ALLOW_THREADS
 
     if (handle == NULL) {
-        char* errmsg;
-        int rc;
         rc = libssh2_session_last_error(self->session, &errmsg, NULL, 0);
         switch (rc) {
             case LIBSSH2_ERROR_ALLOC:
@@ -140,7 +150,7 @@ PYLIBSSH2_Sftp_open_file(PYLIBSSH2_SFTP *self, PyObject *args)
         }
     }
 
-    return (PyObject *) PYLIBSSH2_Sftpfile_New(self->session, self->sftp, handle, 1);
+    return (PyObject *) PYLIBSSH2_Sftpfile_New(self->session, self->sftp, handle);
 }
 /* }}} */
 
@@ -157,11 +167,17 @@ static PyObject*
 PYLIBSSH2_Sftp_shutdown(PYLIBSSH2_SFTP *self, PyObject *args)
 {
     int rc;
+    char* errmsg;
+
+    if(self->sftp == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Sftp object has been closed/shutdown.");
+        return NULL;
+    }
 
     rc = libssh2_sftp_shutdown(self->sftp);
+    self->sftp = NULL;
 
     if (rc < 0) {
-        char* errmsg;
         if (libssh2_session_last_error(self->session, &errmsg, NULL, 0) != rc) {
             errmsg = "";
         }
@@ -193,10 +209,15 @@ Returns:\n\
 static PyObject*
 PYLIBSSH2_Sftp_unlink(PYLIBSSH2_SFTP *self, PyObject *args)
 {
-
     int rc;
     char *path;
     int sftp_err;
+    char* errmsg;
+
+    if(self->sftp == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Sftp object has been closed/shutdown.");
+        return NULL;
+    }
 
     if (!PyArg_ParseTuple(args, "s:unlink", &path)) {
         return NULL;
@@ -205,8 +226,8 @@ PYLIBSSH2_Sftp_unlink(PYLIBSSH2_SFTP *self, PyObject *args)
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_sftp_unlink(self->sftp, path);
     Py_END_ALLOW_THREADS
+
     if (rc) {
-        char* errmsg;
         if (libssh2_session_last_error(self->session, &errmsg, NULL, 0) != rc) {
             errmsg = "";
         }
@@ -253,6 +274,12 @@ PYLIBSSH2_Sftp_rename(PYLIBSSH2_SFTP *self, PyObject *args)
 {
     int rc, sftp_err;
     char *src, *dst;
+    char* errmsg;
+
+    if(self->sftp == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Sftp object has been closed/shutdown.");
+        return NULL;
+    }
 
     if (!PyArg_ParseTuple(args, "ss:rename", &src, &dst)) {
         return NULL;
@@ -261,8 +288,8 @@ PYLIBSSH2_Sftp_rename(PYLIBSSH2_SFTP *self, PyObject *args)
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_sftp_rename(self->sftp, src, dst);
     Py_END_ALLOW_THREADS
+
     if (rc < 0) {
-        char* errmsg;
         if (libssh2_session_last_error(self->session, &errmsg, NULL, 0) != rc) {
             errmsg = "";
         }
@@ -310,6 +337,12 @@ PYLIBSSH2_Sftp_mkdir(PYLIBSSH2_SFTP *self, PyObject *args)
     int rc, sftp_err;
     char *path;
     long mode = 0755;
+    char* errmsg;
+
+    if(self->sftp == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Sftp object has been closed/shutdown.");
+        return NULL;
+    }
 
     if (!PyArg_ParseTuple(args, "s|i:mkdir", &path, &mode)) {
         return NULL;
@@ -318,8 +351,8 @@ PYLIBSSH2_Sftp_mkdir(PYLIBSSH2_SFTP *self, PyObject *args)
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_sftp_mkdir(self->sftp, path, mode);
     Py_END_ALLOW_THREADS
+
     if (rc) {
-        char* errmsg;
         if (libssh2_session_last_error(self->session, &errmsg, NULL, 0) != rc) {
             errmsg = "";
         }
@@ -366,6 +399,12 @@ PYLIBSSH2_Sftp_rmdir(PYLIBSSH2_SFTP *self, PyObject *args)
 {
     int rc, sftp_err;
     char *path;
+    char* errmsg;
+
+    if(self->sftp == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Sftp object has been closed/shutdown.");
+        return NULL;
+    }
 
     if (!PyArg_ParseTuple(args, "s:rmdir", &path)) {
         return NULL;
@@ -374,8 +413,8 @@ PYLIBSSH2_Sftp_rmdir(PYLIBSSH2_SFTP *self, PyObject *args)
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_sftp_rmdir(self->sftp, path);
     Py_END_ALLOW_THREADS
+
     if (rc < 0) {
-        char* errmsg;
         if (libssh2_session_last_error(self->session, &errmsg, NULL, 0) != rc) {
             errmsg = "";
         }
@@ -423,6 +462,12 @@ PYLIBSSH2_Sftp_realpath(PYLIBSSH2_SFTP *self, PyObject *args)
     int rc, target_len = 2096, sftp_err;
     char *path;
     char target[target_len];
+    char* errmsg;
+
+    if(self->sftp == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Sftp object has been closed/shutdown.");
+        return NULL;
+    }
 
     if (!PyArg_ParseTuple(args, "s:realpath", &path)) {
         return NULL;
@@ -433,7 +478,6 @@ PYLIBSSH2_Sftp_realpath(PYLIBSSH2_SFTP *self, PyObject *args)
     Py_END_ALLOW_THREADS
 
     if (rc < 0) {
-        char* errmsg;
         if (libssh2_session_last_error(self->session, &errmsg, NULL, 0) != rc) {
             errmsg = "";
         }
@@ -484,6 +528,12 @@ PYLIBSSH2_Sftp_readlink(PYLIBSSH2_SFTP *self, PyObject *args)
     int rc, target_len = 2096, sftp_err;
     char *path;
     char target[target_len];
+    char* errmsg;
+
+    if(self->sftp == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Sftp object has been closed/shutdown.");
+        return NULL;
+    }
 
     if (!PyArg_ParseTuple(args, "s:readlink", &path)) {
         return NULL;
@@ -494,7 +544,6 @@ PYLIBSSH2_Sftp_readlink(PYLIBSSH2_SFTP *self, PyObject *args)
     Py_END_ALLOW_THREADS
 
     if (rc < 0) {
-        char* errmsg;
         if (libssh2_session_last_error(self->session, &errmsg, NULL, 0) != rc) {
             errmsg = "";
         }
@@ -544,6 +593,12 @@ PYLIBSSH2_Sftp_symlink(PYLIBSSH2_SFTP *self, PyObject *args)
 {
     int rc, sftp_err;
     char *path, *target;
+    char* errmsg;
+
+    if(self->sftp == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Sftp object has been closed/shutdown.");
+        return NULL;
+    }
 
     if (!PyArg_ParseTuple(args, "ss:symlink", &path, &target)) {
         return NULL;
@@ -554,7 +609,6 @@ PYLIBSSH2_Sftp_symlink(PYLIBSSH2_SFTP *self, PyObject *args)
     Py_END_ALLOW_THREADS
 
     if (rc < 0) {
-        char* errmsg;
         if (libssh2_session_last_error(self->session, &errmsg, NULL, 0) != rc) {
             errmsg = "";
         }
@@ -608,6 +662,12 @@ PYLIBSSH2_Sftp_get_stat(PYLIBSSH2_SFTP *self, PyObject *args)
     int path_len = 0;
     int type = LIBSSH2_SFTP_STAT;
     LIBSSH2_SFTP_ATTRIBUTES attr;
+    char* errmsg;
+
+    if(self->sftp == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Sftp object has been closed/shutdown.");
+        return NULL;
+    }
 
     if (!PyArg_ParseTuple(args, "s#|i:get_stat", &path, &path_len, &type)) {
         return NULL;
@@ -618,7 +678,6 @@ PYLIBSSH2_Sftp_get_stat(PYLIBSSH2_SFTP *self, PyObject *args)
     Py_END_ALLOW_THREADS
 
     if (rc < 0) {
-        char* errmsg;
         if (libssh2_session_last_error(self->session, &errmsg, NULL, 0) != rc) {
             errmsg = "";
         }
@@ -665,6 +724,12 @@ PYLIBSSH2_Sftp_set_stat(PYLIBSSH2_SFTP *self, PyObject *args)
     char *path;
     LIBSSH2_SFTP_ATTRIBUTES attr;
     PyObject *attrs;
+    char* errmsg;
+
+    if(self->sftp == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Sftp object has been closed/shutdown.");
+        return NULL;
+    }
 
     if (!PyArg_ParseTuple(args, "sO:set_stat", &path, &attrs)) {
         return NULL;
@@ -703,7 +768,6 @@ PYLIBSSH2_Sftp_set_stat(PYLIBSSH2_SFTP *self, PyObject *args)
     Py_END_ALLOW_THREADS
 
     if (rc < 0) {
-        char* errmsg;
         if (libssh2_session_last_error(self->session, &errmsg, NULL, 0) != rc) {
             errmsg = "";
         }
@@ -745,14 +809,28 @@ PYLIBSSH2_Sftp_set_stat(PYLIBSSH2_SFTP *self, PyObject *args)
 #define ADD_METHOD(name) \
 { #name, (PyCFunction)PYLIBSSH2_Sftp_##name, METH_VARARGS, PYLIBSSH2_Sftp_##name##_doc }
 
-static PyMethodDef PYLIBSSH2_Sftp_methods[] = { ADD_METHOD(open_dir), ADD_METHOD(open_file), ADD_METHOD(shutdown), ADD_METHOD(unlink), ADD_METHOD(rename), ADD_METHOD(mkdir), ADD_METHOD(rmdir), ADD_METHOD(realpath), ADD_METHOD(readlink), ADD_METHOD(symlink), ADD_METHOD(get_stat), ADD_METHOD(set_stat), { NULL, NULL } };
+static PyMethodDef PYLIBSSH2_Sftp_methods[] = {
+    ADD_METHOD(open_dir),
+    ADD_METHOD(open_file),
+    ADD_METHOD(shutdown),
+    ADD_METHOD(unlink),
+    ADD_METHOD(rename),
+    ADD_METHOD(mkdir),
+    ADD_METHOD(rmdir),
+    ADD_METHOD(realpath),
+    ADD_METHOD(readlink),
+    ADD_METHOD(symlink),
+    ADD_METHOD(get_stat),
+    ADD_METHOD(set_stat),
+    { NULL, NULL }
+};
 #undef ADD_METHOD
 /* }}} */
 
 /* {{{ PYLIBSSH2_Sftp_New
  */
 PYLIBSSH2_SFTP *
-PYLIBSSH2_Sftp_New(LIBSSH2_SESSION *session, LIBSSH2_SFTP *sftp, int dealloc)
+PYLIBSSH2_Sftp_New(LIBSSH2_SESSION *session, LIBSSH2_SFTP *sftp)
 {
     PYLIBSSH2_SFTP *self;
 
@@ -763,7 +841,6 @@ PYLIBSSH2_Sftp_New(LIBSSH2_SESSION *session, LIBSSH2_SFTP *sftp, int dealloc)
 
     self->session = session;
     self->sftp = sftp;
-    self->dealloc = dealloc;
 
     return self;
 }
@@ -790,27 +867,27 @@ PYLIBSSH2_Sftp_getattr(PYLIBSSH2_SFTP *self, char *name)
  *
  * see /usr/include/python2.5/object.h line 261
  */
-PyTypeObject PYLIBSSH2_Sftp_Type = { PyObject_HEAD_INIT(NULL) 0, /* ob_size */
-"Sftp", /* tp_name */
-sizeof(PYLIBSSH2_SFTP), /* tp_basicsize */
-0, /* tp_itemsize */
-(destructor)PYLIBSSH2_Sftp_dealloc, /* tp_dealloc */
-0, /* tp_print */
-(getattrfunc)PYLIBSSH2_Sftp_getattr, /* tp_getattr */
-0, /* tp_setattr */
-0, /* tp_compare */
-0, /* tp_repr */
-0, /* tp_as_number */
-0, /* tp_as_sequence */
-0, /* tp_as_mapping */
-0, /* tp_hash  */
-0, /* tp_call */
-0, /* tp_str */
-0, /* tp_getattro */
-0, /* tp_setattro */
-0, /* tp_as_buffer */
-Py_TPFLAGS_DEFAULT, /* tp_flags */
-"Sftp objects", /* tp_doc */
+    PyTypeObject PYLIBSSH2_Sftp_Type = { PyObject_HEAD_INIT(NULL) 0, /* ob_size */
+    "Sftp", /* tp_name */
+    sizeof(PYLIBSSH2_SFTP), /* tp_basicsize */
+    0, /* tp_itemsize */
+    (destructor)PYLIBSSH2_Sftp_dealloc, /* tp_dealloc */
+    0, /* tp_print */
+    (getattrfunc)PYLIBSSH2_Sftp_getattr, /* tp_getattr */
+    0, /* tp_setattr */
+    0, /* tp_compare */
+    0, /* tp_repr */
+    0, /* tp_as_number */
+    0, /* tp_as_sequence */
+    0, /* tp_as_mapping */
+    0, /* tp_hash  */
+    0, /* tp_call */
+    0, /* tp_str */
+    0, /* tp_getattro */
+    0, /* tp_setattro */
+    0, /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT, /* tp_flags */
+    "Sftp objects", /* tp_doc */
 };
 /* }}} */
 

@@ -70,7 +70,7 @@ PYLIBSSH2_Listener_accept(PYLIBSSH2_LISTENER *self, PyObject *args)
         }
     }
 
-    return (PyObject *)PYLIBSSH2_Channel_New(self->session, channel, 1);
+    return (PyObject *)PYLIBSSH2_Channel_New(self->session, channel);
 }
 /* }}} */
 

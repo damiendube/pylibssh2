@@ -69,7 +69,7 @@ userauth_publickey_fromfile() -- authenticates a session with publickey\n\
 static PyObject *
 PYLIBSSH2_Session(PyObject *self, PyObject *args)
 {
-    return (PyObject *)PYLIBSSH2_Session_New(libssh2_session_init(), 1);
+    return (PyObject *)PYLIBSSH2_Session_New(libssh2_session_init());
 }
 /* }}} */
 

@@ -701,7 +701,7 @@ PYLIBSSH2_Session_open_session(PYLIBSSH2_SESSION *self, PyObject *args)
         PyErr_SetString(PYLIBSSH2_Error, "Failed to open a channel session");
         return NULL;
     }
-    return (PyObject *)PYLIBSSH2_Channel_New(self->session, channel, 1);
+    return (PyObject *)PYLIBSSH2_Channel_New(self->session, channel);
 }
 /* }}} */
 
@@ -738,7 +738,7 @@ PYLIBSSH2_Session_scp_recv(PYLIBSSH2_SESSION *self, PyObject *args)
         return NULL;
     }
 
-    return Py_BuildValue("OO", (PyObject *)PYLIBSSH2_Channel_New(self->session, channel, 1), stat_to_statdict(&fileinfo));
+    return Py_BuildValue("OO", (PyObject *)PYLIBSSH2_Channel_New(self->session, channel), stat_to_statdict(&fileinfo));
 }
 /* }}} */
 
@@ -805,7 +805,7 @@ PYLIBSSH2_Session_scp_send(PYLIBSSH2_SESSION *self, PyObject *args)
         }
     }
 
-    return (PyObject *)PYLIBSSH2_Channel_New(self->session, channel, 1);
+    return (PyObject *)PYLIBSSH2_Channel_New(self->session, channel);
 }
 /* }}} */
 
@@ -844,7 +844,7 @@ Opens an SFTP Channel.\n\
 static PyObject *
 PYLIBSSH2_Session_sftp_init(PYLIBSSH2_SESSION *self, PyObject *args)
 {
-    return (PyObject *)PYLIBSSH2_Sftp_New(self->session, libssh2_sftp_init(self->session), 1);
+    return (PyObject *)PYLIBSSH2_Sftp_New(self->session, libssh2_sftp_init(self->session));
 }
 /* }}} */
 
@@ -1043,12 +1043,10 @@ stub_x11_callback_func(LIBSSH2_SESSION *session,
     pysession = PyObject_New(PYLIBSSH2_SESSION, &PYLIBSSH2_Session_Type);
     pysession->session = session;
     pysession->opened = 1;
-    pysession->dealloc = 0;
     Py_XINCREF(pysession);
 
     pychannel = PyObject_New(PYLIBSSH2_CHANNEL, &PYLIBSSH2_Channel_Type);
     pychannel->channel = channel;
-    pychannel->dealloc = 0;
     Py_XINCREF(pychannel);
 
     pyabstract = Py_None;
@@ -1270,7 +1268,7 @@ static PyMethodDef PYLIBSSH2_Session_methods[] =
 /* {{{ PYLIBSSH2_Session_New
  */
 PYLIBSSH2_SESSION *
-PYLIBSSH2_Session_New(LIBSSH2_SESSION *session, int dealloc)
+PYLIBSSH2_Session_New(LIBSSH2_SESSION *session)
 {
     PYLIBSSH2_SESSION *self;
 
@@ -1281,7 +1279,6 @@ PYLIBSSH2_Session_New(LIBSSH2_SESSION *session, int dealloc)
     }
 
     self->session = session;
-    self->dealloc = dealloc;
     self->opened = 0;
     self->socket = NULL;
 
@@ -1300,8 +1297,10 @@ PYLIBSSH2_Session_dealloc(PYLIBSSH2_SESSION *self)
         libssh2_session_disconnect(self->session, "end");
     }
 
-    if (self->dealloc) {
+    if(self->session)
+    {
         libssh2_session_free(self->session);
+        self->session = NULL;
     }
 
     Py_XDECREF(self->socket);

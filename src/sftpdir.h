@@ -35,9 +35,6 @@ typedef struct {
     LIBSSH2_SESSION      *session;
     LIBSSH2_SFTP         *sftp;
     LIBSSH2_SFTP_HANDLE  *handle;
-    int                   dealloc;
 } PYLIBSSH2_SFTPDIR;
-
-PYLIBSSH2_SFTPDIR * PYLIBSSH2_Sftpdir_New(LIBSSH2_SESSION *, LIBSSH2_SFTP *, LIBSSH2_SFTP_HANDLE *, int);
 
 #endif /* _PYLIBSSH2_SFTPDIR_H_ */

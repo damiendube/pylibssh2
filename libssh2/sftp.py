@@ -18,8 +18,9 @@
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-from sftpfile import SftpFile
 from sftpdir import SftpDir
+from sftpfile import SftpFile
+import errno
 
 """
 Abstraction for libssh2 L{Sftp} object
@@ -56,13 +57,13 @@ class Sftp(object):
 
     def exists(self, path):
         try:
-            real_path = self.realpath(path)
-            if real_path and len(real_path):
-                return True
-            else:
+            self.get_stat(path)
+            return True
+        except IOError, detail:
+            if detail.errno == errno.ENOENT:
                 return False
-        except IOError:
-            return False
+            else:
+                raise
 
     def shutdown(self):
         """

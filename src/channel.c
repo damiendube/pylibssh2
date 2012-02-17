@@ -1018,7 +1018,7 @@ static PyMethodDef PYLIBSSH2_Channel_methods[] =
 /* {{{ PYLIBSSH2_Channel_New
  */
 PYLIBSSH2_CHANNEL *
-PYLIBSSH2_Channel_New(LIBSSH2_SESSION *session, LIBSSH2_CHANNEL *channel, int dealloc)
+PYLIBSSH2_Channel_New(LIBSSH2_SESSION *session, LIBSSH2_CHANNEL *channel)
 {
     PYLIBSSH2_CHANNEL *self;
 
@@ -1029,7 +1029,6 @@ PYLIBSSH2_Channel_New(LIBSSH2_SESSION *session, LIBSSH2_CHANNEL *channel, int de
 
     self->session = session;
     self->channel = channel;
-    self->dealloc = dealloc;
     self->opened = 1;
 
     return self;
@@ -1041,12 +1040,13 @@ PYLIBSSH2_Channel_New(LIBSSH2_SESSION *session, LIBSSH2_CHANNEL *channel, int de
 static void
 PYLIBSSH2_Channel_dealloc(PYLIBSSH2_CHANNEL *self)
 {
-    if (self->opened) {
-    	PYLIBSSH2_Channel_close(self, NULL);
-    }
+    if(self->channel) {
+        if (self->opened) {
+            PYLIBSSH2_Channel_close(self, NULL);
+        }
 
-    if (self->dealloc) {
-    	libssh2_channel_free(self->channel);
+        libssh2_channel_free(self->channel);
+        self->channel = NULL;
     }
 
     PyObject_Del(self);

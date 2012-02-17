@@ -403,6 +403,37 @@ class SFTPTest(unittest.TestCase):
         sftp.shutdown()
         #
 
+    def test_file_read_open_dir(self):
+        sftp = self.session.sftp_init()
+        self.assertTrue(sftp != None, "got an sftp object")
+        DIR = "/tmp/test_sftp_test_file_read_open_dir"
+        FILE1 = "/tmp/test_sftp_test_file_read_open_dir/file1"
+        FILE2 = "/tmp/test_sftp_test_file_read_open_dir/file2"
+        CONTENT = "0123456789"
+        #
+        shutil.rmtree(DIR, ignore_errors=True)
+        #
+        sftp.mkdir(DIR)
+        f = sftp.open_file(FILE1, "w")
+        f.write(CONTENT)
+        f.close()
+        f = sftp.open_file(FILE2, "w")
+        f.write(CONTENT)
+        f.close()
+        sftp_file = sftp.open_file(FILE1, "r")
+        sftp_file.read(-1)
+        sftp_file.close()
+        sftp_file = sftp.open_file(FILE2, "r")
+        sftp_file.read(-1)
+        sftp_file.close()
+        sftp_dir = sftp.open_dir(DIR)
+        sftp_dir.list_files()
+        sftp_dir.close()
+        #
+        shutil.rmtree(DIR, ignore_errors=True)
+        sftp.shutdown()
+        #
+
     def tearDown(self):
         self.session.close()
         self.sock.close()
