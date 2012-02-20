@@ -78,12 +78,18 @@ class Libssh2TestCommand(Command):
         from test_scp import SCPTest
         from test_sftp import SFTPTest
         from test_ssh import SSHTest
+        from test_session_dealloc import DeallocSessionTest
+        from test_sftp_dealloc import DeallocSftpTest
+        from test_sftp_sub_dealloc import DeallocSftpSubTest
 
         suite = unittest.TestSuite()
         suite.addTest(unittest.makeSuite(SessionTest))
         suite.addTest(unittest.makeSuite(SCPTest))
         suite.addTest(unittest.makeSuite(SFTPTest))
         suite.addTest(unittest.makeSuite(SSHTest))
+        suite.addTest(unittest.makeSuite(DeallocSessionTest))
+        suite.addTest(unittest.makeSuite(DeallocSftpTest))
+        suite.addTest(unittest.makeSuite(DeallocSftpSubTest))
 
         runner = unittest.TextTestRunner(verbosity=2)
         runner.run(suite)
