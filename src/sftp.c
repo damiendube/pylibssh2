@@ -22,6 +22,9 @@
 #define PYLIBSSH2_MODULE
 #include "pylibssh2.h"
 
+void libssh2_sftp_errno_to_exception(int err);
+const char* libssh2_sftp_errno_to_str(int err);
+
 /* {{{ PYLIBSSH2_Sftp_open_dir
  */
 static char PYLIBSSH2_Sftp_open_dir_doc[] = "\n\
@@ -850,7 +853,13 @@ PYLIBSSH2_Sftp_New(LIBSSH2_SESSION *session, LIBSSH2_SFTP *sftp)
  */
 static void PYLIBSSH2_Sftp_dealloc(PYLIBSSH2_SFTP *self)
 {
-    PyObject_Del(self);
+    if (self) {
+        if(self->sftp) {
+            libssh2_sftp_shutdown(self->sftp);
+            self->sftp = NULL;
+            PyObject_Del(self);
+        }
+    }
 }
 /* }}} */
 

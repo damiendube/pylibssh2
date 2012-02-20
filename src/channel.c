@@ -41,6 +41,7 @@ PYLIBSSH2_Channel_close(PYLIBSSH2_CHANNEL *self, PyObject *args)
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_channel_close(self->channel);
     Py_END_ALLOW_THREADS
+    self->opened = 0;
 
     if (rc) {
         char *errmsg;
@@ -58,8 +59,6 @@ PYLIBSSH2_Channel_close(PYLIBSSH2_CHANNEL *self, PyObject *args)
                 return NULL;
         }
     }
-
-    self->opened = 0;
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -453,6 +452,9 @@ PYLIBSSH2_Channel_read(PYLIBSSH2_CHANNEL *self, PyObject *args)
                     return NULL;
             }
         }
+    }
+    else {
+        return PyString_FromString("");
     }
 }
 /* }}} */
@@ -1040,16 +1042,18 @@ PYLIBSSH2_Channel_New(LIBSSH2_SESSION *session, LIBSSH2_CHANNEL *channel)
 static void
 PYLIBSSH2_Channel_dealloc(PYLIBSSH2_CHANNEL *self)
 {
-    if(self->channel) {
-        if (self->opened) {
-            PYLIBSSH2_Channel_close(self, NULL);
+    if (self) {
+        if(self->channel) {
+            if (self->opened) {
+                PYLIBSSH2_Channel_close(self, NULL);
+                self->opened = 0;
+            }
+
+            libssh2_channel_free(self->channel);
+            self->channel = NULL;
         }
-
-        libssh2_channel_free(self->channel);
-        self->channel = NULL;
+        PyObject_Del(self);
     }
-
-    PyObject_Del(self);
 }
 /* }}} */
 

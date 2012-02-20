@@ -25,7 +25,6 @@
 #include <libssh2.h>
 
 extern int init_libssh2_Sftp(PyObject *);
-const char* libssh2_sftp_errno_to_str(int);
 
 extern PyTypeObject PYLIBSSH2_Sftp_Type;
 

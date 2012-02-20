@@ -1293,20 +1293,19 @@ PYLIBSSH2_Session_New(LIBSSH2_SESSION *session)
 static void
 PYLIBSSH2_Session_dealloc(PYLIBSSH2_SESSION *self)
 {
-    if (self->opened) {
-        libssh2_session_disconnect(self->session, "end");
-    }
-
-    if(self->session)
-    {
-        libssh2_session_free(self->session);
-        self->session = NULL;
-    }
-
-    Py_XDECREF(self->socket);
-    self->socket = NULL;
-
     if (self) {
+        if (self->opened) {
+            libssh2_session_disconnect(self->session, "end");
+        }
+
+        if(self->session)
+        {
+            libssh2_session_free(self->session);
+            self->session = NULL;
+
+            Py_XDECREF(self->socket);
+            self->socket = NULL;
+        }
         PyObject_Del(self);
     }
 }

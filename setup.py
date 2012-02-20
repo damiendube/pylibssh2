@@ -85,7 +85,7 @@ class Libssh2TestCommand(Command):
         suite.addTest(unittest.makeSuite(SFTPTest))
         suite.addTest(unittest.makeSuite(SSHTest))
 
-        runner = unittest.TextTestRunner()
+        runner = unittest.TextTestRunner(verbosity=2)
         runner.run(suite)
 
 

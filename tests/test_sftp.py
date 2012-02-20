@@ -187,90 +187,93 @@ class SFTPTest(unittest.TestCase):
         #
         FILE = "/tmp/../tmp/test_sftp_test_file_read"
         CONTENT = "0123456789"
+
         f = open(FILE, "w")
         f.write(CONTENT)
         f.close()
         #
-        sftp_file = sftp.open_file(FILE, "r")
-        # Seek and tell test
-        sftp_file.seek(0)
-        self.assertEqual(sftp_file.tell(), 0)
-        sftp_file.seek(2)
-        self.assertEqual(sftp_file.tell(), 2)
-        sftp_file.seek(12)
-        self.assertEqual(sftp_file.tell(), len(CONTENT) + 2)
-        #
-        #
-        # Read and tell
-        at = 0
-        sftp_file.seek(at)
-        #self.assertEqual(sftp_file.tell(), at)
-        out_file = sftp_file.read(1)
-        self.assertEqual(out_file, CONTENT[at:at + len(out_file)])
-        at += len(out_file)
-        #self.assertEqual(sftp_file.tell(), at)
-        out_file = sftp_file.read(2)
-        self.assertEqual(out_file, CONTENT[at:at + len(out_file)])
-        at += len(out_file)
-        #self.assertEqual(sftp_file.tell(), at)
-        out_file = sftp_file.read(3)
-        self.assertEqual(out_file, CONTENT[at:at + len(out_file)])
-        at += len(out_file)
-        #self.assertEqual(sftp_file.tell(), at)
-        out_file = sftp_file.read()
-        self.assertEqual(out_file, CONTENT[at:at + len(out_file)])
-        at += len(out_file)
-        #self.assertEqual(sftp_file.tell(), at)
+        def seek():
+            sftp_file = sftp.open_file(FILE, "r")
+            # Seek and tell test
+            sftp_file.seek(0)
+            self.assertEqual(sftp_file.tell(), 0)
+            sftp_file.seek(2)
+            self.assertEqual(sftp_file.tell(), 2)
+            sftp_file.seek(12)
+            self.assertEqual(sftp_file.tell(), len(CONTENT) + 2)
+            #
+            #
+            # Read and tell
+            at = 0
+            sftp_file.seek(at)
+            #self.assertEqual(sftp_file.tell(), at)
+            out_file = sftp_file.read(1)
+            self.assertEqual(out_file, CONTENT[at:at + len(out_file)])
+            at += len(out_file)
+            #self.assertEqual(sftp_file.tell(), at)
+            out_file = sftp_file.read(2)
+            self.assertEqual(out_file, CONTENT[at:at + len(out_file)])
+            at += len(out_file)
+            #self.assertEqual(sftp_file.tell(), at)
+            out_file = sftp_file.read(3)
+            self.assertEqual(out_file, CONTENT[at:at + len(out_file)])
+            at += len(out_file)
+            #self.assertEqual(sftp_file.tell(), at)
+            out_file = sftp_file.read()
+            self.assertEqual(out_file, CONTENT[at:at + len(out_file)])
+            at += len(out_file)
+            #self.assertEqual(sftp_file.tell(), at)
 
-        #
-        #
-        # Read and tell
-        at = 0
-        sftp_file.seek(at)
-        #self.assertEqual(sftp_file.tell(), at)
-        out_file = sftp_file.read(1)
-        self.assertEqual(out_file, CONTENT[at:at + len(out_file)])
-        at += len(out_file)
-        #self.assertEqual(sftp_file.tell(), at)
-        out_file = sftp_file.read(2)
-        self.assertEqual(out_file, CONTENT[at:at + len(out_file)])
-        at += len(out_file)
-        #self.assertEqual(sftp_file.tell(), at)
-        out_file = sftp_file.read(3)
-        self.assertEqual(out_file, CONTENT[at:at + len(out_file)])
-        at += len(out_file)
-        #self.assertEqual(sftp_file.tell(), at)
-        out_file = sftp_file.read()
-        self.assertEqual(out_file, CONTENT[at:at + len(out_file)])
-        at += len(out_file)
-        #
-        #
-        # Read and tell
-        at = 0
-        sftp_file.seek(at)
-        #self.assertEqual(sftp_file.tell(), at)
-        out_file = sftp_file.read(1)
-        self.assertEqual(out_file, CONTENT[at:at + len(out_file)])
-        at += len(out_file)
-        #
-        #
-        # Read and tell
-        at = 4
-        sftp_file.seek(at)
-        #self.assertEqual(sftp_file.tell(), at)
-        out_file = sftp_file.read(2)
-        self.assertEqual(out_file, CONTENT[at:at + len(out_file)])
-        at += len(out_file)
-        #
-        #
-        # Read and tell
-        at = 5
-        sftp_file.seek(at)
-        #self.assertEqual(sftp_file.tell(), at)
-        out_file = sftp_file.read(3)
-        self.assertEqual(out_file, CONTENT[at:at + len(out_file)])
-        at += len(out_file)
-
+            #
+            #
+            # Read and tell
+            at = 0
+            sftp_file.seek(at)
+            #self.assertEqual(sftp_file.tell(), at)
+            out_file = sftp_file.read(1)
+            self.assertEqual(out_file, CONTENT[at:at + len(out_file)])
+            at += len(out_file)
+            #self.assertEqual(sftp_file.tell(), at)
+            out_file = sftp_file.read(2)
+            self.assertEqual(out_file, CONTENT[at:at + len(out_file)])
+            at += len(out_file)
+            #self.assertEqual(sftp_file.tell(), at)
+            out_file = sftp_file.read(3)
+            self.assertEqual(out_file, CONTENT[at:at + len(out_file)])
+            at += len(out_file)
+            #self.assertEqual(sftp_file.tell(), at)
+            out_file = sftp_file.read()
+            self.assertEqual(out_file, CONTENT[at:at + len(out_file)])
+            at += len(out_file)
+            #
+            #
+            # Read and tell
+            at = 0
+            sftp_file.seek(at)
+            #self.assertEqual(sftp_file.tell(), at)
+            out_file = sftp_file.read(1)
+            self.assertEqual(out_file, CONTENT[at:at + len(out_file)])
+            at += len(out_file)
+            #
+            #
+            # Read and tell
+            at = 4
+            sftp_file.seek(at)
+            #self.assertEqual(sftp_file.tell(), at)
+            out_file = sftp_file.read(2)
+            self.assertEqual(out_file, CONTENT[at:at + len(out_file)])
+            at += len(out_file)
+            #
+            #
+            # Read and tell
+            at = 5
+            sftp_file.seek(at)
+            #self.assertEqual(sftp_file.tell(), at)
+            out_file = sftp_file.read(3)
+            self.assertEqual(out_file, CONTENT[at:at + len(out_file)])
+            at += len(out_file)
+            #sftp_file.close()
+        seek()
         #
         os.remove(FILE)
         sftp.shutdown()
@@ -387,6 +390,7 @@ class SFTPTest(unittest.TestCase):
         sftp.open_file(FILE2, "w").close()
         sftp_dir = sftp.open_dir(DIR)
         files = sftp_dir.list_files()
+        sftp_dir.close()
         #
         fileNames = [key for key in files.keys() if not stat.S_ISDIR(files[key]["st_mode"])]
         dirNames = [key for key in files.keys() if stat.S_ISDIR(files[key]["st_mode"])]

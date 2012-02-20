@@ -41,6 +41,7 @@ PYLIBSSH2_Sftpfile_close(PYLIBSSH2_SFTPFILE *self, PyObject *args)
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_sftp_close_handle(self->handle);
     Py_END_ALLOW_THREADS
+    self->handle = NULL;
 
     if (rc) {
         /* CLEAN: PYLIBSSH2_SFTPFILE_CANT_CLOSE_MSG */
@@ -69,6 +70,11 @@ PYLIBSSH2_Sftpfile_read(PYLIBSSH2_SFTPFILE *self, PyObject *args)
     int rc;
     int buffer_maxlen = 1024;
     PyObject *buffer;
+
+    if(self->handle == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Sftpfile object has been closed/shutdown.");
+        return NULL;
+    }
 
     if (!PyArg_ParseTuple(args, "|i:read", &buffer_maxlen)) {
         return NULL;
@@ -114,6 +120,11 @@ PYLIBSSH2_Sftpfile_write(PYLIBSSH2_SFTPFILE *self, PyObject *args)
     int rc, buffer_len;
     char *buffer;
 
+    if(self->handle == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Sftpfile object has been closed/shutdown.");
+        return NULL;
+    }
+
     if (!PyArg_ParseTuple(args, "s#:write", &buffer, &buffer_len)) {
         return NULL;
     }
@@ -145,6 +156,10 @@ Returns:\n\
 static PyObject *
 PYLIBSSH2_Sftpfile_tell(PYLIBSSH2_SFTPFILE *self, PyObject *args)
 {
+    if(self->handle == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Sftpfile object has been closed/shutdown.");
+        return NULL;
+    }
     return PyInt_FromLong(libssh2_sftp_tell64(self->handle));
 }
 /* }}} */
@@ -162,6 +177,11 @@ static PyObject*
 PYLIBSSH2_Sftpfile_seek(PYLIBSSH2_SFTPFILE *self, PyObject *args)
 {
     unsigned long offset=0;
+
+    if(self->handle == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Sftpfile object has been closed/shutdown.");
+        return NULL;
+    }
 
     if (!PyArg_ParseTuple(args, "k:seek", &offset)) {
         return NULL;
@@ -215,7 +235,13 @@ PYLIBSSH2_Sftpfile_New(LIBSSH2_SESSION * session, LIBSSH2_SFTP * sftp, LIBSSH2_S
 static void
 PYLIBSSH2_Sftpfile_dealloc(PYLIBSSH2_SFTPFILE *self)
 {
-    PyObject_Del(self);
+    if (self) {
+        if(self->handle) {
+            libssh2_sftp_close_handle(self->handle);
+            self->handle = NULL;
+            PyObject_Del(self);
+        }
+    }
 }
 
 static PyObject *

@@ -42,6 +42,7 @@ PYLIBSSH2_Sftpdir_close(PYLIBSSH2_SFTPDIR *self, PyObject *args)
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_sftp_close_handle(self->handle);
     Py_END_ALLOW_THREADS
+    self->handle = NULL;
 
     if (rc) {
         /* CLEAN: PYLIBSSH2_SFTPFILE_CANT_CLOSE_MSG */
@@ -70,6 +71,11 @@ PYLIBSSH2_Sftpdir_read(PYLIBSSH2_SFTPDIR *self, PyObject *args)
     int buffer_maxlen = 0;
     int longentry_maxlen = 255;
     PyObject *buffer;
+
+    if(self->handle == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Sftpdir object has been closed/shutdown.");
+        return NULL;
+    }
 
     buffer = PyString_FromStringAndSize(NULL, longentry_maxlen);
     if (buffer == NULL) {
@@ -119,6 +125,11 @@ PYLIBSSH2_Sftpdir_list_files(PYLIBSSH2_SFTPDIR *self, PyObject *args)
     int longentry_maxlen = 255;
     PyObject *buffer;
     PyObject *dict = NULL;
+
+    if(self->handle == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Sftpdir object has been closed/shutdown.");
+        return NULL;
+    }
 
     dict = PyDict_New();
     while (1) {
@@ -191,7 +202,13 @@ PYLIBSSH2_Sftpdir_New(LIBSSH2_SESSION* session, LIBSSH2_SFTP* sftp, LIBSSH2_SFTP
 static void
 PYLIBSSH2_Sftpdir_dealloc(PYLIBSSH2_SFTPDIR *self)
 {
-    PyObject_Del(self);
+    if (self) {
+        if(self->handle) {
+            libssh2_sftp_close_handle(self->handle);
+            self->handle = NULL;
+            PyObject_Del(self);
+        }
+    }
 }
 
 static PyObject *
