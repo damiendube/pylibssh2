@@ -272,7 +272,7 @@ class SFTPTest(unittest.TestCase):
             out_file = sftp_file.read(3)
             self.assertEqual(out_file, CONTENT[at:at + len(out_file)])
             at += len(out_file)
-            #sftp_file.close()
+            #sftp.close_file(sftp_file)
         seek()
         #
         os.remove(FILE)
@@ -352,7 +352,7 @@ class SFTPTest(unittest.TestCase):
         sftp_file = sftp.open_file(FILE, "r")
         out_content = sftp_file.read(-1)
         self.assertEqual(CONTENT, out_content)
-        sftp_file.close()
+        sftp.close_file(sftp_file)
         #
         os.remove(FILE)
         sftp.shutdown()
@@ -366,7 +366,7 @@ class SFTPTest(unittest.TestCase):
         #
         sftp_file = sftp.open_file(FILE, "w", 0644)
         sftp_file.write(CONTENT)
-        sftp_file.close()
+        sftp.close_file(sftp_file)
         f = open(FILE)
         self.assertEqual(f.read(), CONTENT)
         f.close()
@@ -386,11 +386,11 @@ class SFTPTest(unittest.TestCase):
         #
         sftp.mkdir(DIR)
         sftp.mkdir(SUB_DIR)
-        sftp.open_file(FILE1, "w").close()
-        sftp.open_file(FILE2, "w").close()
+        sftp.close_file(sftp.open_file(FILE1, "w"))
+        sftp.close_file(sftp.open_file(FILE2, "w"))
         sftp_dir = sftp.open_dir(DIR)
         files = sftp_dir.list_files()
-        sftp_dir.close()
+        sftp.close_dir(sftp_dir)
         #
         fileNames = [key for key in files.keys() if not stat.S_ISDIR(files[key]["st_mode"])]
         dirNames = [key for key in files.keys() if stat.S_ISDIR(files[key]["st_mode"])]
@@ -420,19 +420,19 @@ class SFTPTest(unittest.TestCase):
         sftp.mkdir(DIR)
         f = sftp.open_file(FILE1, "w")
         f.write(CONTENT)
-        f.close()
+        sftp.close_file(f)
         f = sftp.open_file(FILE2, "w")
         f.write(CONTENT)
-        f.close()
+        sftp.close_file(f)
         sftp_file = sftp.open_file(FILE1, "r")
         sftp_file.read(-1)
-        sftp_file.close()
+        sftp.close_file(sftp_file)
         sftp_file = sftp.open_file(FILE2, "r")
         sftp_file.read(-1)
-        sftp_file.close()
+        sftp.close_file(sftp_file)
         sftp_dir = sftp.open_dir(DIR)
         sftp_dir.list_files()
-        sftp_dir.close()
+        sftp.close_dir(sftp_dir)
         #
         shutil.rmtree(DIR, ignore_errors=True)
         sftp.shutdown()

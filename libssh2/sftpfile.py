@@ -37,11 +37,6 @@ class SftpFile(object):
         """
         self._handle = _handle
 
-    def close(self):
-        """
-        """
-        self._handle.close()
-
     def read(self, maxlen=4096):
         """
         """

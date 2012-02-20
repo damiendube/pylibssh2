@@ -33,12 +33,33 @@ class DeallocSftpTest(unittest.TestCase):
             del sftp
         func()
 
-    def test(self):
+    def test_delete_sftp_w_file(self):
         sftp = self.session.sftp_init()
-        def func():
+        def func(sftp):
             sftp_file = sftp.open_file("/dev/zero", "r")
+            self.assertTrue(sftp_file)
+            del sftp
+        func(sftp)
+
+    def test_delete_sftp_w_dir(self):
+        sftp = self.session.sftp_init()
+        def func(sftp):
+            sftp_dir = sftp.open_dir("/tmp")
+            self.assertTrue(sftp_dir)
+            del sftp
+        func(sftp)
+
+    def test_delete_sftp_w_file_dir(self):
+        sftp = self.session.sftp_init()
+        def func(sftp):
+            sftp_file = sftp.open_file("/dev/zero", "r")
+            self.assertTrue(sftp_file)
+            sftp_dir = sftp.open_dir("/tmp")
+            self.assertTrue(sftp_dir)
+            del sftp
             del sftp_file
-        func()
+            del sftp_dir
+        func(sftp)
 
 if __name__ == '__main__':
     unittest.main()

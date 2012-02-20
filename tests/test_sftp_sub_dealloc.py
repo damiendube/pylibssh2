@@ -33,7 +33,7 @@ class DeallocSftpSubTest(unittest.TestCase):
     def test_create_close_sftp_file(self):
         def func():
             sftp_file = self.sftp.open_file("/dev/zero", "r")
-            sftp_file.close()
+            self.sftp.close_file(sftp_file)
             del sftp_file
         func()
 
@@ -46,7 +46,7 @@ class DeallocSftpSubTest(unittest.TestCase):
     def test_create_close_sftp_dir(self):
         def func():
             sftp_dir = self.sftp.open_dir("/tmp")
-            sftp_dir.close()
+            self.sftp.close_dir(sftp_dir)
             del sftp_dir
         func()
 

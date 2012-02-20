@@ -47,6 +47,13 @@ class Sftp(object):
         """
         return SftpDir(self._sftp.open_dir(path))
 
+    def close_dir(self, sftp_dir):
+        """
+        """
+        if not isinstance(sftp_dir, SftpDir):
+            raise Exception("Bad instance type")
+        self._sftp.close_dir(sftp_dir._handle)
+
     def open_file(self, path, flags, mode=None):
         """
         """
@@ -54,6 +61,13 @@ class Sftp(object):
             return SftpFile(self._sftp.open_file(path, flags, mode))
         else:
             return SftpFile(self._sftp.open_file(path, flags))
+
+    def close_file(self, sftp_file):
+        """
+        """
+        if not isinstance(sftp_file, SftpFile):
+            raise Exception("Bad instance type")
+        self._sftp.close_file(sftp_file._handle)
 
     def exists(self, path):
         try:
@@ -96,8 +110,8 @@ class Sftp(object):
         src_file = self.open_file(src, "r")
         dst_file = self.open_file(dst, "w")
         dst_file.write(src_file.read(-1))
-        src_file.close()
-        dst_file.close()
+        self.close_file(src_file)
+        self.close_file(dst_file)
 
     def mkdir(self, path, mode=0755):
         """

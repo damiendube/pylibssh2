@@ -25,32 +25,14 @@
 
 /* {{{ PYLIBSSH2_Sftpfile_close
  */
-static char PYLIBSSH2_Sftpfile_close_doc[] = "\n\
-myfunction(name, value) -> returnType \n\
-\n\
-Arguments:\n\
-\n\
-Returns:\n\
-";
 
-static PyObject*
-PYLIBSSH2_Sftpfile_close(PYLIBSSH2_SFTPFILE *self, PyObject *args)
+void
+PYLIBSSH2_Sftpfile_close(PYLIBSSH2_SFTPFILE *self)
 {
-    int rc;
-
     Py_BEGIN_ALLOW_THREADS
-    rc = libssh2_sftp_close_handle(self->handle);
+    libssh2_sftp_close_handle(self->handle);
     Py_END_ALLOW_THREADS
     self->handle = NULL;
-
-    if (rc) {
-        /* CLEAN: PYLIBSSH2_SFTPFILE_CANT_CLOSE_MSG */
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to close sftp handle.");
-        return NULL;
-    }
-
-    Py_INCREF(Py_None);
-    return Py_None;
 }
 /* }}} */
 
@@ -206,7 +188,6 @@ PYLIBSSH2_Sftpfile_seek(PYLIBSSH2_SFTPFILE *self, PyObject *args)
 
 static PyMethodDef PYLIBSSH2_Sftpfile_methods[] =
 {
-    ADD_METHOD(close),
     ADD_METHOD(read),
     ADD_METHOD(write),
     ADD_METHOD(tell),

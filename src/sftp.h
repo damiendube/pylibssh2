@@ -23,6 +23,8 @@
 
 #include <Python.h>
 #include <libssh2.h>
+#include "sftpfile.h"
+#include "sftpdir.h"
 
 extern int init_libssh2_Sftp(PyObject *);
 
@@ -32,8 +34,10 @@ extern PyTypeObject PYLIBSSH2_Sftp_Type;
 
 typedef struct {
     PyObject_HEAD
-    LIBSSH2_SESSION *session;
-    LIBSSH2_SFTP    *sftp;
+    LIBSSH2_SESSION  *session;
+    LIBSSH2_SFTP     *sftp;
+    PyObject         *directories;
+    PyObject         *files;
 } PYLIBSSH2_SFTP;
 
 #endif /* _PYLIBSSH2_SFTP_H_ */

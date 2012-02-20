@@ -37,4 +37,6 @@ typedef struct {
     LIBSSH2_SFTP_HANDLE  *handle;
 } PYLIBSSH2_SFTPFILE;
 
+extern void PYLIBSSH2_Sftpfile_close(PYLIBSSH2_SFTPFILE *self);
+
 #endif /* _PYLIBSSH2_SFTPFILE_H_ */

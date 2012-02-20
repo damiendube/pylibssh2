@@ -85,8 +85,9 @@ PYLIBSSH2_Sftp_open_dir(PYLIBSSH2_SFTP *self, PyObject *args)
                 return NULL;
         }
     }
-
-    return (PyObject *) PYLIBSSH2_Sftpdir_New(self->session, self->sftp, handle);
+    PyObject *channel = (PyObject *) PYLIBSSH2_Sftpdir_New(self->session, self->sftp, handle);
+    PyList_Append(self->directories, channel);
+    return channel;
 }
 /* }}} */
 
@@ -153,7 +154,9 @@ PYLIBSSH2_Sftp_open_file(PYLIBSSH2_SFTP *self, PyObject *args)
         }
     }
 
-    return (PyObject *) PYLIBSSH2_Sftpfile_New(self->session, self->sftp, handle);
+    PyObject *channel = (PyObject *)PYLIBSSH2_Sftpfile_New(self->session, self->sftp, handle);
+    PyList_Append(self->files, channel);
+    return channel;
 }
 /* }}} */
 
@@ -803,6 +806,77 @@ PYLIBSSH2_Sftp_set_stat(PYLIBSSH2_SFTP *self, PyObject *args)
 }
 /* }}} */
 
+/* {{{ PYLIBSSH2_Sftp_set_stat
+ */
+static char PYLIBSSH2_Sftp_close_dir_doc[] = "\n\
+\n\
+Arguments:\n\
+\n\
+Returns:\n\
+";
+static PyObject*
+PYLIBSSH2_Sftp_close_dir(PYLIBSSH2_SFTP *self, PyObject *args)
+{
+    PYLIBSSH2_SFTPDIR *dir;
+    int index;
+
+    if(self->sftp == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Sftp object has been closed/shutdown.");
+        return NULL;
+    }
+
+    if (!PyArg_ParseTuple(args, "O:close_dir", &dir)) {
+        return NULL;
+    }
+
+    PYLIBSSH2_Sftpdir_close(dir);
+
+    index = PySequence_Index(self->directories, (PyObject*)dir);
+    if(index > -1) {
+        PySequence_DelItem(self->directories, index);
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+/* }}} */
+
+
+/* {{{ PYLIBSSH2_Sftp_set_stat
+ */
+static char PYLIBSSH2_Sftp_close_file_doc[] = "\n\
+\n\
+Arguments:\n\
+\n\
+Returns:\n\
+";
+static PyObject*
+PYLIBSSH2_Sftp_close_file(PYLIBSSH2_SFTP *self, PyObject *args)
+{
+    PYLIBSSH2_SFTPFILE *file;
+    int index;
+
+    if(self->sftp == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Sftp object has been closed/shutdown.");
+        return NULL;
+    }
+
+    if (!PyArg_ParseTuple(args, "O:close_file", &file)) {
+        return NULL;
+    }
+
+    PYLIBSSH2_Sftpfile_close(file);
+
+    index = PySequence_Index(self->files, (PyObject*)file);
+    if(index > -1) {
+        PySequence_DelItem(self->files, index);
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+/* }}} */
+
 /* {{{ PYLIBSSH2_Sftp_methods[]
  *
  * ADD_METHOD(name) expands to a correct PyMethodDef declaration
@@ -815,6 +889,8 @@ PYLIBSSH2_Sftp_set_stat(PYLIBSSH2_SFTP *self, PyObject *args)
 static PyMethodDef PYLIBSSH2_Sftp_methods[] = {
     ADD_METHOD(open_dir),
     ADD_METHOD(open_file),
+    ADD_METHOD(close_dir),
+    ADD_METHOD(close_file),
     ADD_METHOD(shutdown),
     ADD_METHOD(unlink),
     ADD_METHOD(rename),
@@ -844,7 +920,8 @@ PYLIBSSH2_Sftp_New(LIBSSH2_SESSION *session, LIBSSH2_SFTP *sftp)
 
     self->session = session;
     self->sftp = sftp;
-
+    self->directories = PyList_New(0);
+    self->files = PyList_New(0);
     return self;
 }
 /* }}} */
