@@ -25,43 +25,15 @@
 
 /* {{{ PYLIBSSH2_Channel_close
  */
-static char PYLIBSSH2_Channel_close_doc[] = "\n\
-close() -> int\n\
-\n\
-Closes the active channel.\n\
-\n\
-@param channel\n\
-@type libssh2.Channel\n";
-
-static PyObject *
-PYLIBSSH2_Channel_close(PYLIBSSH2_CHANNEL *self, PyObject *args)
+void
+PYLIBSSH2_Channel_close(PYLIBSSH2_CHANNEL *self)
 {
-    int rc;
-
-    Py_BEGIN_ALLOW_THREADS
-    rc = libssh2_channel_close(self->channel);
-    Py_END_ALLOW_THREADS
-    self->opened = 0;
-
-    if (rc) {
-        char *errmsg;
-        if(libssh2_session_last_error(self->session, &errmsg, NULL, 0) != rc) {
-            // This is not the error that failed, do not take the string.
-            errmsg = "";
-        }
-        switch(rc) {
-            case LIBSSH2_ERROR_SOCKET_SEND:
-                PyErr_Format(PYLIBSSH2_Error, "Unable to send data on socket: %s", errmsg);
-                return NULL;
-
-            default:
-                PyErr_Format(PYLIBSSH2_Error, "Unknown Error %i: %s", rc, errmsg);
-                return NULL;
-        }
+    if(self->opened) {
+        Py_BEGIN_ALLOW_THREADS
+        libssh2_channel_close(self->channel);
+        Py_END_ALLOW_THREADS
+        self->opened = 0;
     }
-
-    Py_INCREF(Py_None);
-    return Py_None;
 }
 /* }}} */
 
@@ -991,7 +963,7 @@ PYLIBSSH2_Channel_receive_window_adjust(PYLIBSSH2_CHANNEL *self, PyObject *args)
 { #name, (PyCFunction)PYLIBSSH2_Channel_##name, METH_VARARGS, PYLIBSSH2_Channel_##name##_doc }
 static PyMethodDef PYLIBSSH2_Channel_methods[] =
 {
-    ADD_METHOD(close),
+    //ADD_METHOD(close),
     ADD_METHOD(pty),
     ADD_METHOD(pty_resize),
     ADD_METHOD(shell),
@@ -1045,7 +1017,7 @@ PYLIBSSH2_Channel_dealloc(PYLIBSSH2_CHANNEL *self)
     if (self) {
         if(self->channel) {
             if (self->opened) {
-                PYLIBSSH2_Channel_close(self, NULL);
+                PYLIBSSH2_Channel_close(self);
                 self->opened = 0;
             }
 

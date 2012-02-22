@@ -70,6 +70,11 @@ class Session(object):
         else:
             return self._session.close()
 
+    def channel_close(self, channel):
+        """
+        """
+        self._session.channel_close(channel._channel)
+
     def direct_tcpip(self, host, port, shost, sport):
         """
         Tunnels a TCP connection through the session.
@@ -86,7 +91,7 @@ class Session(object):
         @return: new opened L{Channel}
         @rtype: L{Channel}
         """
-        return self._session.direct_tcpip(host, port, shost, sport)
+        return Channel(self._session.direct_tcpip(host, port, shost, sport))
 
     def forward_listen(self, host, port, bound_port, queue_maxsize):
         """
@@ -107,6 +112,9 @@ class Session(object):
         return self._session.forward_listen(
             host, port, bound_port, queue_maxsize
         )
+
+    def forward_cancel(self, listener):
+        self._session.forward_cancel(listener)
 
     def hostkey_hash(self, hashtype):
         """
@@ -206,7 +214,7 @@ class Session(object):
         channel.wait_eof()
         try:
             channel.wait_closed()
-            channel.close()
+            self.channel_close(channel)
         except Exception, detail:
             print "Failed to close %s" % (detail)
 
@@ -230,11 +238,11 @@ class Session(object):
                 buf = None
             except Exception, detail:
                 f.close()
-                channel.close()
+                self.channel_close(channel)
                 raise
 
         try:
-            channel.close()
+            self.channel_close(channel)
         except Exception, detail:
             print "Failed to close %s" % (detail)
 
@@ -288,6 +296,11 @@ class Session(object):
         @rtype: L{Sftp}
         """
         return Sftp(self._session.sftp_init())
+
+    def sftp_shutdown(self, sftp):
+        """
+        """
+        self._session.sftp_shutdown(sftp)
 
     def startup(self, sock):
         """

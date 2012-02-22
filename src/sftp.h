@@ -40,4 +40,6 @@ typedef struct {
     PyObject         *files;
 } PYLIBSSH2_SFTP;
 
+extern void PYLIBSSH2_Sftp_shutdown(PYLIBSSH2_SFTP *self);
+
 #endif /* _PYLIBSSH2_SFTP_H_ */

@@ -162,44 +162,16 @@ PYLIBSSH2_Sftp_open_file(PYLIBSSH2_SFTP *self, PyObject *args)
 
 /* {{{ PYLIBSSH2_Sftp_shutdown
  */
-static char PYLIBSSH2_Sftp_shutdown_doc[] = "\n\
-\n\
-Arguments:\n\
-\n\
-Returns:\n\
-";
 
-static PyObject*
-PYLIBSSH2_Sftp_shutdown(PYLIBSSH2_SFTP *self, PyObject *args)
+void
+PYLIBSSH2_Sftp_shutdown(PYLIBSSH2_SFTP *self)
 {
-    int rc;
-    char* errmsg;
-
     if(self->sftp == NULL) {
-        PyErr_Format(PYLIBSSH2_Error, "Sftp object has been closed/shutdown.");
-        return NULL;
+        return;
     }
 
-    rc = libssh2_sftp_shutdown(self->sftp);
+    libssh2_sftp_shutdown(self->sftp);
     self->sftp = NULL;
-
-    if (rc < 0) {
-        if (libssh2_session_last_error(self->session, &errmsg, NULL, 0) != rc) {
-            errmsg = "";
-        }
-        switch (rc) {
-            case LIBSSH2_ERROR_EAGAIN:
-                PyErr_Format(PYLIBSSH2_Error, "Marked for non-blocking I/O but the call would block: %s", errmsg);
-                return NULL;
-
-            default:
-                PyErr_Format(PYLIBSSH2_Error, "Unable to shutdown sftp %i: %s", rc, errmsg);
-                return NULL;
-        }
-    }
-
-    Py_INCREF(Py_None);
-    return Py_None;
 }
 /* }}} */
 
@@ -835,6 +807,9 @@ PYLIBSSH2_Sftp_close_dir(PYLIBSSH2_SFTP *self, PyObject *args)
     if(index > -1) {
         PySequence_DelItem(self->directories, index);
     }
+    else {
+        PyErr_Clear();
+    }
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -871,6 +846,9 @@ PYLIBSSH2_Sftp_close_file(PYLIBSSH2_SFTP *self, PyObject *args)
     if(index > -1) {
         PySequence_DelItem(self->files, index);
     }
+    else {
+        PyErr_Clear();
+    }
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -891,7 +869,6 @@ static PyMethodDef PYLIBSSH2_Sftp_methods[] = {
     ADD_METHOD(open_file),
     ADD_METHOD(close_dir),
     ADD_METHOD(close_file),
-    ADD_METHOD(shutdown),
     ADD_METHOD(unlink),
     ADD_METHOD(rename),
     ADD_METHOD(mkdir),
@@ -932,6 +909,29 @@ static void PYLIBSSH2_Sftp_dealloc(PYLIBSSH2_SFTP *self)
 {
     if (self) {
         if(self->sftp) {
+            PyObject *iterator;
+            PyObject *item;
+
+            if(self->directories) {
+                iterator = PyObject_GetIter(self->directories);
+                while ((item = PyIter_Next(iterator))) {
+                    PYLIBSSH2_Sftpdir_close(item);
+                    Py_DECREF(item);
+                }
+                PyObject_Del(self->directories);
+                self->directories = NULL;
+            }
+
+            if(self->files) {
+                iterator = PyObject_GetIter(self->files);
+                while ((item = PyIter_Next(iterator))) {
+                    PYLIBSSH2_Sftpfile_close(item);
+                    Py_DECREF(item);
+                }
+                PyObject_Del(self->files);
+                self->files = NULL;
+            }
+
             libssh2_sftp_shutdown(self->sftp);
             self->sftp = NULL;
             PyObject_Del(self);

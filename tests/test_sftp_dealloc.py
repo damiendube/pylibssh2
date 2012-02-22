@@ -29,7 +29,7 @@ class DeallocSftpTest(unittest.TestCase):
     def test_create_close_sftp(self):
         def func():
             sftp = self.session.sftp_init()
-            sftp.shutdown()
+            self.session.sftp_shutdown(sftp)
             del sftp
         func()
 

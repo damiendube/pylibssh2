@@ -79,11 +79,6 @@ class Sftp(object):
             else:
                 raise
 
-    def shutdown(self):
-        """
-        """
-        self._sftp.shutdown()
-
     def unlink(self, path):
         """
         """

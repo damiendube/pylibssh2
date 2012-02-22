@@ -40,15 +40,6 @@ class Channel(object):
         """
         self._channel = _channel
 
-    def close(self):
-        """
-        Closes the active channel.
-
-        @return: 0 on success or negative on failure
-        @rtype: int
-        """
-        return self._channel.close()
-
     def wait_closed(self):
         """
         Wait for remote channel to ack closing.

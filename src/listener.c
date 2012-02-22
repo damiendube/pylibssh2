@@ -76,28 +76,14 @@ PYLIBSSH2_Listener_accept(PYLIBSSH2_LISTENER *self, PyObject *args)
 
 /* {{{ PYLIBSSH2_Listener_cancel
  */
-static char PYLIBSSH2_Listener_cancel_doc[] = "\n\
-\n\
-Arguments:\n\
-\n\
-Returns:\n";
 
-static PyObject*
-PYLIBSSH2_Listener_cancel(PYLIBSSH2_LISTENER *self, PyObject *args)
+void
+PYLIBSSH2_Listener_cancel(PYLIBSSH2_LISTENER *self)
 {
-    int rc;
-    
     Py_BEGIN_ALLOW_THREADS
-    rc = libssh2_channel_forward_cancel(self->listener);
+    libssh2_channel_forward_cancel(self->listener);
     Py_END_ALLOW_THREADS
-
-    if(rc) {
-        PyErr_SetString(PYLIBSSH2_Error, "Unable to cancel a forwarded TCP port");
-        return NULL;
-    }
-
-    Py_INCREF(Py_None);
-    return Py_None;
+    self->listener = NULL;
 }
 /* }}} */
 
@@ -112,7 +98,6 @@ PYLIBSSH2_Listener_cancel(PYLIBSSH2_LISTENER *self, PyObject *args)
 
 struct PyMethodDef PYLIBSSH2_Listener_methods[] = {
     ADD_METHOD(accept),
-    ADD_METHOD(cancel),
     { NULL, NULL }
 };
 #undef ADD_METHOD
@@ -143,6 +128,9 @@ static void
 PYLIBSSH2_Listener_dealloc(PYLIBSSH2_LISTENER *self)
 {
     if (self) {
+        if(self->listener) {
+            PYLIBSSH2_Listener_cancel(self);
+        }
         PyObject_Del(self);
     }
 }

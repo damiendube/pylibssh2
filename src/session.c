@@ -701,7 +701,9 @@ PYLIBSSH2_Session_open_session(PYLIBSSH2_SESSION *self, PyObject *args)
         PyErr_SetString(PYLIBSSH2_Error, "Failed to open a channel session");
         return NULL;
     }
-    return (PyObject *)PYLIBSSH2_Channel_New(self->session, channel);
+    PyObject *chan = (PyObject *)PYLIBSSH2_Channel_New(self->session, channel);
+    PyList_Append(self->channels, chan);
+    return chan;
 }
 /* }}} */
 
@@ -738,7 +740,9 @@ PYLIBSSH2_Session_scp_recv(PYLIBSSH2_SESSION *self, PyObject *args)
         return NULL;
     }
 
-    return Py_BuildValue("OO", (PyObject *)PYLIBSSH2_Channel_New(self->session, channel), stat_to_statdict(&fileinfo));
+    PyObject *chan = (PyObject *)PYLIBSSH2_Channel_New(self->session, channel);
+    PyList_Append(self->channels, chan);
+    return Py_BuildValue("OO", chan, stat_to_statdict(&fileinfo));
 }
 /* }}} */
 
@@ -804,11 +808,40 @@ PYLIBSSH2_Session_scp_send(PYLIBSSH2_SESSION *self, PyObject *args)
                 return NULL;
         }
     }
-
-    return (PyObject *)PYLIBSSH2_Channel_New(self->session, channel);
+    PyObject * chan = (PyObject *)PYLIBSSH2_Channel_New(self->session, channel);
+    PyList_Append(self->channels, chan);
+    return chan;
 }
 /* }}} */
 
+/* {{{ PYLIBSSH2_Session_channel_close
+ */
+static char PYLIBSSH2_Session_channel_close_doc[] = "";
+
+static PyObject *
+PYLIBSSH2_Session_channel_close(PYLIBSSH2_SESSION *self, PyObject *args)
+{
+    PYLIBSSH2_CHANNEL *channel;
+    int index;
+
+    if (!PyArg_ParseTuple(args, "O:channel_close", &channel)) {
+        return NULL;
+    }
+
+    PYLIBSSH2_Channel_close(channel);
+
+    index = PySequence_Index(self->channels, (PyObject*)channel);
+    if(index > -1) {
+        PySequence_DelItem(self->channels, index);
+    }
+    else {
+        PyErr_Clear();
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+/* }}} */
 
 /* {{{ PYLIBSSH2_Session_set_blocking
  */
@@ -844,7 +877,39 @@ Opens an SFTP Channel.\n\
 static PyObject *
 PYLIBSSH2_Session_sftp_init(PYLIBSSH2_SESSION *self, PyObject *args)
 {
-    return (PyObject *)PYLIBSSH2_Sftp_New(self->session, libssh2_sftp_init(self->session));
+    PyObject *sftp = (PyObject *)PYLIBSSH2_Sftp_New(self->session, libssh2_sftp_init(self->session));
+    PyList_Append(self->sftps, sftp);
+    return sftp;
+}
+/* }}} */
+
+
+/* {{{ PYLIBSSH2_Session_sftp_shutdown
+ */
+static char PYLIBSSH2_Session_sftp_shutdown_doc[] = "";
+
+static PyObject *
+PYLIBSSH2_Session_sftp_shutdown(PYLIBSSH2_SESSION *self, PyObject *args)
+{
+    PYLIBSSH2_SFTP *sftp;
+    int index;
+
+    if (!PyArg_ParseTuple(args, "O:sftp_shutdown", &sftp)) {
+        return NULL;
+    }
+
+    PYLIBSSH2_Sftp_shutdown(sftp);
+
+    index = PySequence_Index(self->sftps, (PyObject*)sftp);
+    if(index > -1) {
+        PySequence_DelItem(self->sftps, index);
+    }
+    else {
+        PyErr_Clear();
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 /* }}} */
 
@@ -971,8 +1036,38 @@ PYLIBSSH2_Session_forward_listen(PYLIBSSH2_SESSION *self, PyObject *args)
                 return NULL;
         }
     }
+    PyObject *list = (PyObject *)PYLIBSSH2_Listener_New(self->session, listener);
+    PyList_Append(self->listeners, list);
+    return list;
+}
+/* }}} */
 
-    return (PyObject *)PYLIBSSH2_Listener_New(self->session, listener);
+/* {{{ PYLIBSSH2_Session_forward_cancel
+ */
+static char PYLIBSSH2_Session_forward_cancel_doc[] = "";
+
+static PyObject *
+PYLIBSSH2_Session_forward_cancel(PYLIBSSH2_SESSION *self, PyObject *args)
+{
+    PYLIBSSH2_LISTENER *listen;
+    int index;
+
+    if (!PyArg_ParseTuple(args, "O:forward_cancel", &listen)) {
+        return NULL;
+    }
+
+    PYLIBSSH2_Listener_cancel(listen);
+
+    index = PySequence_Index(self->listeners, (PyObject*)listen);
+    if(index > -1) {
+        PySequence_DelItem(self->listeners, index);
+    }
+    else {
+        PyErr_Clear();
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 /* }}} */
 
@@ -1241,17 +1336,20 @@ static PyMethodDef PYLIBSSH2_Session_methods[] =
     ADD_METHOD(close),
     ADD_METHOD(direct_tcpip),
     ADD_METHOD(forward_listen),
+    ADD_METHOD(forward_cancel),
     ADD_METHOD(hostkey_hash),
     ADD_METHOD(last_error),
     ADD_METHOD(open_session),
     ADD_METHOD(scp_recv),
     ADD_METHOD(scp_send),
+    ADD_METHOD(channel_close),
     ADD_METHOD(session_methods),
     ADD_METHOD(session_method_pref),
     ADD_METHOD(set_banner),
     ADD_METHOD(set_blocking),
     ADD_METHOD(set_trace),
     ADD_METHOD(sftp_init),
+    ADD_METHOD(sftp_shutdown),
     ADD_METHOD(startup),
     ADD_METHOD(userauth_agent),
     ADD_METHOD(userauth_authenticated),
@@ -1281,6 +1379,9 @@ PYLIBSSH2_Session_New(LIBSSH2_SESSION *session)
     self->session = session;
     self->opened = 0;
     self->socket = NULL;
+    self->sftps = PyList_New(0);
+    self->channels = PyList_New(0);
+    self->listeners = PyList_New(0);
 
     libssh2_banner_set(session, LIBSSH2_SSH_DEFAULT_BANNER"_Python");
 

@@ -34,7 +34,7 @@ class SFTPTest(unittest.TestCase):
     def test_connect(self):
         sftp = self.session.sftp_init()
         self.assertTrue(sftp != None, "got an sftp object")
-        sftp.shutdown()
+        self.session.sftp_shutdown(sftp)
 
     def test_unlink(self):
         sftp = self.session.sftp_init()
@@ -43,7 +43,7 @@ class SFTPTest(unittest.TestCase):
         open(FILE, "w").close()
         sftp.unlink(FILE)
         self.assertFalse(os.path.exists(FILE))
-        sftp.shutdown()
+        self.session.sftp_shutdown(sftp)
 
     def test_rename(self):
         sftp = self.session.sftp_init()
@@ -57,7 +57,7 @@ class SFTPTest(unittest.TestCase):
         self.assertTrue(os.path.exists(FILE2))
         os.remove(FILE2)
         #
-        sftp.shutdown()
+        self.session.sftp_shutdown(sftp)
 
     def test_copy_file(self):
         sftp = self.session.sftp_init()
@@ -71,7 +71,7 @@ class SFTPTest(unittest.TestCase):
         self.assertTrue(os.path.exists(FILE2))
         os.remove(FILE2)
         #
-        sftp.shutdown()
+        self.session.sftp_shutdown(sftp)
 
     def test_mkdir(self):
         sftp = self.session.sftp_init()
@@ -83,7 +83,7 @@ class SFTPTest(unittest.TestCase):
         self.assertTrue(os.path.isdir(DIR))
         os.rmdir(DIR)
         #
-        sftp.shutdown()
+        self.session.sftp_shutdown(sftp)
 
     def test_rmdir(self):
         sftp = self.session.sftp_init()
@@ -95,7 +95,7 @@ class SFTPTest(unittest.TestCase):
         sftp.rmdir(DIR)
         self.assertFalse(os.path.isdir(DIR))
         #
-        sftp.shutdown()
+        self.session.sftp_shutdown(sftp)
 
     def test_realpath(self):
         sftp = self.session.sftp_init()
@@ -113,7 +113,7 @@ class SFTPTest(unittest.TestCase):
             self.assertTrue(False, "sftp.realpath on unexistant file")
         #
         os.remove(FILE)
-        sftp.shutdown()
+        self.session.sftp_shutdown(sftp)
 
     def test_readlink(self):
         sftp = self.session.sftp_init()
@@ -133,7 +133,7 @@ class SFTPTest(unittest.TestCase):
         #
         os.remove(SYM)
         os.remove(FILE)
-        sftp.shutdown()
+        self.session.sftp_shutdown(sftp)
 
     def test_symlink(self):
         sftp = self.session.sftp_init()
@@ -147,7 +147,7 @@ class SFTPTest(unittest.TestCase):
         os.remove(SYM)
         os.remove(FILE)
         #
-        sftp.shutdown()
+        self.session.sftp_shutdown(sftp)
 
     def test_get_stat(self):
         sftp = self.session.sftp_init()
@@ -165,7 +165,7 @@ class SFTPTest(unittest.TestCase):
         self.assertEqual(s1['st_gid'], s2.st_gid)
         os.remove(FILE)
         #
-        sftp.shutdown()
+        self.session.sftp_shutdown(sftp)
 
     def test_set_stat(self):
         sftp = self.session.sftp_init()
@@ -179,7 +179,7 @@ class SFTPTest(unittest.TestCase):
         self.assertEqual(stat.S_IMODE(s1['st_mode']), stat.S_IMODE(s2.st_mode))
         os.remove(FILE)
         #
-        sftp.shutdown()
+        self.session.sftp_shutdown(sftp)
 
     def test_file_read(self):
         sftp = self.session.sftp_init()
@@ -276,7 +276,7 @@ class SFTPTest(unittest.TestCase):
         seek()
         #
         os.remove(FILE)
-        sftp.shutdown()
+        self.session.sftp_shutdown(sftp)
 
     def test_open(self):
         sftp = self.session.sftp_init()
@@ -337,7 +337,7 @@ class SFTPTest(unittest.TestCase):
 
         shutil.rmtree(DIR, ignore_errors=True)
         os.remove(FILE)
-        sftp.shutdown()
+        self.session.sftp_shutdown(sftp)
 
     def test_read(self):
         sftp = self.session.sftp_init()
@@ -355,7 +355,7 @@ class SFTPTest(unittest.TestCase):
         sftp.close_file(sftp_file)
         #
         os.remove(FILE)
-        sftp.shutdown()
+        self.session.sftp_shutdown(sftp)
 
     def test_write(self):
         sftp = self.session.sftp_init()
@@ -372,7 +372,7 @@ class SFTPTest(unittest.TestCase):
         f.close()
         #
         os.remove(FILE)
-        sftp.shutdown()
+        self.session.sftp_shutdown(sftp)
 
     def test_dir(self):
         sftp = self.session.sftp_init()
@@ -404,7 +404,7 @@ class SFTPTest(unittest.TestCase):
         self.assertTrue(os.path.basename(FILE2) in fileNames)
         #
         shutil.rmtree(DIR, ignore_errors=True)
-        sftp.shutdown()
+        self.session.sftp_shutdown(sftp)
         #
 
     def test_file_read_open_dir(self):
@@ -435,11 +435,12 @@ class SFTPTest(unittest.TestCase):
         sftp.close_dir(sftp_dir)
         #
         shutil.rmtree(DIR, ignore_errors=True)
-        sftp.shutdown()
+        self.session.sftp_shutdown(sftp)
         #
 
     def tearDown(self):
         self.session.close()
+        del self.session
         self.sock.close()
 
 if __name__ == '__main__':

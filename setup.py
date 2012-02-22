@@ -29,6 +29,7 @@ from platform import python_version
 import os, sys, glob
 
 build_path = "build/lib.%s-%s" % (get_platform(), python_version()[:3])
+sys.path.append('.')
 sys.path.append('tests')
 sys.path.append(build_path)
 sys.path.append('libssh2')

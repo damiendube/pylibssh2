@@ -37,4 +37,6 @@ typedef struct {
     int 			opened;
 } PYLIBSSH2_CHANNEL;
 
+extern void PYLIBSSH2_Channel_close(PYLIBSSH2_CHANNEL *self);
+
 #endif /* _PYLIBSSH2_CHANNEL_H_ */

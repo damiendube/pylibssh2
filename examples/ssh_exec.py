@@ -64,7 +64,7 @@ class SSHRemoteClient(object):
             my_print(type(data))
             print data.strip()
 
-        self.channel.close()
+        self.session.channel_close(self.channel)
 
     def __del__(self):
         self.session.close()

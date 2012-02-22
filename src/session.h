@@ -35,6 +35,9 @@ typedef struct {
     LIBSSH2_SESSION *session;
     PyObject        *socket;
     int             opened;
+    PyObject        *sftps;
+    PyObject        *channels;
+    PyObject        *listeners;
 } PYLIBSSH2_SESSION;
 
 #endif /* _PYLIBSSH2_SESSION_H_ */

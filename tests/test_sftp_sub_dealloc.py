@@ -20,7 +20,7 @@ class DeallocSftpSubTest(unittest.TestCase):
         self.sftp = self.session.sftp_init()
 
     def tearDown(self):
-        self.sftp.shutdown()
+        self.session.sftp_shutdown(self.sftp)
         self.session.close()
         self.sock.close()
 

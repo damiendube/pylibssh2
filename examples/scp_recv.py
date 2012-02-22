@@ -59,7 +59,7 @@ class MySCPClient:
             buf = channel.read()
             f.write(buf)
         f.close()
-        channel.close()
+        self.session.channel_close(channel)
 
     def __del__(self):
         self.session.close()

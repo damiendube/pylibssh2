@@ -75,7 +75,7 @@ class MySCPClient:
         channel.wait_eof()
         try:
             channel.wait_closed()
-            channel.close()
+            self.session.channel_close(channel)
         except Exception, detail:
             print "Failed to close %s" % (detail)
 
