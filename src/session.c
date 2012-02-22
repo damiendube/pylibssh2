@@ -696,7 +696,9 @@ PYLIBSSH2_Session_open_session(PYLIBSSH2_SESSION *self, PyObject *args)
 {
     LIBSSH2_CHANNEL *channel;
 
+    Py_BEGIN_ALLOW_THREADS
     channel = libssh2_channel_open_session(self->session);
+    Py_END_ALLOW_THREADS
     if(channel == NULL) {
         PyErr_SetString(PYLIBSSH2_Error, "Failed to open a channel session");
         return NULL;

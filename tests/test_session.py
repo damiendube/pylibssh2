@@ -15,6 +15,7 @@ Unit tests for Session
 import socket
 import unittest
 import os, pwd
+import shutil
 try:
     import libssh2
 except:
@@ -71,6 +72,30 @@ class SessionTest(unittest.TestCase):
         username = pwd.getpwuid(os.getuid())[0]
         session.userauth_agent(username)
         self.assertEqual(session.userauth_authenticated(), 1)
+        session.close()
+
+    def test_rmtree(self):
+        DIR = "/tmp/repo/"
+        SUB_DIR = "/tmp/repo/sub_dir"
+        FILE1 = os.path.join(DIR, "file1")
+        FILE2 = os.path.join(SUB_DIR, "file2")
+        shutil.rmtree(DIR)
+        os.mkdir(DIR)
+        os.mkdir(SUB_DIR)
+        open(FILE1, "w").close()
+        open(FILE2, "w").close()
+        self.assertTrue(os.path.exists(FILE1))
+        self.assertTrue(os.path.exists(FILE2))
+        #
+        session = libssh2.Session()
+        session.startup(self.sock)
+        username = pwd.getpwuid(os.getuid())[0]
+        session.userauth_agent(username)
+        self.assertEqual(session.userauth_authenticated(), 1)
+        #
+        session.rmtree(DIR)
+        self.assertFalse(os.path.exists(DIR))
+        #
         session.close()
 
     def tearDown(self):

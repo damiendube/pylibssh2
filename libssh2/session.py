@@ -397,3 +397,15 @@ class Session(object):
         Initialize an ssh-agent handle
         """
         self._session.userauth_agent(username)
+
+    def rmtree(self, dir_path):
+        try:
+            channel = self.open_session()
+            channel.execute("rm -rf %s" % (dir_path))
+            try:
+                self.channel_close(channel)
+            except:
+                pass
+        except:
+            raise
+        #
