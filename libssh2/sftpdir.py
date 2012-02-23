@@ -17,6 +17,8 @@
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
+import logging
+import sys
 """
 Abstraction for libssh2 L{Sftp} object
 """
@@ -40,9 +42,11 @@ class SftpDir(object):
     def read(self):
         """
         """
+        logging.critical("Sftpdir." + sys._getframe(0).f_code.co_name)
         return self._handle.read()
 
     def list_files(self):
         """
         """
+        logging.critical("Sftpdir." + sys._getframe(0).f_code.co_name)
         return self._handle.list_files()

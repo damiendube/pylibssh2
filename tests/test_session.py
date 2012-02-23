@@ -79,7 +79,10 @@ class SessionTest(unittest.TestCase):
         SUB_DIR = "/tmp/repo/sub_dir"
         FILE1 = os.path.join(DIR, "file1")
         FILE2 = os.path.join(SUB_DIR, "file2")
-        shutil.rmtree(DIR)
+        try:
+            shutil.rmtree(DIR)
+        except Exception:
+            pass
         os.mkdir(DIR)
         os.mkdir(SUB_DIR)
         open(FILE1, "w").close()
@@ -93,7 +96,7 @@ class SessionTest(unittest.TestCase):
         session.userauth_agent(username)
         self.assertEqual(session.userauth_authenticated(), 1)
         #
-        session.rmtree(DIR)
+        session.rmrf(DIR)
         self.assertFalse(os.path.exists(DIR))
         #
         session.close()

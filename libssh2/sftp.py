@@ -21,6 +21,8 @@
 from sftpdir import SftpDir
 from sftpfile import SftpFile
 import errno
+import logging
+import sys
 
 """
 Abstraction for libssh2 L{Sftp} object
@@ -45,11 +47,15 @@ class Sftp(object):
     def open_dir(self, path):
         """
         """
+
+        logging.critical("Sftp." + sys._getframe(0).f_code.co_name)
         return SftpDir(self._sftp.open_dir(path))
 
     def close_dir(self, sftp_dir):
         """
         """
+
+        logging.critical("Sftp." + sys._getframe(0).f_code.co_name)
         if not isinstance(sftp_dir, SftpDir):
             raise Exception("Bad instance type")
         self._sftp.close_dir(sftp_dir._handle)
@@ -57,6 +63,8 @@ class Sftp(object):
     def open_file(self, path, flags, mode=None):
         """
         """
+
+        logging.critical("Sftp." + sys._getframe(0).f_code.co_name)
         if mode:
             return SftpFile(self._sftp.open_file(path, flags, mode))
         else:
@@ -65,13 +73,15 @@ class Sftp(object):
     def close_file(self, sftp_file):
         """
         """
+
+        logging.critical("Sftp." + sys._getframe(0).f_code.co_name)
         if not isinstance(sftp_file, SftpFile):
             raise Exception("Bad instance type")
         self._sftp.close_file(sftp_file._handle)
 
     def exists(self, path):
         try:
-            self.get_stat(path)
+            self.realpath(path)
             return True
         except IOError, detail:
             if detail.errno == errno.ENOENT:
@@ -82,23 +92,31 @@ class Sftp(object):
     def unlink(self, path):
         """
         """
+
+        logging.critical("Sftp." + sys._getframe(0).f_code.co_name)
         self._sftp.unlink(path)
 
     def remove(self, path):
         """
         Alias
         """
+
+        logging.critical("Sftp." + sys._getframe(0).f_code.co_name)
         self.unlink(path)
 
     def rename(self, src, dst):
         """
         """
+
+        logging.critical("Sftp." + sys._getframe(0).f_code.co_name)
         self._sftp.rename(src, dst)
 
     def move(self, src, dst):
         """
         Alias
         """
+
+        logging.critical("Sftp." + sys._getframe(0).f_code.co_name)
         self.rename(src, dst)
 
     def copy_file(self, src, dst):
@@ -111,34 +129,44 @@ class Sftp(object):
     def mkdir(self, path, mode=0755):
         """
         """
+
+        logging.critical("Sftp." + sys._getframe(0).f_code.co_name)
         self._sftp.mkdir(path, mode)
 
     def rmdir(self, path):
         """
         """
+
+        logging.critical("Sftp." + sys._getframe(0).f_code.co_name)
         self._sftp.rmdir(path)
 
     def realpath(self, path):
         """
         """
+
+        logging.critical("Sftp." + sys._getframe(0).f_code.co_name)
         return self._sftp.realpath(path)
 
     def readlink(self, path):
         """
         """
+        logging.critical("Sftp." + sys._getframe(0).f_code.co_name)
         return self._sftp.readlink(path)
 
     def symlink(self, path, target):
         """
         """
+        logging.critical("Sftp." + sys._getframe(0).f_code.co_name)
         self._sftp.symlink(path, target)
 
     def get_stat(self, path):
         """
         """
+        logging.critical("Sftp." + sys._getframe(0).f_code.co_name)
         return self._sftp.get_stat(path)
 
     def set_stat(self, path, attrs):
         """
         """
+        logging.critical("Sftp." + sys._getframe(0).f_code.co_name)
         self._sftp.set_stat(path, attrs)

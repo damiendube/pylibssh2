@@ -17,16 +17,17 @@
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
+from channel import Channel
+from sftp import Sftp
+import _libssh2
+import logging
+import os
+import stat
 
 """
 Abstraction for libssh2 L{Session} object
 """
 
-from channel import Channel
-from sftp import Sftp
-import _libssh2
-import os
-import stat
 
 class SessionException(Exception):
     """
@@ -38,10 +39,12 @@ class Session(object):
     """
     Session object
     """
+
     def __init__(self):
         """
         Create a new session object.
         """
+        logging.critical("Session.__init__")
         self._session = _libssh2.Session()
 
     def callback_set(self, callback_type, callback):
@@ -53,6 +56,7 @@ class Session(object):
         @param callback: a callback Python object
         @type callback: function
         """
+        logging.critical("Session.callback_set")
         self._session.callback_set(callback_type, callback)
 
     def close(self, reason=None):
@@ -65,6 +69,7 @@ class Session(object):
         @return: 0 on success or negative on failure
         @rtype: int
         """
+        logging.critical("Session.close")
         if reason:
             return self._session.close(reason)
         else:
@@ -73,6 +78,7 @@ class Session(object):
     def channel_close(self, channel):
         """
         """
+        logging.critical("Session.channel_close")
         self._session.channel_close(channel._channel)
 
     def direct_tcpip(self, host, port, shost, sport):
@@ -91,6 +97,7 @@ class Session(object):
         @return: new opened L{Channel}
         @rtype: L{Channel}
         """
+        logging.critical("Session.direct_tcpip")
         return Channel(self._session.direct_tcpip(host, port, shost, sport))
 
     def forward_listen(self, host, port, bound_port, queue_maxsize):
@@ -109,11 +116,15 @@ class Session(object):
         @return: new L{Listener} instance on success or None on failure
         @rtype: L{Listener}
         """
+        logging.critical("Session.forward_listen")
         return self._session.forward_listen(
             host, port, bound_port, queue_maxsize
         )
 
     def forward_cancel(self, listener):
+        """
+        """
+        logging.critical("Session.forward_cancel")
         self._session.forward_cancel(listener)
 
     def hostkey_hash(self, hashtype):
@@ -126,6 +137,7 @@ class Session(object):
         @return: string representation of the computed hash value
         @rtype: str
         """
+        logging.critical("Session.hostkey_hash")
         return self._session.hostkey_hash(hashtype)
 
     def last_error(self):
@@ -135,6 +147,7 @@ class Session(object):
         @return: error tuple (int, str)
         @rtype: tuple
         """
+        logging.critical("Session.last_error")
         return self._session.last_error()
 
     def open_session(self):
@@ -144,6 +157,7 @@ class Session(object):
         @return: new channel opened
         @rtype: L{Channel}
         """
+        logging.critical("Session.open_session")
         return Channel(self._session.open_session())
 
 
@@ -153,6 +167,7 @@ class Session(object):
 
         @param bitmask: bitmask on libssh2.LIBSSH2_TRACE_* constant
         """
+        logging.critical("Session.scp_recv")
         self._session.set_trace(bitmask)
 
 
@@ -166,6 +181,7 @@ class Session(object):
         @return: new channel opened, mode, size
         @rtype: L{Channel}, mode, size
         """
+        logging.critical("Session.scp_recv")
         _channel, fileInfo = self._session.scp_recv(remote_path)
         return (Channel(_channel), fileInfo)
 
@@ -187,6 +203,7 @@ class Session(object):
         @return: new channel opened
         @rtype: L{Channel}
         """
+        logging.critical("Session.scp_send")
         return Channel(self._session.scp_send(path, int(mode), size, int(mtime), int(atime)))
 
     def scp_send_file(self, in_file_path, out_file_path):
@@ -263,6 +280,7 @@ class Session(object):
         @return: 0 on success or negative on failure
         @rtype: int
         """
+        logging.critical("Session.session_method_pref")
         self._session.session_methods(method_type, pref)
 
     def session_methods(self):
@@ -273,6 +291,7 @@ class Session(object):
         @return: dictionnary with actual method negociated
         @rtype: dict
         """
+        logging.critical("Session.session_methods")
         return self._session.session_methods()
 
     def set_banner(self, banner=_libssh2.DEFAULT_BANNER):
@@ -286,6 +305,7 @@ class Session(object):
         @return: 0 on success or negative on failure
         @rtype: int
         """
+        logging.critical("Session.set_banner")
         self._session.set_banner(banner)
 
     def sftp_init(self):
@@ -295,11 +315,13 @@ class Session(object):
         @return: new Sftp channel opened
         @rtype: L{Sftp}
         """
+        logging.critical("Session.sftp_init")
         return Sftp(self._session.sftp_init())
 
     def sftp_shutdown(self, sftp):
         """
         """
+        logging.critical("Session.sftp_shutdown")
         self._session.sftp_shutdown(sftp)
 
     def startup(self, sock):
@@ -312,6 +334,7 @@ class Session(object):
         @return: 0 on success or negative on failure
         @rtype: int
         """
+        logging.critical("Session.startup")
         self._session.startup(sock)
 
     def userauth_authenticated(self):
@@ -321,6 +344,7 @@ class Session(object):
         @return: non-zero if authenticated or 0 if not
         @rtype: int
         """
+        logging.critical("Session.userauth_authenticated")
         return self._session.userauth_authenticated()
 
     def userauth_list(self, username):
@@ -334,6 +358,7 @@ class Session(object):
         methods
         @rtype: str
         """
+        logging.critical("Session.userauth_list")
         return self._session.userauth_list(username)
 
     def userauth_password(self, username, password):
@@ -348,10 +373,10 @@ class Session(object):
         @return: 0 on success or negative on failure
         @rtype: int
         """
+        logging.critical("Session.userauth_password")
         self._session.userauth_password(username, password)
 
-    def userauth_publickey_fromfile(
-            self, username, publickey, privatekey, passphrase=None):
+    def userauth_publickey_fromfile(self, username, publickey, privatekey, passphrase=None):
         """
         Authenticates a session as username using a key pair found in the 
         pulickey and privatekey files, and passphrase if provided.
@@ -365,13 +390,16 @@ class Session(object):
         @param passphrase: passphrase to use when decoding private file
         @type passphrase: str
         """
+        logging.critical("Session.userauth_publickey_fromfile")
         if passphrase == None or len(passphrase) == 0:
             self._session.userauth_publickey_fromfile(username, publickey, privatekey)
         else:
             self._session.userauth_publickey_fromfile(username, publickey, privatekey, passphrase)
 
-    def userauth_hostbased_fromfile(
-            self, username, publickey, privatekey, hostname, passphrase=None):
+    def userauth_hostbased_fromfile(self, username, publickey, privatekey, hostname, passphrase=None):
+        """
+        """
+        logging.critical("Session.userauth_hostbased_fromfile")
         if passphrase == None or len(passphrase) == 0:
             self._session.userauth_hostbased_fromfile(username, publickey, privatekey, hostname)
         else:
@@ -390,19 +418,22 @@ class Session(object):
         @return: 0 on success or negative on failure
         @rtype: int
         """
+        logging.critical("Session.userauth_keyboardinteractive")
         self._session.userauth_keyboardinteractive(username, password, len(password))
 
     def userauth_agent(self, username):
         """
         Initialize an ssh-agent handle
         """
+        logging.critical("Session.userauth_agent")
         self._session.userauth_agent(username)
 
-    def rmtree(self, dir_path):
+    def rmrf(self, dir_path):
         try:
             channel = self.open_session()
             channel.execute("rm -rf %s" % (dir_path))
             try:
+                #channel.read(-1)
                 self.channel_close(channel)
             except:
                 pass

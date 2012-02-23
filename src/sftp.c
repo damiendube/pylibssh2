@@ -915,7 +915,7 @@ static void PYLIBSSH2_Sftp_dealloc(PYLIBSSH2_SFTP *self)
             if(self->directories) {
                 iterator = PyObject_GetIter(self->directories);
                 while ((item = PyIter_Next(iterator))) {
-                    PYLIBSSH2_Sftpdir_close(item);
+                    PYLIBSSH2_Sftpdir_close((PYLIBSSH2_SFTPDIR*)item);
                     Py_DECREF(item);
                 }
                 PyObject_Del(self->directories);
@@ -925,7 +925,7 @@ static void PYLIBSSH2_Sftp_dealloc(PYLIBSSH2_SFTP *self)
             if(self->files) {
                 iterator = PyObject_GetIter(self->files);
                 while ((item = PyIter_Next(iterator))) {
-                    PYLIBSSH2_Sftpfile_close(item);
+                    PYLIBSSH2_Sftpfile_close((PYLIBSSH2_SFTPFILE*)item);
                     Py_DECREF(item);
                 }
                 PyObject_Del(self->files);
