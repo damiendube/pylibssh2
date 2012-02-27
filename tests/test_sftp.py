@@ -55,6 +55,10 @@ class SFTPTest(unittest.TestCase):
         sftp.rename(FILE1, FILE2)
         self.assertFalse(os.path.exists(FILE1))
         self.assertTrue(os.path.exists(FILE2))
+        open(FILE1, "w").close()
+        sftp.rename(FILE1, FILE2)
+        self.assertFalse(os.path.exists(FILE1))
+        self.assertTrue(os.path.exists(FILE2))
         os.remove(FILE2)
         #
         self.session.sftp_shutdown(sftp)
@@ -69,6 +73,7 @@ class SFTPTest(unittest.TestCase):
         sftp.copy_file(FILE1, FILE2)
         self.assertTrue(os.path.exists(FILE1))
         self.assertTrue(os.path.exists(FILE2))
+        os.remove(FILE1)
         os.remove(FILE2)
         #
         self.session.sftp_shutdown(sftp)
@@ -436,7 +441,6 @@ class SFTPTest(unittest.TestCase):
         #
         shutil.rmtree(DIR, ignore_errors=True)
         self.session.sftp_shutdown(sftp)
-        #
 
     def tearDown(self):
         self.session.close()

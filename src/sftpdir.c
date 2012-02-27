@@ -30,6 +30,7 @@
 void
 PYLIBSSH2_Sftpdir_close(PYLIBSSH2_SFTPDIR *self)
 {
+    PRINTFUNCNAME
     Py_BEGIN_ALLOW_THREADS
     libssh2_sftp_close_handle(self->handle);
     Py_END_ALLOW_THREADS
@@ -49,6 +50,7 @@ Returns:\n\
 static PyObject *
 PYLIBSSH2_Sftpdir_read(PYLIBSSH2_SFTPDIR *self, PyObject *args)
 {
+    PRINTFUNCNAME
     LIBSSH2_SFTP_ATTRIBUTES attrs;
     int buffer_maxlen = 0;
     int longentry_maxlen = 255;
@@ -102,6 +104,7 @@ Returns:\n\
 static PyObject *
 PYLIBSSH2_Sftpdir_list_files(PYLIBSSH2_SFTPDIR *self, PyObject *args)
 {
+    PRINTFUNCNAME
     LIBSSH2_SFTP_ATTRIBUTES attrs;
     int buffer_maxlen = 0;
     int longentry_maxlen = 255;
@@ -166,7 +169,12 @@ static PyMethodDef PYLIBSSH2_Sftpdir_methods[] =
 PYLIBSSH2_SFTPDIR *
 PYLIBSSH2_Sftpdir_New(LIBSSH2_SESSION* session, LIBSSH2_SFTP* sftp, LIBSSH2_SFTP_HANDLE *handle)
 {
+    PRINTFUNCNAME
     PYLIBSSH2_SFTPDIR *self;
+
+    if(session == NULL || sftp == NULL || handle == NULL) {
+        return NULL;
+    }
 
     self = PyObject_New(PYLIBSSH2_SFTPDIR, &PYLIBSSH2_Sftpdir_Type);
     if (self == NULL) {
@@ -183,6 +191,7 @@ PYLIBSSH2_Sftpdir_New(LIBSSH2_SESSION* session, LIBSSH2_SFTP* sftp, LIBSSH2_SFTP
 static void
 PYLIBSSH2_Sftpdir_dealloc(PYLIBSSH2_SFTPDIR *self)
 {
+    PRINTFUNCNAME
     if (self) {
         if(self->handle) {
             libssh2_sftp_close_handle(self->handle);

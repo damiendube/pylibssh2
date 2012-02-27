@@ -34,6 +34,7 @@ Returns:\n\
 static PyObject *
 PYLIBSSH2_Listener_accept(PYLIBSSH2_LISTENER *self, PyObject *args)
 {
+    PRINTFUNCNAME
     LIBSSH2_CHANNEL *channel;
 
     Py_BEGIN_ALLOW_THREADS
@@ -80,6 +81,7 @@ PYLIBSSH2_Listener_accept(PYLIBSSH2_LISTENER *self, PyObject *args)
 void
 PYLIBSSH2_Listener_cancel(PYLIBSSH2_LISTENER *self)
 {
+    PRINTFUNCNAME
     Py_BEGIN_ALLOW_THREADS
     libssh2_channel_forward_cancel(self->listener);
     Py_END_ALLOW_THREADS
@@ -108,7 +110,12 @@ struct PyMethodDef PYLIBSSH2_Listener_methods[] = {
 PYLIBSSH2_LISTENER *
 PYLIBSSH2_Listener_New(LIBSSH2_SESSION *session, LIBSSH2_LISTENER *listener)
 {
+    PRINTFUNCNAME
     PYLIBSSH2_LISTENER *self;
+
+    if(session == NULL || listener == NULL) {
+        return NULL;
+    }
 
     self = PyObject_New(PYLIBSSH2_LISTENER, &PYLIBSSH2_Listener_Type);
     if (self == NULL) {
@@ -127,6 +134,7 @@ PYLIBSSH2_Listener_New(LIBSSH2_SESSION *session, LIBSSH2_LISTENER *listener)
 static void
 PYLIBSSH2_Listener_dealloc(PYLIBSSH2_LISTENER *self)
 {
+    PRINTFUNCNAME
     if (self) {
         if(self->listener) {
             PYLIBSSH2_Listener_cancel(self);

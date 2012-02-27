@@ -55,11 +55,11 @@ class SSHRemoteClient(object):
         my_print(self.session.last_error())
 
     def execute(self, command="uname -a"):
-        buffer = 4096
+        buffer_size = 4096
         rc = self.channel.execute(command)
         my_print(rc)
         while True:
-            data = self.channel.read(buffer)
+            data = self.channel.read(buffer_size)
             if data == '' or data is None: break
             my_print(type(data))
             print data.strip()

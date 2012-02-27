@@ -42,11 +42,11 @@ class SftpDir(object):
     def read(self):
         """
         """
-        logging.critical("Sftpdir." + sys._getframe(0).f_code.co_name)
+        logging.debug("Sftpdir." + sys._getframe(0).f_code.co_name)
         return self._handle.read()
 
     def list_files(self):
         """
         """
-        logging.critical("Sftpdir." + sys._getframe(0).f_code.co_name)
+        logging.debug("Sftpdir." + sys._getframe(0).f_code.co_name)
         return self._handle.list_files()

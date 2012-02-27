@@ -42,7 +42,7 @@ class SftpFile(object):
     def read(self, maxlen=4096):
         """
         """
-        logging.critical("Sftpfile." + sys._getframe(0).f_code.co_name)
+        logging.debug("Sftpfile." + sys._getframe(0).f_code.co_name)
         if maxlen == -1:
             buf = ""
             while True:
@@ -62,18 +62,18 @@ class SftpFile(object):
     def write(self, message):
         """
         """
-        logging.critical("Sftpfile." + sys._getframe(0).f_code.co_name)
+        logging.debug("Sftpfile." + sys._getframe(0).f_code.co_name)
         return self._handle.write(message)
 
     def tell(self):
         """
         """
-        logging.critical("Sftpfile." + sys._getframe(0).f_code.co_name)
+        logging.debug("Sftpfile." + sys._getframe(0).f_code.co_name)
         return self._handle.tell()
 
     def seek(self, offset):
         """
         """
-        logging.critical("Sftpfile." + sys._getframe(0).f_code.co_name)
+        logging.debug("Sftpfile." + sys._getframe(0).f_code.co_name)
         self._handle.seek(offset)
 

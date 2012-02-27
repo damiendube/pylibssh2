@@ -37,7 +37,6 @@ def remove_node(elem):
 
 def session_shutdown(session):
     session.close()
-    del session
 
 def raw_mode(fd):
     tty.setraw(fd)

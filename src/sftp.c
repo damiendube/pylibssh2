@@ -37,6 +37,7 @@ Returns:\n\
 static PyObject *
 PYLIBSSH2_Sftp_open_dir(PYLIBSSH2_SFTP *self, PyObject *args)
 {
+    PRINTFUNCNAME
     LIBSSH2_SFTP_HANDLE *handle;
     char *path;
     int sftp_err;
@@ -86,7 +87,9 @@ PYLIBSSH2_Sftp_open_dir(PYLIBSSH2_SFTP *self, PyObject *args)
         }
     }
     PyObject *channel = (PyObject *) PYLIBSSH2_Sftpdir_New(self->session, self->sftp, handle);
-    PyList_Append(self->directories, channel);
+    if(channel && self->directories) {
+        PyList_Append(self->directories, channel);
+    }
     return channel;
 }
 /* }}} */
@@ -103,6 +106,7 @@ Returns:\n\
 static PyObject *
 PYLIBSSH2_Sftp_open_file(PYLIBSSH2_SFTP *self, PyObject *args)
 {
+    PRINTFUNCNAME
     LIBSSH2_SFTP_HANDLE *handle;
     char *path;
     char *flags = "r";
@@ -155,7 +159,9 @@ PYLIBSSH2_Sftp_open_file(PYLIBSSH2_SFTP *self, PyObject *args)
     }
 
     PyObject *channel = (PyObject *)PYLIBSSH2_Sftpfile_New(self->session, self->sftp, handle);
-    PyList_Append(self->files, channel);
+    if(channel && self->files) {
+        PyList_Append(self->files, channel);
+    }
     return channel;
 }
 /* }}} */
@@ -166,6 +172,7 @@ PYLIBSSH2_Sftp_open_file(PYLIBSSH2_SFTP *self, PyObject *args)
 void
 PYLIBSSH2_Sftp_shutdown(PYLIBSSH2_SFTP *self)
 {
+    PRINTFUNCNAME
     if(self->sftp == NULL) {
         return;
     }
@@ -187,6 +194,7 @@ Returns:\n\
 static PyObject*
 PYLIBSSH2_Sftp_unlink(PYLIBSSH2_SFTP *self, PyObject *args)
 {
+    PRINTFUNCNAME
     int rc;
     char *path;
     int sftp_err;
@@ -250,6 +258,7 @@ Returns:\n\
 static PyObject*
 PYLIBSSH2_Sftp_rename(PYLIBSSH2_SFTP *self, PyObject *args)
 {
+    PRINTFUNCNAME
     int rc, sftp_err;
     char *src, *dst;
     char* errmsg;
@@ -312,6 +321,7 @@ Returns:\n\
 static PyObject*
 PYLIBSSH2_Sftp_mkdir(PYLIBSSH2_SFTP *self, PyObject *args)
 {
+    PRINTFUNCNAME
     int rc, sftp_err;
     char *path;
     long mode = 0755;
@@ -375,6 +385,7 @@ Returns:\n\
 static PyObject*
 PYLIBSSH2_Sftp_rmdir(PYLIBSSH2_SFTP *self, PyObject *args)
 {
+    PRINTFUNCNAME
     int rc, sftp_err;
     char *path;
     char* errmsg;
@@ -437,6 +448,7 @@ Returns:\n\
 static PyObject *
 PYLIBSSH2_Sftp_realpath(PYLIBSSH2_SFTP *self, PyObject *args)
 {
+    PRINTFUNCNAME
     int rc, target_len = 2096, sftp_err;
     char *path;
     char target[target_len];
@@ -503,6 +515,7 @@ Returns:\n\
 static PyObject *
 PYLIBSSH2_Sftp_readlink(PYLIBSSH2_SFTP *self, PyObject *args)
 {
+    PRINTFUNCNAME
     int rc, target_len = 2096, sftp_err;
     char *path;
     char target[target_len];
@@ -569,6 +582,7 @@ Returns:\n\
 static PyObject*
 PYLIBSSH2_Sftp_symlink(PYLIBSSH2_SFTP *self, PyObject *args)
 {
+    PRINTFUNCNAME
     int rc, sftp_err;
     char *path, *target;
     char* errmsg;
@@ -635,6 +649,7 @@ Returns:\n\
 static PyObject *
 PYLIBSSH2_Sftp_get_stat(PYLIBSSH2_SFTP *self, PyObject *args)
 {
+    PRINTFUNCNAME
     int rc, sftp_err;
     char *path;
     int path_len = 0;
@@ -698,6 +713,7 @@ Returns:\n\
 static PyObject*
 PYLIBSSH2_Sftp_set_stat(PYLIBSSH2_SFTP *self, PyObject *args)
 {
+    PRINTFUNCNAME
     int rc, sftp_err;
     char *path;
     LIBSSH2_SFTP_ATTRIBUTES attr;
@@ -789,6 +805,7 @@ Returns:\n\
 static PyObject*
 PYLIBSSH2_Sftp_close_dir(PYLIBSSH2_SFTP *self, PyObject *args)
 {
+    PRINTFUNCNAME
     PYLIBSSH2_SFTPDIR *dir;
     int index;
 
@@ -828,6 +845,7 @@ Returns:\n\
 static PyObject*
 PYLIBSSH2_Sftp_close_file(PYLIBSSH2_SFTP *self, PyObject *args)
 {
+    PRINTFUNCNAME
     PYLIBSSH2_SFTPFILE *file;
     int index;
 
@@ -888,7 +906,12 @@ static PyMethodDef PYLIBSSH2_Sftp_methods[] = {
 PYLIBSSH2_SFTP *
 PYLIBSSH2_Sftp_New(LIBSSH2_SESSION *session, LIBSSH2_SFTP *sftp)
 {
+    PRINTFUNCNAME
     PYLIBSSH2_SFTP *self;
+
+    if(session == NULL || sftp == NULL) {
+        return NULL;
+    }
 
     self = PyObject_New(PYLIBSSH2_SFTP, &PYLIBSSH2_Sftp_Type);
     if (self == NULL) {
@@ -907,6 +930,7 @@ PYLIBSSH2_Sftp_New(LIBSSH2_SESSION *session, LIBSSH2_SFTP *sftp)
  */
 static void PYLIBSSH2_Sftp_dealloc(PYLIBSSH2_SFTP *self)
 {
+    PRINTFUNCNAME
     if (self) {
         if(self->sftp) {
             PyObject *iterator;

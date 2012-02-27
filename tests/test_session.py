@@ -96,8 +96,11 @@ class SessionTest(unittest.TestCase):
         session.userauth_agent(username)
         self.assertEqual(session.userauth_authenticated(), 1)
         #
-        session.rmrf(DIR)
-        self.assertFalse(os.path.exists(DIR))
+        session.rmrf(DIR + "/*")
+        self.assertTrue(os.path.exists(DIR))
+        self.assertFalse(os.path.exists(SUB_DIR))
+        self.assertFalse(os.path.exists(FILE1))
+        self.assertFalse(os.path.exists(FILE2))
         #
         session.close()
 

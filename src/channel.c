@@ -28,6 +28,7 @@
 void
 PYLIBSSH2_Channel_close(PYLIBSSH2_CHANNEL *self)
 {
+    PRINTFUNCNAME
     if(self->opened) {
         Py_BEGIN_ALLOW_THREADS
         libssh2_channel_close(self->channel);
@@ -56,6 +57,7 @@ Requests a pty with term type on a channel.\n\
 static PyObject *
 PYLIBSSH2_Channel_pty(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
+    PRINTFUNCNAME
     int rc;
     /* terminal type */
     char *term;
@@ -135,6 +137,7 @@ Requests a pty resize on a channel with the given width and height.\n\
 static PyObject*
 PYLIBSSH2_Channel_pty_resize(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
+    PRINTFUNCNAME
     int rc = -1;
 
     /* terminal dimensions in characters */
@@ -184,6 +187,7 @@ Requests a shell on the channel.\n\
 static PyObject*
 PYLIBSSH2_Channel_shell(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
+    PRINTFUNCNAME
     int rc;
 
     Py_BEGIN_ALLOW_THREADS
@@ -234,6 +238,7 @@ Executes command on the channel.\n\
 static PyObject*
 PYLIBSSH2_Channel_execute(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
+    PRINTFUNCNAME
     int rc;
     /* command to execute */
     char *command;
@@ -291,6 +296,7 @@ Sets envrionment variable on the channel.\n\
 static PyObject*
 PYLIBSSH2_Channel_setenv(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
+    PRINTFUNCNAME
     int rc;
     /* variable envrionnement name */
     char *env_key;
@@ -348,6 +354,7 @@ Sets blocking mode on the channel. Default mode is blocking.\n\
 static PyObject*
 PYLIBSSH2_Channel_setblocking(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
+    PRINTFUNCNAME
     /* 1 blocking, 0 non blocking */
     int block = 1;
 
@@ -378,6 +385,7 @@ Reads size bytes on the channel.\n\
 static PyObject *
 PYLIBSSH2_Channel_read(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
+    PRINTFUNCNAME
     int rc = 0;
     int buffer_size= 1024;
     char * cbuf;
@@ -449,6 +457,7 @@ Reads size bytes on the channel.\n\
 static PyObject *
 PYLIBSSH2_Channel_read_ex(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
+    PRINTFUNCNAME
     int rc;
     int buffer_size = 1024;
     int stream_id = 0;
@@ -518,6 +527,7 @@ Writes data on a channel.\n\
 static PyObject *
 PYLIBSSH2_Channel_write(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
+    PRINTFUNCNAME
     int rc;
     char *message;
     int message_len;
@@ -573,6 +583,7 @@ Flushs the read buffer for a given channel.\n";
 static PyObject*
 PYLIBSSH2_Channel_flush(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
+    PRINTFUNCNAME
     int rc;
 
     Py_BEGIN_ALLOW_THREADS
@@ -614,6 +625,7 @@ Gets the exit code raised by the process running on the remote host.\n\
 static PyObject *
 PYLIBSSH2_Channel_exit_status(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
+    PRINTFUNCNAME
     int rc;
     rc = libssh2_channel_get_exit_status(self->channel);
     if(rc == 0) {
@@ -637,6 +649,7 @@ Checks if the remote host has sent an EOF status.\n\
 static PyObject *
 PYLIBSSH2_Channel_eof(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
+    PRINTFUNCNAME
     int rc;
     rc = libssh2_channel_eof(self->channel);
     if(rc < 0) {
@@ -658,6 +671,7 @@ Sends EOF status on the channel to remote server.\n";
 static PyObject*
 PYLIBSSH2_Channel_send_eof(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
+    PRINTFUNCNAME
     int rc;
 
     Py_BEGIN_ALLOW_THREADS
@@ -696,6 +710,7 @@ Sends EOF status on the channel to remote server.\n";
 static PyObject*
 PYLIBSSH2_Channel_wait_eof(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
+    PRINTFUNCNAME
     int rc;
 
     Py_BEGIN_ALLOW_THREADS
@@ -737,6 +752,7 @@ Wait for the remote channel to ack channel close.\n\
 static PyObject*
 PYLIBSSH2_Channel_wait_closed(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
+    PRINTFUNCNAME
     int rc;
 
     Py_BEGIN_ALLOW_THREADS
@@ -781,6 +797,7 @@ Checks the status of the read window.\n\
 static PyObject *
 PYLIBSSH2_Channel_window_read(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
+    PRINTFUNCNAME
     unsigned long rc=0;
     unsigned long read_avail;
     unsigned long window_size_initial;
@@ -807,6 +824,7 @@ static char PYLIBSSH2_Channel_window_write_doc[] = "\n"
 static PyObject *
 PYLIBSSH2_Channel_window_write(PYLIBSSH2_CHANNEL *self)
 {
+    PRINTFUNCNAME
     unsigned long rc=0;
     unsigned long window_size_initial;
 
@@ -837,6 +855,7 @@ Requests an X11 Forwarding on the channel.\n\
 static PyObject*
 PYLIBSSH2_Channel_x11_req(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
+    PRINTFUNCNAME
     int rc;
     int single_connection = 0;
     char *auth_proto = NULL;
@@ -897,6 +916,7 @@ Checks if data is available on the channel.\n\
 static PyObject *
 PYLIBSSH2_Channel_poll_read(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
+    PRINTFUNCNAME
     int rc;
     int extended = 0;
 
@@ -932,6 +952,7 @@ Adjust the channel window.\n\
 static PyObject *
 PYLIBSSH2_Channel_receive_window_adjust(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
+    PRINTFUNCNAME
     int rc;
     int adjustment;
     int force = 0;
@@ -994,7 +1015,12 @@ static PyMethodDef PYLIBSSH2_Channel_methods[] =
 PYLIBSSH2_CHANNEL *
 PYLIBSSH2_Channel_New(LIBSSH2_SESSION *session, LIBSSH2_CHANNEL *channel)
 {
+    PRINTFUNCNAME
     PYLIBSSH2_CHANNEL *self;
+
+    if(session == NULL || channel == NULL) {
+        return NULL;
+    }
 
     self = PyObject_New(PYLIBSSH2_CHANNEL, &PYLIBSSH2_Channel_Type);
     if (self == NULL) {
@@ -1014,6 +1040,7 @@ PYLIBSSH2_Channel_New(LIBSSH2_SESSION *session, LIBSSH2_CHANNEL *channel)
 static void
 PYLIBSSH2_Channel_dealloc(PYLIBSSH2_CHANNEL *self)
 {
+    PRINTFUNCNAME
     if (self) {
         if(self->channel) {
             if (self->opened) {

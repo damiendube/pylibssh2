@@ -48,14 +48,14 @@ class Sftp(object):
         """
         """
 
-        logging.critical("Sftp." + sys._getframe(0).f_code.co_name)
+        logging.debug("Sftp." + sys._getframe(0).f_code.co_name)
         return SftpDir(self._sftp.open_dir(path))
 
     def close_dir(self, sftp_dir):
         """
         """
 
-        logging.critical("Sftp." + sys._getframe(0).f_code.co_name)
+        logging.debug("Sftp." + sys._getframe(0).f_code.co_name)
         if not isinstance(sftp_dir, SftpDir):
             raise Exception("Bad instance type")
         self._sftp.close_dir(sftp_dir._handle)
@@ -64,7 +64,7 @@ class Sftp(object):
         """
         """
 
-        logging.critical("Sftp." + sys._getframe(0).f_code.co_name)
+        logging.debug("Sftp." + sys._getframe(0).f_code.co_name)
         if mode:
             return SftpFile(self._sftp.open_file(path, flags, mode))
         else:
@@ -74,7 +74,7 @@ class Sftp(object):
         """
         """
 
-        logging.critical("Sftp." + sys._getframe(0).f_code.co_name)
+        logging.debug("Sftp." + sys._getframe(0).f_code.co_name)
         if not isinstance(sftp_file, SftpFile):
             raise Exception("Bad instance type")
         self._sftp.close_file(sftp_file._handle)
@@ -93,7 +93,7 @@ class Sftp(object):
         """
         """
 
-        logging.critical("Sftp." + sys._getframe(0).f_code.co_name)
+        logging.debug("Sftp." + sys._getframe(0).f_code.co_name)
         self._sftp.unlink(path)
 
     def remove(self, path):
@@ -101,22 +101,30 @@ class Sftp(object):
         Alias
         """
 
-        logging.critical("Sftp." + sys._getframe(0).f_code.co_name)
+        logging.debug("Sftp." + sys._getframe(0).f_code.co_name)
         self.unlink(path)
 
     def rename(self, src, dst):
         """
         """
 
-        logging.critical("Sftp." + sys._getframe(0).f_code.co_name)
-        self._sftp.rename(src, dst)
+        logging.debug("Sftp." + sys._getframe(0).f_code.co_name)
+        try:
+            self._sftp.rename(src, dst)
+        except IOError, detail:
+            if detail.errno == 5:
+                self._sftp.unlink(dst)
+                self._sftp.rename(src, dst)
+            else:
+                raise
+
 
     def move(self, src, dst):
         """
         Alias
         """
 
-        logging.critical("Sftp." + sys._getframe(0).f_code.co_name)
+        logging.debug("Sftp." + sys._getframe(0).f_code.co_name)
         self.rename(src, dst)
 
     def copy_file(self, src, dst):
@@ -130,43 +138,43 @@ class Sftp(object):
         """
         """
 
-        logging.critical("Sftp." + sys._getframe(0).f_code.co_name)
+        logging.debug("Sftp." + sys._getframe(0).f_code.co_name)
         self._sftp.mkdir(path, mode)
 
     def rmdir(self, path):
         """
         """
 
-        logging.critical("Sftp." + sys._getframe(0).f_code.co_name)
+        logging.debug("Sftp." + sys._getframe(0).f_code.co_name)
         self._sftp.rmdir(path)
 
     def realpath(self, path):
         """
         """
 
-        logging.critical("Sftp." + sys._getframe(0).f_code.co_name)
+        logging.debug("Sftp." + sys._getframe(0).f_code.co_name)
         return self._sftp.realpath(path)
 
     def readlink(self, path):
         """
         """
-        logging.critical("Sftp." + sys._getframe(0).f_code.co_name)
+        logging.debug("Sftp." + sys._getframe(0).f_code.co_name)
         return self._sftp.readlink(path)
 
     def symlink(self, path, target):
         """
         """
-        logging.critical("Sftp." + sys._getframe(0).f_code.co_name)
+        logging.debug("Sftp." + sys._getframe(0).f_code.co_name)
         self._sftp.symlink(path, target)
 
     def get_stat(self, path):
         """
         """
-        logging.critical("Sftp." + sys._getframe(0).f_code.co_name)
+        logging.debug("Sftp." + sys._getframe(0).f_code.co_name)
         return self._sftp.get_stat(path)
 
     def set_stat(self, path, attrs):
         """
         """
-        logging.critical("Sftp." + sys._getframe(0).f_code.co_name)
+        logging.debug("Sftp." + sys._getframe(0).f_code.co_name)
         self._sftp.set_stat(path, attrs)

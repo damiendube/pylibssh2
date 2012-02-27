@@ -22,7 +22,6 @@ class DeallocSessionTest(unittest.TestCase):
             self.session.startup(self.sock)
             self.session.userauth_agent(self.username)
             self.assertEqual(self.session.userauth_authenticated(), 1)
-            del self.session
         func()
 
     def test_create_close_session(self):
@@ -32,7 +31,6 @@ class DeallocSessionTest(unittest.TestCase):
             self.session.userauth_agent(self.username)
             self.assertEqual(self.session.userauth_authenticated(), 1)
             self.session.close()
-            del self.session
         func()
 
     def test_create_close_w_sftp_session(self):
@@ -44,7 +42,6 @@ class DeallocSessionTest(unittest.TestCase):
             sftp = self.session.sftp_init()
             self.assertTrue(sftp)
             self.session.close()
-            del self.session
         func()
 
     def test_create_close_w_sftp_file_session(self):
@@ -58,7 +55,6 @@ class DeallocSessionTest(unittest.TestCase):
             sftp_file = sftp.open_file("/dev/zero", "r")
             self.assertTrue(sftp_file)
             self.session.close()
-            del self.session
         func()
 
     def test_create_close_w_sftp_file_dir_session(self):
@@ -74,7 +70,6 @@ class DeallocSessionTest(unittest.TestCase):
             self.assertTrue(sftp_file)
             self.assertTrue(sftp_dir)
             self.session.close()
-            del self.session
         func()
 
 if __name__ == '__main__':

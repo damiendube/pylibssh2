@@ -29,6 +29,7 @@
 void
 PYLIBSSH2_Sftpfile_close(PYLIBSSH2_SFTPFILE *self)
 {
+    PRINTFUNCNAME
     Py_BEGIN_ALLOW_THREADS
     libssh2_sftp_close_handle(self->handle);
     Py_END_ALLOW_THREADS
@@ -49,6 +50,7 @@ Returns:\n\
 static PyObject *
 PYLIBSSH2_Sftpfile_read(PYLIBSSH2_SFTPFILE *self, PyObject *args)
 {
+    PRINTFUNCNAME
     int rc;
     int buffer_maxlen = 1024;
     PyObject *buffer;
@@ -99,6 +101,7 @@ Returns:\n\
 static PyObject *
 PYLIBSSH2_Sftpfile_write(PYLIBSSH2_SFTPFILE *self, PyObject *args)
 {
+    PRINTFUNCNAME
     int rc, buffer_len;
     char *buffer;
 
@@ -138,6 +141,7 @@ Returns:\n\
 static PyObject *
 PYLIBSSH2_Sftpfile_tell(PYLIBSSH2_SFTPFILE *self, PyObject *args)
 {
+    PRINTFUNCNAME
     if(self->handle == NULL) {
         PyErr_Format(PYLIBSSH2_Error, "Sftpfile object has been closed/shutdown.");
         return NULL;
@@ -158,6 +162,7 @@ Returns:\n\
 static PyObject*
 PYLIBSSH2_Sftpfile_seek(PYLIBSSH2_SFTPFILE *self, PyObject *args)
 {
+    PRINTFUNCNAME
     unsigned long offset=0;
 
     if(self->handle == NULL) {
@@ -199,7 +204,12 @@ static PyMethodDef PYLIBSSH2_Sftpfile_methods[] =
 PYLIBSSH2_SFTPFILE *
 PYLIBSSH2_Sftpfile_New(LIBSSH2_SESSION * session, LIBSSH2_SFTP * sftp, LIBSSH2_SFTP_HANDLE *handle)
 {
+    PRINTFUNCNAME
     PYLIBSSH2_SFTPFILE *self;
+
+    if(session == NULL || sftp == NULL || handle == NULL) {
+        return NULL;
+    }
 
     self = PyObject_New(PYLIBSSH2_SFTPFILE, &PYLIBSSH2_Sftpfile_Type);
     if (self == NULL) {
@@ -216,6 +226,7 @@ PYLIBSSH2_Sftpfile_New(LIBSSH2_SESSION * session, LIBSSH2_SFTP * sftp, LIBSSH2_S
 static void
 PYLIBSSH2_Sftpfile_dealloc(PYLIBSSH2_SFTPFILE *self)
 {
+    PRINTFUNCNAME
     if (self) {
         if(self->handle) {
             libssh2_sftp_close_handle(self->handle);

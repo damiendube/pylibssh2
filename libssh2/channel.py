@@ -48,7 +48,7 @@ class Channel(object):
         @return: 0 on success or negative on failure
         @rtype: int
         """
-        logging.critical("Channel.wait_closed")
+        logging.debug("Channel.wait_closed")
         return self._channel.wait_closed()
 
     def eof(self):
@@ -58,7 +58,7 @@ class Channel(object):
         @return: 1 if the remote host has sent EOF otherwise 0
         @rtype: int
         """
-        logging.critical("Channel.eof")
+        logging.debug("Channel.eof")
         return self._channel.eof()
 
     def execute(self, command):
@@ -71,7 +71,7 @@ class Channel(object):
         @return: 0 on success or negative on failure
         @rtype: int
         """
-        logging.critical("Channel.execute")
+        logging.debug("Channel.execute")
         return self._channel.execute(command)
 
     def exit_status(self):
@@ -81,7 +81,7 @@ class Channel(object):
         @return: the exit status reported by remote host or 0 on failure
         @rtype: int
         """
-        logging.critical("Channel.exit_status")
+        logging.debug("Channel.exit_status")
         return self._channel.exit_status()
 
     def flush(self):
@@ -91,7 +91,7 @@ class Channel(object):
         @return: 0 on sucess or negative on failure
         @rtype: int
         """
-        logging.critical("Channel.flush")
+        logging.debug("Channel.flush")
         return self._channel.flush()
 
     def poll_read(self, extended=None):
@@ -104,7 +104,7 @@ class Channel(object):
         @return: 1 when data is available or 0 otherwise
         @rtype: int
         """
-        logging.critical("Channel.poll_read")
+        logging.debug("Channel.poll_read")
         if extended:
             return self._channel.poll_read(extended)
         else:
@@ -120,7 +120,7 @@ class Channel(object):
         @return: 0 on success or negative on failure
         @rtype: int
         """
-        logging.critical("Channel.pty")
+        logging.debug("Channel.pty")
         return self._channel.pty(term)
 
     def pty_resize(self, width, height, pixelwidth=0, pixelheight=0):
@@ -139,7 +139,7 @@ class Channel(object):
         @return: 0 on success or negative on failure
         @rtype: int
         """
-        logging.critical("Channel.pty_resize")
+        logging.debug("Channel.pty_resize")
         return self._channel.pty_resize(width, height, pixelwidth, pixelheight)
 
     def read(self, size=1024):
@@ -152,7 +152,7 @@ class Channel(object):
         @return: bytes readed or negative on failure
         @rtype: str
         """
-        logging.critical("Channel.read")
+        logging.debug("Channel.read")
         if size == -1:
             buf = ""
             while True:
@@ -182,7 +182,7 @@ class Channel(object):
         @return: bytes readed or negative on failure
         @rtype: str
         """
-        logging.critical("Channel.read_ex")
+        logging.debug("Channel.read_ex")
         return self._channel.read_ex(size, stream_id)
 
     def send_eof(self):
@@ -192,14 +192,14 @@ class Channel(object):
         @return: 0 on success or negative on failure
         @rtype: int
         """
-        logging.critical("Channel.send_eof")
+        logging.debug("Channel.send_eof")
         self._channel.send_eof()
 
     def wait_eof(self):
         """
         Checks if the remote host has sent a EOF status.
         """
-        logging.critical("Channel.wait_eof")
+        logging.debug("Channel.wait_eof")
         self._channel.wait_eof()
 
     def setblocking(self, mode=1):
@@ -209,7 +209,7 @@ class Channel(object):
         @param mode: blocking (1) or non blocking (0) mode
         @rtype: int
         """
-        logging.critical("Channel.setblocking")
+        logging.debug("Channel.setblocking")
         return self._channel.setblocking(mode)
 
     def setenv(self, name, value):
@@ -224,7 +224,7 @@ class Channel(object):
         @return: 0 on success or negative on failure
         @rtype: int
         """
-        logging.critical("Channel.setenv")
+        logging.debug("Channel.setenv")
         return self._channel.setenv(name, value)
 
     def shell(self):
@@ -234,7 +234,7 @@ class Channel(object):
         @return: 0 on success or negative on failure
         @rtype: int
         """
-        logging.critical("Channel.shell")
+        logging.debug("Channel.shell")
         return self._channel.shell()
 
     def window_read(self):
@@ -250,7 +250,7 @@ class Channel(object):
         without overflowing the window limit
         @rtype: int
         """
-        logging.critical("Channel.window_read")
+        logging.debug("Channel.window_read")
         return self._channel.window_read()
 
     def window_write(self):
@@ -265,7 +265,7 @@ class Channel(object):
         @return window_size_initial: as defined by the channel_open request
         @rtype  (int, int)
         """
-        logging.critical("Channel.window_write")
+        logging.debug("Channel.window_write")
         return self._channel.window_write()
 
     def write(self, message):
@@ -278,7 +278,7 @@ class Channel(object):
         @return: number of bytes writter
         @rtype: int
         """
-        logging.critical("Channel.write")
+        logging.debug("Channel.write")
         return self._channel.write(message)
 
     def x11_req(self, single_connection, auth_proto, auth_cookie, display):
@@ -297,5 +297,5 @@ class Channel(object):
         @return: 0 on success or negative on failure
         @rtype: int
         """
-        logging.critical("Channel.x11_req")
+        logging.debug("Channel.x11_req")
         return self._channel.x11_req(single_connection, auth_proto, auth_cookie, display)

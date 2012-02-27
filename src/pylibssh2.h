@@ -79,6 +79,13 @@ extern PyObject *PYLIBSSH2_Error;
 
 #define PYLIBSSH2_API_pointers                  6
 
+#ifdef DEBUG
+extern FILE* logFile;
+#define PRINTFUNCNAME if(logFile) fprintf(logFile, "%s\n", __FUNCTION__); fflush(logFile);
+#else
+#define PRINTFUNCNAME
+#endif
+
 PyObject *
 sftp_attrs_to_statdict(LIBSSH2_SFTP_ATTRIBUTES *attr);
 

@@ -22,6 +22,8 @@
 #define PYLIBSSH2_MODULE
 #include "pylibssh2.h"
 
+FILE* logFile = NULL;
+
 /* {{{ PYLIBSSH2_doc
  */
 PyDoc_STRVAR(PYLIBSSH2_doc,
@@ -69,7 +71,12 @@ userauth_publickey_fromfile() -- authenticates a session with publickey\n\
 static PyObject *
 PYLIBSSH2_Session(PyObject *self, PyObject *args)
 {
-    return (PyObject *)PYLIBSSH2_Session_New(libssh2_session_init());
+    LIBSSH2_SESSION *session;
+    session = libssh2_session_init();
+    if(session == NULL) {
+        return NULL;
+    }
+    return (PyObject *)PYLIBSSH2_Session_New(session);
 }
 /* }}} */
 
@@ -98,6 +105,10 @@ init_libssh2(void)
     if (module == NULL) {
         return;
     }
+
+#ifdef DEBUG
+    logFile = fopen("/tmp/pylibssh2.log", "w");
+#endif
 
     PYLIBSSH2_API[PYLIBSSH2_Session_New_NUM] = (void *) PYLIBSSH2_Session_New;
     PYLIBSSH2_API[PYLIBSSH2_Channel_New_NUM] = (void *) PYLIBSSH2_Channel_New;
