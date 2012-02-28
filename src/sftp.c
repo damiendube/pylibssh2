@@ -87,7 +87,8 @@ PYLIBSSH2_Sftp_open_dir(PYLIBSSH2_SFTP *self, PyObject *args)
         }
     }
     PyObject *channel = (PyObject *) PYLIBSSH2_Sftpdir_New(self->session, self->sftp, handle);
-    if(channel && self->directories) {
+    if(channel) {
+        Py_INCREF(channel);
         PyList_Append(self->directories, channel);
     }
     return channel;
@@ -159,7 +160,8 @@ PYLIBSSH2_Sftp_open_file(PYLIBSSH2_SFTP *self, PyObject *args)
     }
 
     PyObject *channel = (PyObject *)PYLIBSSH2_Sftpfile_New(self->session, self->sftp, handle);
-    if(channel && self->files) {
+    if(channel) {
+        Py_INCREF(channel);
         PyList_Append(self->files, channel);
     }
     return channel;
@@ -173,8 +175,22 @@ void
 PYLIBSSH2_Sftp_shutdown(PYLIBSSH2_SFTP *self)
 {
     PRINTFUNCNAME
+    PyObject *item;
+
     if(self->sftp == NULL) {
         return;
+    }
+
+    while(PyList_Size(self->directories)) {
+        item = PyList_GetItem(self->directories, 0);
+        PYLIBSSH2_Sftpdir_close((PYLIBSSH2_SFTPDIR*)item);
+        PySequence_DelItem(self->directories, 0);
+    }
+
+    while(PyList_Size(self->files)) {
+        item = PyList_GetItem(self->files, 0);
+        PYLIBSSH2_Sftpfile_close((PYLIBSSH2_SFTPFILE*)item);
+        PySequence_DelItem(self->files, 0);
     }
 
     libssh2_sftp_shutdown(self->sftp);
@@ -824,9 +840,6 @@ PYLIBSSH2_Sftp_close_dir(PYLIBSSH2_SFTP *self, PyObject *args)
     if(index > -1) {
         PySequence_DelItem(self->directories, index);
     }
-    else {
-        PyErr_Clear();
-    }
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -863,9 +876,6 @@ PYLIBSSH2_Sftp_close_file(PYLIBSSH2_SFTP *self, PyObject *args)
     index = PySequence_Index(self->files, (PyObject*)file);
     if(index > -1) {
         PySequence_DelItem(self->files, index);
-    }
-    else {
-        PyErr_Clear();
     }
 
     Py_INCREF(Py_None);
@@ -933,33 +943,12 @@ static void PYLIBSSH2_Sftp_dealloc(PYLIBSSH2_SFTP *self)
     PRINTFUNCNAME
     if (self) {
         if(self->sftp) {
-            PyObject *iterator;
-            PyObject *item;
-
-            if(self->directories) {
-                iterator = PyObject_GetIter(self->directories);
-                while ((item = PyIter_Next(iterator))) {
-                    PYLIBSSH2_Sftpdir_close((PYLIBSSH2_SFTPDIR*)item);
-                    Py_DECREF(item);
-                }
-                PyObject_Del(self->directories);
-                self->directories = NULL;
-            }
-
-            if(self->files) {
-                iterator = PyObject_GetIter(self->files);
-                while ((item = PyIter_Next(iterator))) {
-                    PYLIBSSH2_Sftpfile_close((PYLIBSSH2_SFTPFILE*)item);
-                    Py_DECREF(item);
-                }
-                PyObject_Del(self->files);
-                self->files = NULL;
-            }
-
-            libssh2_sftp_shutdown(self->sftp);
+            PYLIBSSH2_Sftp_shutdown(self);
             self->sftp = NULL;
-            PyObject_Del(self);
         }
+        Py_XDECREF(self->directories);
+        Py_XDECREF(self->files);
+        PyObject_Del(self);
     }
 }
 /* }}} */

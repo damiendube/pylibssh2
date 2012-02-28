@@ -158,23 +158,27 @@ class Sftp(object):
     def readlink(self, path):
         """
         """
+
         logging.debug("Sftp." + sys._getframe(0).f_code.co_name)
         return self._sftp.readlink(path)
 
     def symlink(self, path, target):
         """
         """
+
         logging.debug("Sftp." + sys._getframe(0).f_code.co_name)
         self._sftp.symlink(path, target)
 
     def get_stat(self, path):
         """
         """
+
         logging.debug("Sftp." + sys._getframe(0).f_code.co_name)
         return self._sftp.get_stat(path)
 
     def set_stat(self, path, attrs):
         """
         """
+
         logging.debug("Sftp." + sys._getframe(0).f_code.co_name)
         self._sftp.set_stat(path, attrs)
