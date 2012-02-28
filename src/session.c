@@ -151,20 +151,20 @@ Session_close(PYLIBSSH2_SESSION *self)
     PyObject *item;
 
     if(self->opened) {
-        while(PyList_Size(self->sftps)) {
-            item = PyList_GetItem(self->sftps, 0);
+        while(PySet_Size(self->sftps)) {
+            item = PySet_Pop(self->sftps);
             PYLIBSSH2_Sftp_shutdown((PYLIBSSH2_SFTP*)item);
-            PySequence_DelItem(self->sftps, 0);
+            Py_XDECREF(item);
         }
 
-        while(PyList_Size(self->channels)) {
-            item = PyList_GetItem(self->channels, 0);
+        while(PySet_Size(self->channels)) {
+            item = PySet_Pop(self->channels);
             PYLIBSSH2_Channel_close((PYLIBSSH2_CHANNEL*)item);
-            PySequence_DelItem(self->channels, 0);
+            Py_XDECREF(item);
         }
-        while(PyList_Size(self->listeners)) {
-            item = PyList_GetItem(self->listeners, 0);
-            PySequence_DelItem(self->listeners, 0);
+        while(PySet_Size(self->listeners)) {
+            item = PySet_Pop(self->listeners);
+            Py_XDECREF(item);
         }
 
         Py_BEGIN_ALLOW_THREADS
@@ -766,9 +766,9 @@ PYLIBSSH2_Session_open_session(PYLIBSSH2_SESSION *self, PyObject *args)
 
     }
     PyObject *chan = (PyObject *)PYLIBSSH2_Channel_New(self->session, channel);
-    if(chan && self->channels) {
-        Py_INCREF(chan);
-        PyList_Append(self->channels, chan);
+    if(chan) {
+        //Py_INCREF(chan);
+        PySet_Add(self->channels, chan);
     }
     return chan;
 }
@@ -809,9 +809,9 @@ PYLIBSSH2_Session_scp_recv(PYLIBSSH2_SESSION *self, PyObject *args)
     }
 
     PyObject *chan = (PyObject *)PYLIBSSH2_Channel_New(self->session, channel);
-    if(chan && self->channels) {
-        Py_INCREF(chan);
-        PyList_Append(self->channels, chan);
+    if(chan) {
+        //Py_INCREF(chan);
+        PySet_Add(self->channels, chan);
     }
     return Py_BuildValue("OO", chan, stat_to_statdict(&fileinfo));
 }
@@ -881,9 +881,9 @@ PYLIBSSH2_Session_scp_send(PYLIBSSH2_SESSION *self, PyObject *args)
         }
     }
     PyObject * chan = (PyObject *)PYLIBSSH2_Channel_New(self->session, channel);
-    if(chan && self->channels) {
-        Py_INCREF(chan);
-        PyList_Append(self->channels, chan);
+    if(chan) {
+        //Py_INCREF(chan);
+        PySet_Add(self->channels, chan);
     }
     return chan;
 }
@@ -906,10 +906,8 @@ PYLIBSSH2_Session_channel_close(PYLIBSSH2_SESSION *self, PyObject *args)
 
     PYLIBSSH2_Channel_close(channel);
 
-    index = PySequence_Index(self->channels, (PyObject*)channel);
-    if(index > -1) {
-        PySequence_DelItem(self->channels, index);
-    }
+    PySet_Discard(self->channels, (PyObject*)channel);
+    //Py_DECREF(channel);
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -985,9 +983,9 @@ PYLIBSSH2_Session_sftp_init(PYLIBSSH2_SESSION *self, PyObject *args)
     }
 
     PyObject *sftpObj = (PyObject *)PYLIBSSH2_Sftp_New(self->session, sftp);
-    if(sftpObj && self->sftps) {
-        Py_INCREF(sftpObj);
-        PyList_Append(self->sftps, sftpObj);
+    if(sftpObj) {
+        //Py_INCREF(sftpObj);
+        PySet_Add(self->sftps, sftpObj);
     }
     return sftpObj;
 }
@@ -1011,10 +1009,8 @@ PYLIBSSH2_Session_sftp_shutdown(PYLIBSSH2_SESSION *self, PyObject *args)
 
     PYLIBSSH2_Sftp_shutdown(sftp);
 
-    index = PySequence_Index(self->sftps, (PyObject *)sftp);
-    if(index > -1) {
-        PySequence_DelItem(self->sftps, index);
-    }
+    PySet_Discard(self->sftps, (PyObject *)sftp);
+    //Py_DECREF(sftp);
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -1147,9 +1143,9 @@ PYLIBSSH2_Session_forward_listen(PYLIBSSH2_SESSION *self, PyObject *args)
         }
     }
     PyObject *list = (PyObject *)PYLIBSSH2_Listener_New(self->session, listener);
-    if(list && self->listeners) {
-        Py_INCREF(list);
-        PyList_Append(self->listeners, list);
+    if(list) {
+        //Py_INCREF(list);
+        PySet_Add(self->listeners, list);
     }
     return list;
 }
@@ -1172,10 +1168,8 @@ PYLIBSSH2_Session_forward_cancel(PYLIBSSH2_SESSION *self, PyObject *args)
 
     PYLIBSSH2_Listener_cancel(listen);
 
-    index = PySequence_Index(self->listeners, (PyObject*)listen);
-    if(index > -1) {
-        PySequence_DelItem(self->listeners, index);
-    }
+    PySet_Discard(self->listeners, (PyObject*)listen);
+    //Py_DECREF(listen);
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -1498,9 +1492,9 @@ PYLIBSSH2_Session_New(LIBSSH2_SESSION *session)
     self->session = session;
     self->opened = 0;
     self->socket = NULL;
-    self->sftps = PyList_New(0);
-    self->channels = PyList_New(0);
-    self->listeners = PyList_New(0);
+    self->sftps = PySet_New(0);
+    self->channels = PySet_New(0);
+    self->listeners = PySet_New(0);
 
     libssh2_banner_set(session, LIBSSH2_SSH_DEFAULT_BANNER"_Python");
 
