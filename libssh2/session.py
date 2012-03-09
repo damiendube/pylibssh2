@@ -322,7 +322,7 @@ class Session(object):
         """
         """
         logging.debug("Session.sftp_shutdown")
-        self._session.sftp_shutdown(sftp)
+        self._session.sftp_shutdown(sftp._sftp)
 
     def startup(self, sock):
         """

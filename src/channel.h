@@ -34,9 +34,8 @@ typedef struct {
     PyObject_HEAD
     LIBSSH2_SESSION *session;
     LIBSSH2_CHANNEL *channel;
-    int 			opened;
 } PYLIBSSH2_CHANNEL;
 
-extern void PYLIBSSH2_Channel_close(PYLIBSSH2_CHANNEL *self);
+extern void Channel_close(PYLIBSSH2_CHANNEL *self);
 
 #endif /* _PYLIBSSH2_CHANNEL_H_ */

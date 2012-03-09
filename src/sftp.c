@@ -168,11 +168,11 @@ PYLIBSSH2_Sftp_open_file(PYLIBSSH2_SFTP *self, PyObject *args)
 }
 /* }}} */
 
-/* {{{ PYLIBSSH2_Sftp_shutdown
+/* {{{ Sftp_shutdown
  */
 
 void
-PYLIBSSH2_Sftp_shutdown(PYLIBSSH2_SFTP *self)
+Sftp_shutdown(PYLIBSSH2_SFTP *self)
 {
     PRINTFUNCNAME
     PyObject *item;
@@ -823,7 +823,6 @@ PYLIBSSH2_Sftp_close_dir(PYLIBSSH2_SFTP *self, PyObject *args)
 {
     PRINTFUNCNAME
     PYLIBSSH2_SFTPDIR *dir;
-    int index;
 
     if(self->sftp == NULL) {
         PyErr_Format(PYLIBSSH2_Error, "Sftp object has been closed/shutdown.");
@@ -857,7 +856,6 @@ PYLIBSSH2_Sftp_close_file(PYLIBSSH2_SFTP *self, PyObject *args)
 {
     PRINTFUNCNAME
     PYLIBSSH2_SFTPFILE *file;
-    int index;
 
     if(self->sftp == NULL) {
         PyErr_Format(PYLIBSSH2_Error, "Sftp object has been closed/shutdown.");
@@ -937,7 +935,7 @@ static void PYLIBSSH2_Sftp_dealloc(PYLIBSSH2_SFTP *self)
     PRINTFUNCNAME
     if (self) {
         if(self->sftp) {
-            PYLIBSSH2_Sftp_shutdown(self);
+            Sftp_shutdown(self);
             self->sftp = NULL;
         }
         Py_XDECREF(self->directories);
@@ -956,6 +954,42 @@ PYLIBSSH2_Sftp_getattr(PYLIBSSH2_SFTP *self, char *name)
 }
 /* }}} */
 
+/* {{{ PYLIBSSH2_Session_cmp
+ */
+static int
+PYLIBSSH2_Sftp_cmp(PYLIBSSH2_SFTP * self, PYLIBSSH2_SFTP * other) {
+
+    if(self) {
+        if(other) {
+            return self->session == other->session &&
+                self->sftp == other->sftp;
+        } else {
+            return 1;
+        }
+    }
+    else if(other) {
+        return -1;
+    } else {
+        return 0;
+    }
+}
+/* }}} */
+
+/* {{{ PYLIBSSH2_Session_cmp
+ */
+static long
+PYLIBSSH2_Sftp_hash(PYLIBSSH2_SFTP * self) {
+    long h, h1, h2;
+    h1 = PyObject_Hash(PyLong_FromVoidPtr(self->sftp));
+    if(h1==-1) return -1;
+    h2 = PyObject_Hash(PyLong_FromVoidPtr(self->session));
+    if(h2==-1) return -1;
+    h = h1 ^ h2;
+    if(h==-1) return -2;
+    return h;
+}
+/* }}} */
+
 /* {{{ PYLIBSSH2_Sftp_Type
  *
  * see /usr/include/python2.5/object.h line 261
@@ -968,12 +1002,12 @@ PYLIBSSH2_Sftp_getattr(PYLIBSSH2_SFTP *self, char *name)
     0, /* tp_print */
     (getattrfunc)PYLIBSSH2_Sftp_getattr, /* tp_getattr */
     0, /* tp_setattr */
-    0, /* tp_compare */
+    (cmpfunc)PYLIBSSH2_Sftp_cmp, /* tp_compare */
     0, /* tp_repr */
     0, /* tp_as_number */
     0, /* tp_as_sequence */
     0, /* tp_as_mapping */
-    0, /* tp_hash  */
+    (hashfunc)PYLIBSSH2_Sftp_hash, /* tp_hash  */
     0, /* tp_call */
     0, /* tp_str */
     0, /* tp_getattro */

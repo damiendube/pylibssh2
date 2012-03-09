@@ -127,7 +127,10 @@ setup(name='pylibssh2',
       cmdclass={'test' : Libssh2TestCommand})
 
 try:
-    os.symlink(os.path.join(build_path, "_libssh2.so"), "./_libssh2.so")
+    if os.path.exists(os.path.join(build_path + "-pydebug", "_libssh2_d.so")):
+        os.symlink(os.path.join(build_path + "-pydebug", "_libssh2_d.so"), "./_libssh2.so")
+    elif os.path.exists(os.path.join(build_path, "_libssh2.so")):
+        os.symlink(os.path.join(build_path, "_libssh2.so"), "./_libssh2.so")
 except:
     pass
 

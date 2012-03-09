@@ -27,7 +27,7 @@ build: clean
 	
 debug: clean
 	python-dbg setup.py clean
-	OPT="-DDEBUG -ggdb" python setup.py build --force
+	OPT="-DDEBUG -ggdb" python-dbg setup.py build --force
 
 install: build
 	sudo python setup.py install
@@ -45,7 +45,7 @@ doc:
 	epydoc --no-private -n ${PY_TARGET} -o doc ${TARGET}
 
 test: debug
-	python setup.py test
+	python-dbg setup.py test
 	
 pdbtest: debug
 	pdb setup.py test

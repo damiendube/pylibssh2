@@ -23,17 +23,19 @@
 #include "pylibssh2.h"
 
 
-/* {{{ PYLIBSSH2_Channel_close
+/* {{{ Channel_close
  */
 void
-PYLIBSSH2_Channel_close(PYLIBSSH2_CHANNEL *self)
+Channel_close(PYLIBSSH2_CHANNEL *self)
 {
     PRINTFUNCNAME
-    if(self->opened) {
+    if(self->channel) {
         Py_BEGIN_ALLOW_THREADS
         libssh2_channel_close(self->channel);
         Py_END_ALLOW_THREADS
-        self->opened = 0;
+
+        libssh2_channel_free(self->channel);
+        self->channel = NULL;
     }
 }
 /* }}} */
@@ -71,6 +73,11 @@ PYLIBSSH2_Channel_pty(PYLIBSSH2_CHANNEL *self, PyObject *args)
     int width = 80, height = 24;
     /* default dimensions */
     int width_px = 0, height_px = 0;
+
+    if(self->channel == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Channel object has been closed/shutdown.");
+        return NULL;
+    }
 
     if (!PyArg_ParseTuple(args, "s#|s#iiii:pty", &term, &term_len, &modes,
                           &modes_len, &width, &height, &width_px, &height_px)) {
@@ -148,6 +155,11 @@ PYLIBSSH2_Channel_pty_resize(PYLIBSSH2_CHANNEL *self, PyObject *args)
     int width_px  = 0;
     int height_px = 0;
 
+    if(self->channel == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Channel object has been closed/shutdown.");
+        return NULL;
+    }
+
     if (!PyArg_ParseTuple(args,"ii|ii:pty_resize", &width, &height,
                                                    &width_px, &height_px)){
         return NULL;
@@ -189,6 +201,11 @@ PYLIBSSH2_Channel_shell(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     PRINTFUNCNAME
     int rc;
+
+    if(self->channel == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Channel object has been closed/shutdown.");
+        return NULL;
+    }
 
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_channel_shell(self->channel);
@@ -242,6 +259,11 @@ PYLIBSSH2_Channel_execute(PYLIBSSH2_CHANNEL *self, PyObject *args)
     int rc;
     /* command to execute */
     char *command;
+
+    if(self->channel == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Channel object has been closed/shutdown.");
+        return NULL;
+    }
 
     if (!PyArg_ParseTuple(args, "s:execute", &command)) {
         return NULL;
@@ -303,6 +325,11 @@ PYLIBSSH2_Channel_setenv(PYLIBSSH2_CHANNEL *self, PyObject *args)
     /* variable envrionnement value */
     char *env_val;
 
+    if(self->channel == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Channel object has been closed/shutdown.");
+        return NULL;
+    }
+
     if (!PyArg_ParseTuple(args, "ss:setenv", &env_key, &env_val)) {
         return NULL;
     }
@@ -358,6 +385,11 @@ PYLIBSSH2_Channel_setblocking(PYLIBSSH2_CHANNEL *self, PyObject *args)
     /* 1 blocking, 0 non blocking */
     int block = 1;
 
+    if(self->channel == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Channel object has been closed/shutdown.");
+        return NULL;
+    }
+
     if (!PyArg_ParseTuple(args, "i:setblocking", &block)) {
         return NULL;
     }
@@ -389,6 +421,11 @@ PYLIBSSH2_Channel_read(PYLIBSSH2_CHANNEL *self, PyObject *args)
     int rc = 0;
     int buffer_size= 1024;
     char * cbuf;
+
+    if(self->channel == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Channel object has been closed/shutdown.");
+        return NULL;
+    }
 
     if (!PyArg_ParseTuple(args, "|i:read", &buffer_size)) {
         return NULL;
@@ -465,6 +502,11 @@ PYLIBSSH2_Channel_read_ex(PYLIBSSH2_CHANNEL *self, PyObject *args)
     PyObject *buffer;
     char * cbuf;
 
+    if(self->channel == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Channel object has been closed/shutdown.");
+        return NULL;
+    }
+
     if (!PyArg_ParseTuple(args, "|ii:read_ex", &buffer_size, &stream_id)) {
         return NULL;
     }
@@ -532,6 +574,11 @@ PYLIBSSH2_Channel_write(PYLIBSSH2_CHANNEL *self, PyObject *args)
     char *message;
     int message_len;
 
+    if(self->channel == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Channel object has been closed/shutdown.");
+        return NULL;
+    }
+
     if (!PyArg_ParseTuple(args, "s#:write", &message, &message_len)) {
         return NULL;
     }
@@ -586,6 +633,11 @@ PYLIBSSH2_Channel_flush(PYLIBSSH2_CHANNEL *self, PyObject *args)
     PRINTFUNCNAME
     int rc;
 
+    if(self->channel == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Channel object has been closed/shutdown.");
+        return NULL;
+    }
+
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_channel_flush(self->channel);
     Py_END_ALLOW_THREADS
@@ -627,6 +679,12 @@ PYLIBSSH2_Channel_exit_status(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     PRINTFUNCNAME
     int rc;
+
+    if(self->channel == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Channel object has been closed/shutdown.");
+        return NULL;
+    }
+
     rc = libssh2_channel_get_exit_status(self->channel);
     if(rc == 0) {
 	    PyErr_SetString(PYLIBSSH2_Error, "Unable to get exit status.");
@@ -651,6 +709,11 @@ PYLIBSSH2_Channel_eof(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     PRINTFUNCNAME
     int rc;
+
+    if(self->channel == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Channel object has been closed/shutdown.");
+        return NULL;
+    }
     rc = libssh2_channel_eof(self->channel);
     if(rc < 0) {
         /* CLEAN: PYLIBSSH2_CANT_FLUSH_CHANNEL_MSG */
@@ -673,6 +736,11 @@ PYLIBSSH2_Channel_send_eof(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     PRINTFUNCNAME
     int rc;
+
+    if(self->channel == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Channel object has been closed/shutdown.");
+        return NULL;
+    }
 
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_channel_send_eof(self->channel);
@@ -712,6 +780,11 @@ PYLIBSSH2_Channel_wait_eof(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     PRINTFUNCNAME
     int rc;
+
+    if(self->channel == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Channel object has been closed/shutdown.");
+        return NULL;
+    }
 
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_channel_wait_eof(self->channel);
@@ -754,6 +827,11 @@ PYLIBSSH2_Channel_wait_closed(PYLIBSSH2_CHANNEL *self, PyObject *args)
 {
     PRINTFUNCNAME
     int rc;
+
+    if(self->channel == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Channel object has been closed/shutdown.");
+        return NULL;
+    }
 
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_channel_wait_closed(self->channel);
@@ -802,6 +880,11 @@ PYLIBSSH2_Channel_window_read(PYLIBSSH2_CHANNEL *self, PyObject *args)
     unsigned long read_avail;
     unsigned long window_size_initial;
 
+    if(self->channel == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Channel object has been closed/shutdown.");
+        return NULL;
+    }
+
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_channel_window_read_ex(self->channel, &read_avail, &window_size_initial);
     Py_END_ALLOW_THREADS
@@ -827,6 +910,11 @@ PYLIBSSH2_Channel_window_write(PYLIBSSH2_CHANNEL *self)
     PRINTFUNCNAME
     unsigned long rc=0;
     unsigned long window_size_initial;
+
+    if(self->channel == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Channel object has been closed/shutdown.");
+        return NULL;
+    }
 
     Py_BEGIN_ALLOW_THREADS
     rc = libssh2_channel_window_write_ex(self->channel, &window_size_initial);
@@ -861,6 +949,11 @@ PYLIBSSH2_Channel_x11_req(PYLIBSSH2_CHANNEL *self, PyObject *args)
     char *auth_proto = NULL;
     char *auth_cookie = NULL;
     int display = 0;
+
+    if(self->channel == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Channel object has been closed/shutdown.");
+        return NULL;
+    }
 
     if (!PyArg_ParseTuple(args, "|issi:x11_req", &single_connection, &auth_proto, &auth_cookie, &display)) {
         return NULL;
@@ -920,6 +1013,11 @@ PYLIBSSH2_Channel_poll_read(PYLIBSSH2_CHANNEL *self, PyObject *args)
     int rc;
     int extended = 0;
 
+    if(self->channel == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Channel object has been closed/shutdown.");
+        return NULL;
+    }
+
     if (!PyArg_ParseTuple(args, "|i:poll_read", &extended)) {
         return NULL;
     }
@@ -957,6 +1055,11 @@ PYLIBSSH2_Channel_receive_window_adjust(PYLIBSSH2_CHANNEL *self, PyObject *args)
     int adjustment;
     int force = 0;
     unsigned int window;
+
+    if(self->channel == NULL) {
+        PyErr_Format(PYLIBSSH2_Error, "Channel object has been closed/shutdown.");
+        return NULL;
+    }
 
     if (!PyArg_ParseTuple(args, "i|i:receive_window_adjust", &adjustment, &force)) {
         return NULL;
@@ -1029,7 +1132,6 @@ PYLIBSSH2_Channel_New(LIBSSH2_SESSION *session, LIBSSH2_CHANNEL *channel)
 
     self->session = session;
     self->channel = channel;
-    self->opened = 1;
 
     return self;
 }
@@ -1043,13 +1145,7 @@ PYLIBSSH2_Channel_dealloc(PYLIBSSH2_CHANNEL *self)
     PRINTFUNCNAME
     if (self) {
         if(self->channel) {
-            if (self->opened) {
-                PYLIBSSH2_Channel_close(self);
-                self->opened = 0;
-            }
-
-            libssh2_channel_free(self->channel);
-            self->channel = NULL;
+            Channel_close(self);
         }
         PyObject_Del(self);
     }
