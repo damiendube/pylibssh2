@@ -146,11 +146,17 @@ class SFTPTest(unittest.TestCase):
         #
         FILE = "/tmp/test_sftp_test_symlink"
         SYM = "/tmp/test_sftp_test_symlink_sym"
+        try:
+            os.remove(SYM)
+        except:
+            pass
+        try:
+            os.remove(FILE)
+        except:
+            pass
         open(FILE, "w").close()
         sftp.symlink(FILE, SYM)
         self.assertTrue(os.path.islink(SYM))
-        os.remove(SYM)
-        os.remove(FILE)
         #
         self.session.sftp_shutdown(sftp)
 
