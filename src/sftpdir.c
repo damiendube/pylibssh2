@@ -207,6 +207,23 @@ PYLIBSSH2_Sftpdir_getattr(PYLIBSSH2_SFTPDIR *self, char *name)
     return Py_FindMethod(PYLIBSSH2_Sftpdir_methods, (PyObject *)self, name);
 }
 
+/* {{{ PYLIBSSH2_Sftpdir_hash
+ */
+static long
+PYLIBSSH2_Sftpdir_hash(PYLIBSSH2_SFTPDIR * self) {
+    long h, h1, h2, h3;
+    h1 = PyObject_Hash(PyLong_FromVoidPtr(self->sftp));
+    if(h1==-1) return -1;
+    h2 = PyObject_Hash(PyLong_FromVoidPtr(self->session));
+    if(h2==-1) return -1;
+    h3 = PyObject_Hash(PyLong_FromVoidPtr(self->handle));
+    if(h3==-1) return -1;
+    h = h1 ^ h2;
+    if(h==-1) return -2;
+    return h;
+}
+/* }}} */
+
 /*
  * see /usr/include/python2.5/object.c line 261
  */
@@ -225,7 +242,7 @@ PyTypeObject PYLIBSSH2_Sftpdir_Type = {
     0,                                      /* tp_as_number */
     0,                                      /* tp_as_sequence */
     0,                                      /* tp_as_mapping */
-    0,                                      /* tp_hash  */
+    (hashfunc)PYLIBSSH2_Sftpdir_hash,       /* tp_hash  */
     0,                                      /* tp_call */
     0,                                      /* tp_str */
     0,                                      /* tp_getattro */

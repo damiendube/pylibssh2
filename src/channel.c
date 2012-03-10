@@ -1161,6 +1161,21 @@ PYLIBSSH2_Channel_getattr(PYLIBSSH2_CHANNEL *self, char *name)
 }
 /* }}} */
 
+/* {{{ PYLIBSSH2_Channel_hash
+ */
+static long
+PYLIBSSH2_Channel_hash(PYLIBSSH2_CHANNEL * self) {
+    long h, h1, h2;
+    h1 = PyObject_Hash(PyLong_FromVoidPtr(self->channel));
+    if(h1==-1) return -1;
+    h2 = PyObject_Hash(PyLong_FromVoidPtr(self->session));
+    if(h2==-1) return -1;
+    h = h1 ^ h2;
+    if(h==-1) return -2;
+    return h;
+}
+/* }}} */
+
 /* {{{ PYLIBSSH2_Channel_Type
  * see /usr/include/python2.5/object.h line 261
  */
@@ -1179,7 +1194,7 @@ PyTypeObject PYLIBSSH2_Channel_Type = {
     0,                                      /* tp_as_number */
     0,                                      /* tp_as_sequence */
     0,                                      /* tp_as_mapping */
-    0,                                      /* tp_hash  */
+    (hashfunc)PYLIBSSH2_Channel_hash,       /* tp_hash  */
     0,                                      /* tp_call */
     0,                                      /* tp_str */
     0,                                      /* tp_getattro */

@@ -79,7 +79,7 @@ PYLIBSSH2_Listener_accept(PYLIBSSH2_LISTENER *self, PyObject *args)
  */
 
 void
-PYLIBSSH2_Listener_cancel(PYLIBSSH2_LISTENER *self)
+Listener_cancel(PYLIBSSH2_LISTENER *self)
 {
     PRINTFUNCNAME
     Py_BEGIN_ALLOW_THREADS
@@ -137,7 +137,7 @@ PYLIBSSH2_Listener_dealloc(PYLIBSSH2_LISTENER *self)
     PRINTFUNCNAME
     if (self) {
         if(self->listener) {
-            PYLIBSSH2_Listener_cancel(self);
+            Listener_cancel(self);
         }
         PyObject_Del(self);
     }
@@ -150,6 +150,21 @@ static PyObject *
 PYLIBSSH2_Listener_getattr(PYLIBSSH2_LISTENER *self, char *name)
 {
     return Py_FindMethod(PYLIBSSH2_Listener_methods, (PyObject *) self, name);
+}
+/* }}} */
+
+/* {{{ PYLIBSSH2_Listener_hash
+ */
+static long
+PYLIBSSH2_Listener_hash(PYLIBSSH2_LISTENER * self) {
+    long h, h1, h2;
+    h1 = PyObject_Hash(PyLong_FromVoidPtr(self->listener));
+    if(h1==-1) return -1;
+    h2 = PyObject_Hash(PyLong_FromVoidPtr(self->session));
+    if(h2==-1) return -1;
+    h = h1 ^ h2;
+    if(h==-1) return -2;
+    return h;
 }
 /* }}} */
 
@@ -172,7 +187,7 @@ PyTypeObject PYLIBSSH2_Listener_Type = {
     0,                                       /* tp_as_number */
     0,                                       /* tp_as_sequence */
     0,                                       /* tp_as_mapping */
-    0,                                       /* tp_hash  */
+    (hashfunc)PYLIBSSH2_Listener_hash,       /* tp_hash  */
     0,                                       /* tp_call */
     0,                                       /* tp_str */
     0,                                       /* tp_getattro */

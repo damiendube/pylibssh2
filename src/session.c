@@ -767,8 +767,7 @@ PYLIBSSH2_Session_open_session(PYLIBSSH2_SESSION *self, PyObject *args)
     }
     PyObject *chan = (PyObject *)PYLIBSSH2_Channel_New(self->session, channel);
     if(chan) {
-        if(PySet_Add(self->channels, chan) != 0)
-            return NULL;
+        PySet_Add(self->channels, chan);
     }
     return chan;
 }
@@ -810,8 +809,7 @@ PYLIBSSH2_Session_scp_recv(PYLIBSSH2_SESSION *self, PyObject *args)
 
     PyObject *chan = (PyObject *)PYLIBSSH2_Channel_New(self->session, channel);
     if(chan) {
-        if(PySet_Add(self->channels, chan) != 0)
-            return NULL;
+        PySet_Add(self->channels, chan);
     }
     return Py_BuildValue("OO", chan, stat_to_statdict(&fileinfo));
 }
@@ -882,8 +880,7 @@ PYLIBSSH2_Session_scp_send(PYLIBSSH2_SESSION *self, PyObject *args)
     }
     PyObject * chan = (PyObject *)PYLIBSSH2_Channel_New(self->session, channel);
     if(chan) {
-        if(PySet_Add(self->channels, chan) != 0)
-            return NULL;
+        PySet_Add(self->channels, chan);
     }
     return chan;
 }
@@ -904,11 +901,8 @@ PYLIBSSH2_Session_channel_close(PYLIBSSH2_SESSION *self, PyObject *args)
         return NULL;
     }
 
+    PySet_Discard(self->channels, (PyObject*)channel);
     Channel_close(channel);
-
-    if(PySet_Discard(self->channels, (PyObject*)channel) == 0) {
-        return NULL;
-    }
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -985,13 +979,7 @@ PYLIBSSH2_Session_sftp_init(PYLIBSSH2_SESSION *self, PyObject *args)
 
     PyObject *sftpObj = (PyObject *)PYLIBSSH2_Sftp_New(self->session, sftp);
     if(sftpObj) {
-        if(PySet_Add(self->sftps, sftpObj) != 0)
-            return NULL;
-        if(PySet_Contains(self->sftps, sftpObj) != 1)
-            return NULL;
-#if DEBUG
-        fprintf(logFile, "Added Sftp[0x%08X, 0x%08X]\n", ((PYLIBSSH2_SFTP*)sftpObj)->session, ((PYLIBSSH2_SFTP*)sftpObj)->sftp);
-#endif
+        PySet_Add(self->sftps, sftpObj);
     }
     return sftpObj;
 }
@@ -1013,13 +1001,7 @@ PYLIBSSH2_Session_sftp_shutdown(PYLIBSSH2_SESSION *self, PyObject *args)
         return NULL;
     }
 
-#if DEBUG
-        fprintf(logFile, "Removing Sftp[0x%08X, 0x%08X]\n", sftp->session, sftp->sftp);
-#endif
-    if(PySet_Discard(self->sftps, (PyObject *)sftp) == 0) {
-        return NULL;
-    }
-
+    PySet_Discard(self->sftps, (PyObject *)sftp);
     Sftp_shutdown(sftp);
 
     Py_INCREF(Py_None);
@@ -1154,8 +1136,7 @@ PYLIBSSH2_Session_forward_listen(PYLIBSSH2_SESSION *self, PyObject *args)
     }
     PyObject *list = (PyObject *)PYLIBSSH2_Listener_New(self->session, listener);
     if(list) {
-        if(PySet_Add(self->listeners, list) != 0)
-            return NULL;
+        PySet_Add(self->listeners, list);
     }
     return list;
 }
@@ -1176,12 +1157,8 @@ PYLIBSSH2_Session_forward_cancel(PYLIBSSH2_SESSION *self, PyObject *args)
         return NULL;
     }
 
-    PYLIBSSH2_Listener_cancel(listen);
-
-
-    if(PySet_Discard(self->listeners, (PyObject*)listen) == 0) {
-        return NULL;
-    }
+    PySet_Discard(self->listeners, (PyObject*)listen);
+    Listener_cancel(listen);
 
     Py_INCREF(Py_None);
     return Py_None;

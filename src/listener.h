@@ -36,6 +36,6 @@ typedef struct {
     LIBSSH2_LISTENER *listener;
 } PYLIBSSH2_LISTENER;
 
-extern void PYLIBSSH2_Listener_cancel(PYLIBSSH2_LISTENER *self);
+extern void Listener_cancel(PYLIBSSH2_LISTENER *self);
 
 #endif /* _PYLIBSSH2_LISTENER_H_ */

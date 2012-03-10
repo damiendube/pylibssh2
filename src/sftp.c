@@ -833,9 +833,8 @@ PYLIBSSH2_Sftp_close_dir(PYLIBSSH2_SFTP *self, PyObject *args)
         return NULL;
     }
 
-    PYLIBSSH2_Sftpdir_close(dir);
-
     PySet_Discard(self->directories, (PyObject*)dir);
+    PYLIBSSH2_Sftpdir_close(dir);
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -866,9 +865,9 @@ PYLIBSSH2_Sftp_close_file(PYLIBSSH2_SFTP *self, PyObject *args)
         return NULL;
     }
 
+    PySet_Discard(self->files, (PyObject*)file);
     PYLIBSSH2_Sftpfile_close(file);
 
-    PySet_Discard(self->files, (PyObject*)file);
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -975,7 +974,7 @@ PYLIBSSH2_Sftp_cmp(PYLIBSSH2_SFTP * self, PYLIBSSH2_SFTP * other) {
 }
 /* }}} */
 
-/* {{{ PYLIBSSH2_Session_cmp
+/* {{{ PYLIBSSH2_Sftp_hash
  */
 static long
 PYLIBSSH2_Sftp_hash(PYLIBSSH2_SFTP * self) {
