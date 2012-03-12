@@ -88,7 +88,6 @@ PYLIBSSH2_Sftp_open_dir(PYLIBSSH2_SFTP *self, PyObject *args)
     }
     PyObject *channel = (PyObject *) PYLIBSSH2_Sftpdir_New(self->session, self->sftp, handle);
     if(channel) {
-        //Py_INCREF(channel);
         PySet_Add(self->directories, channel);
     }
     return channel;
@@ -161,7 +160,6 @@ PYLIBSSH2_Sftp_open_file(PYLIBSSH2_SFTP *self, PyObject *args)
 
     PyObject *channel = (PyObject *)PYLIBSSH2_Sftpfile_New(self->session, self->sftp, handle);
     if(channel) {
-        //Py_INCREF(channel);
         PySet_Add(self->files, channel);
     }
     return channel;
