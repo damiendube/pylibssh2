@@ -33,11 +33,11 @@ __all__ = [
     'Session',
     'SessionException',
     'Sftp',
-    'SftpException'
+    'SftpException',
     'SftpFile',
-    'SftpExceptionFile'
+    'SftpExceptionFile',
     'SftpDir',
-    'SftpExceptionDir'
+    'SftpExceptionDir',
 ]
 
 LIBSSH2_TRACE_TRANS = 1 << 1
