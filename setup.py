@@ -127,11 +127,11 @@ setup(name='pylibssh2',
       long_description=long_description,
       classifiers=classifiers,
       cmdclass={'test': Libssh2TestCommand},
-          options={'bdist_rpm': {
-                            'release': "rhel5",
-                            'requires': 'python-devel gcc libssh2 libssh2-devel'
-                            }
-                   })
+      options={'bdist_rpm': {
+                    'release': "rhel5",
+                    'requires': 'python-devel gcc libssh2 libssh2-devel'
+                    }
+               })
 
 try:
     if os.path.exists(os.path.join(build_path + "-pydebug", "_libssh2_d.so")):

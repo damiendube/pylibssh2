@@ -24,7 +24,7 @@ DEBIAN_TARGET=python-libssh2
 build: clean
 	python setup.py clean
 	python setup.py build --force
-	
+
 debug: clean
 	python-dbg setup.py clean
 	OPT="-DDEBUG -ggdb" python-dbg setup.py build --force
@@ -40,7 +40,7 @@ dist:
 
 deb:
 	dpkg-buildpackage -tc
-	
+
 rpm: build
 	python setup.py bdist_rpm
 
