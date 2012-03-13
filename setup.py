@@ -65,11 +65,13 @@ if 'darwin' in sys.platform:
 
 libssh2_lib = ['ssh2']
 
+
 class Libssh2TestCommand(Command):
     user_options = []
 
     def initialize_options(self):
         pass
+
     def finalize_options(self):
         pass
 
@@ -112,7 +114,7 @@ setup(name='pylibssh2',
       version=version,
       packages=['libssh2'],
       package_dir={
-        'libssh2' : 'libssh2'
+        'libssh2': 'libssh2'
       },
       description=long_description,
       author=author,
@@ -124,7 +126,12 @@ setup(name='pylibssh2',
       platforms=['Linux', 'BSD'],
       long_description=long_description,
       classifiers=classifiers,
-      cmdclass={'test' : Libssh2TestCommand})
+      cmdclass={'test': Libssh2TestCommand},
+          options={'bdist_rpm': {
+                            'release': "rhel5",
+                            'requires': 'python-devel gcc libssh2 libssh2-devel'
+                            }
+                   })
 
 try:
     if os.path.exists(os.path.join(build_path + "-pydebug", "_libssh2_d.so")):

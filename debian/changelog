@@ -1,3 +1,8 @@
+pylibssh2 (2.0.0) unstable; urgency=low
+  * Sftp support
+
+ -- Damien Dubé <damien.dube@gmail.com>  Wed, 08 Feb 2012 15:58:49 +0500
+ 
 pylibssh2 (1.0.1) unstable; urgency=low
 
   * New upstream release

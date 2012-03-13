@@ -40,6 +40,9 @@ dist:
 
 deb:
 	dpkg-buildpackage -tc
+	
+rpm: build
+	python setup.py bdist_rpm
 
 doc:
 	epydoc --no-private -n ${PY_TARGET} -o doc ${TARGET}
