@@ -128,8 +128,8 @@ setup(name='pylibssh2',
       classifiers=classifiers,
       cmdclass={'test': Libssh2TestCommand},
       options={'bdist_rpm': {
-                    'release': "rhel5",
-                    'requires': 'python-devel gcc libssh2 libssh2-devel'
+                    'requires': 'python-devel gcc libssh2 libssh2-devel',
+                    'python': sys.executable,
                     }
                })
 
@@ -140,4 +140,3 @@ try:
         os.symlink(os.path.join(build_path, "_libssh2.so"), "./_libssh2.so")
 except:
     pass
-
