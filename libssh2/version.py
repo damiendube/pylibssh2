@@ -20,11 +20,11 @@
 __doc__ = """Python binding for libssh2 library"""
 
 __version_info__ = (2, 0, 0)
-__version__ = '.'.join([ str(v) for v in __version_info__])
+__version__ = '.'.join([str(v) for v in __version_info__])
 __url__ = 'http://github.com/wallix/pylibssh2'
 __author__ = 'Sofian Brabez'
 __authoremail__ = 'sbz@wallix.com'
 
-__credits__ = ["Christophe Grosjean", "Cyril Elkaim" , "Olivier Hervieu", "Marcin Szewczyk"]
+__credits__ = ["Christophe Grosjean", "Cyril Elkaim", "Olivier Hervieu", "Marcin Szewczyk"]
 __license__ = "GPL"
 __status__ = "Production"

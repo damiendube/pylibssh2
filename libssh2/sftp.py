@@ -28,11 +28,13 @@ import sys
 Abstraction for libssh2 L{Sftp} object
 """
 
+
 class SftpException(Exception):
     """
     Exception raised when L{Sftp} actions fails.
     """
     pass
+
 
 class Sftp(object):
     """
@@ -117,7 +119,6 @@ class Sftp(object):
                 self._sftp.rename(src, dst)
             else:
                 raise
-
 
     def move(self, src, dst):
         """

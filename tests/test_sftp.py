@@ -14,7 +14,8 @@ Unit tests for Session
 
 import socket
 import unittest
-import os, pwd
+import os
+import pwd
 import libssh2
 import shutil
 import stat
@@ -29,7 +30,7 @@ class SFTPTest(unittest.TestCase):
         self.session = libssh2.Session()
         self.session.startup(self.sock)
         self.session.userauth_agent(self.username)
-        self.assertEqual(self.session.userauth_authenticated(), 1)
+        self.assertNotEqual(self.session.userauth_authenticated(), 0)
 
     def test_connect(self):
         sftp = self.session.sftp_init()
@@ -184,7 +185,7 @@ class SFTPTest(unittest.TestCase):
         #
         FILE = "/tmp/../tmp/test_sftp_test_set_stat"
         open(FILE, "w").close()
-        s1 = {"st_mode" : 0400 }
+        s1 = {"st_mode": 0400}
         sftp.set_stat(FILE, s1)
         s2 = os.stat(FILE)
         self.assertEqual(stat.S_IMODE(s1['st_mode']), stat.S_IMODE(s2.st_mode))
@@ -202,7 +203,7 @@ class SFTPTest(unittest.TestCase):
         f = open(FILE, "w")
         f.write(CONTENT)
         f.close()
-        #
+
         def seek():
             sftp_file = sftp.open_file(FILE, "r")
             # Seek and tell test
@@ -344,7 +345,6 @@ class SFTPTest(unittest.TestCase):
             pass
         else:
             self.assertTrue(False, "Did not fail sftp.open_dir on a inexistant directory")
-
 
         shutil.rmtree(DIR, ignore_errors=True)
         os.remove(FILE)

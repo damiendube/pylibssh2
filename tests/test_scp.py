@@ -20,6 +20,7 @@ import time
 import unittest
 import stat
 
+
 class SCPTest(unittest.TestCase):
     def setUp(self):
         self.username = pwd.getpwuid(os.getuid())[0]
@@ -29,8 +30,7 @@ class SCPTest(unittest.TestCase):
         self.session = libssh2.Session()
         self.session.startup(self.sock)
         self.session.userauth_agent(self.username)
-        self.assertEqual(self.session.userauth_authenticated(), 1)
-
+        self.assertNotEqual(self.session.userauth_authenticated(), 0)
 
     def test_send(self):
         # Initialize file that will be used

@@ -23,11 +23,13 @@ import sys
 Abstraction for libssh2 L{Sftp} object
 """
 
+
 class SftpFileException(Exception):
     """
     Exception raised when L{Sftp} actions fails.
     """
     pass
+
 
 class SftpFile(object):
     """
@@ -76,4 +78,3 @@ class SftpFile(object):
         """
         logging.debug("Sftpfile." + sys._getframe(0).f_code.co_name)
         self._handle.seek(offset)
-

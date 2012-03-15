@@ -1,9 +1,9 @@
 import socket
 import unittest
-import os, pwd
+import os
+import pwd
 import libssh2
 import shutil
-import logging
 
 
 class SSHTest(unittest.TestCase):
@@ -15,7 +15,7 @@ class SSHTest(unittest.TestCase):
         self.session = libssh2.Session()
         self.session.startup(self.sock)
         self.session.userauth_agent(self.username)
-        self.assertEqual(self.session.userauth_authenticated(), 1)
+        self.assertNotEqual(self.session.userauth_authenticated(), 0)
 
     def testBreakEveryThing(self):
         DIR = "/tmp/repo"
@@ -41,6 +41,7 @@ class SSHTest(unittest.TestCase):
 
         def func1():
             sftp = self.session.sftp_init()
+
             def func2():
                 sftp.exists(DIR)
                 sftp_filex = sftp.open_file(FILE1, "r")

@@ -1,6 +1,7 @@
 import socket
 import unittest
-import os, pwd
+import os
+import pwd
 import libssh2
 
 
@@ -14,7 +15,7 @@ class DeallocSftpTest(unittest.TestCase):
         self.session = libssh2.Session()
         self.session.startup(self.sock)
         self.session.userauth_agent(self.username)
-        self.assertEqual(self.session.userauth_authenticated(), 1)
+        self.assertNotEqual(self.session.userauth_authenticated(), 0)
 
     def tearDown(self):
         self.session.close()
@@ -33,6 +34,7 @@ class DeallocSftpTest(unittest.TestCase):
 
     def test_delete_sftp_w_file(self):
         sftp = self.session.sftp_init()
+
         def func(sftp):
             sftp_file = sftp.open_file("/dev/zero", "r")
             self.assertTrue(sftp_file)
@@ -40,6 +42,7 @@ class DeallocSftpTest(unittest.TestCase):
 
     def test_delete_sftp_w_dir(self):
         sftp = self.session.sftp_init()
+
         def func(sftp):
             sftp_dir = sftp.open_dir("/tmp")
             self.assertTrue(sftp_dir)
@@ -47,6 +50,7 @@ class DeallocSftpTest(unittest.TestCase):
 
     def test_delete_sftp_w_file_dir(self):
         sftp = self.session.sftp_init()
+
         def func(sftp):
             sftp_file = sftp.open_file("/dev/zero", "r")
             self.assertTrue(sftp_file)

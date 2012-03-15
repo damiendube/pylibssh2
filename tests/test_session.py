@@ -14,13 +14,15 @@ Unit tests for Session
 
 import socket
 import unittest
-import os, pwd
+import os
+import pwd
 import shutil
 try:
     import libssh2
 except:
     # Let test_import fail
     pass
+
 
 class SessionTest(unittest.TestCase):
     def setUp(self):
@@ -34,7 +36,7 @@ class SessionTest(unittest.TestCase):
     def test_import(self):
         ok = False
         try:
-            import libssh2 # pyflakes:ignore
+            import libssh2  # pyflakes:ignore
             ok = True
         except ImportError:
             ok = False

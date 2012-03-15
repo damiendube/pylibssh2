@@ -23,11 +23,13 @@ import sys
 Abstraction for libssh2 L{Sftp} object
 """
 
+
 class SftpDirException(Exception):
     """
     Exception raised when L{Sftp} actions fails.
     """
     pass
+
 
 class SftpDir(object):
     """

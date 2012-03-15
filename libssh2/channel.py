@@ -22,11 +22,13 @@ import logging
 Abstraction for libssh2 L{Channel} object
 """
 
+
 class ChannelException(Exception):
     """
     Exception raised when L{Channel} actions fails.
     """
     pass
+
 
 class Channel(object):
     """

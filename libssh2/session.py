@@ -35,6 +35,7 @@ class SessionException(Exception):
     """
     pass
 
+
 class Session(object):
     """
     Session object
@@ -160,7 +161,6 @@ class Session(object):
         logging.debug("Session.open_session")
         return Channel(self._session.open_session())
 
-
     def set_trace(self, bitmask):
         """
         Sets trace level on the session.
@@ -169,7 +169,6 @@ class Session(object):
         """
         logging.debug("Session.scp_recv")
         self._session.set_trace(bitmask)
-
 
     def scp_recv(self, remote_path):
         """
@@ -301,7 +300,7 @@ class Session(object):
 
         @param banner: an user defined banner
         @type banner: str
-        
+
         @return: 0 on success or negative on failure
         @rtype: int
         """
@@ -354,7 +353,7 @@ class Session(object):
         @param username: username which will be used while authenticating
         @type username: str
 
-        @return: string containing a comma-separated list of authentication 
+        @return: string containing a comma-separated list of authentication
         methods
         @rtype: str
         """
@@ -378,7 +377,7 @@ class Session(object):
 
     def userauth_publickey_fromfile(self, username, publickey, privatekey, passphrase=None):
         """
-        Authenticates a session as username using a key pair found in the 
+        Authenticates a session as username using a key pair found in the
         pulickey and privatekey files, and passphrase if provided.
 
         @param username: user to authenticate
@@ -414,7 +413,7 @@ class Session(object):
         @type username: str
         @param password: password using to fake keyboard method
         @type: str
-        
+
         @return: 0 on success or negative on failure
         @rtype: int
         """
@@ -439,4 +438,3 @@ class Session(object):
                 pass
         except:
             raise
-        #

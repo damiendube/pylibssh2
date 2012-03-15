@@ -1,6 +1,7 @@
 import socket
 import unittest
-import os, pwd
+import os
+import pwd
 import libssh2
 
 
@@ -15,7 +16,7 @@ class DeallocSftpSubTest(unittest.TestCase):
         self.session = libssh2.Session()
         self.session.startup(self.sock)
         self.session.userauth_agent(self.username)
-        self.assertEqual(self.session.userauth_authenticated(), 1)
+        self.assertNotEqual(self.session.userauth_authenticated(), 0)
 
         self.sftp = self.session.sftp_init()
 

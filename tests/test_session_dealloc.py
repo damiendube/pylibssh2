@@ -1,6 +1,7 @@
 import socket
 import unittest
-import os, pwd
+import os
+import pwd
 import libssh2
 
 
@@ -21,7 +22,7 @@ class DeallocSessionTest(unittest.TestCase):
             self.session = libssh2.Session()
             self.session.startup(self.sock)
             self.session.userauth_agent(self.username)
-            self.assertEqual(self.session.userauth_authenticated(), 1)
+            self.assertNotEqual(self.session.userauth_authenticated(), 0)
         func()
 
     def test_create_close_session(self):
@@ -29,7 +30,7 @@ class DeallocSessionTest(unittest.TestCase):
             self.session = libssh2.Session()
             self.session.startup(self.sock)
             self.session.userauth_agent(self.username)
-            self.assertEqual(self.session.userauth_authenticated(), 1)
+            self.assertNotEqual(self.session.userauth_authenticated(), 0)
             self.session.close()
         func()
 
@@ -38,7 +39,7 @@ class DeallocSessionTest(unittest.TestCase):
             self.session = libssh2.Session()
             self.session.startup(self.sock)
             self.session.userauth_agent(self.username)
-            self.assertEqual(self.session.userauth_authenticated(), 1)
+            self.assertNotEqual(self.session.userauth_authenticated(), 0)
             sftp = self.session.sftp_init()
             self.assertTrue(sftp)
             self.session.close()
@@ -49,7 +50,7 @@ class DeallocSessionTest(unittest.TestCase):
             self.session = libssh2.Session()
             self.session.startup(self.sock)
             self.session.userauth_agent(self.username)
-            self.assertEqual(self.session.userauth_authenticated(), 1)
+            self.assertNotEqual(self.session.userauth_authenticated(), 0)
             sftp = self.session.sftp_init()
             self.assertTrue(sftp)
             sftp_file = sftp.open_file("/dev/zero", "r")
@@ -62,7 +63,7 @@ class DeallocSessionTest(unittest.TestCase):
             self.session = libssh2.Session()
             self.session.startup(self.sock)
             self.session.userauth_agent(self.username)
-            self.assertEqual(self.session.userauth_authenticated(), 1)
+            self.assertNotEqual(self.session.userauth_authenticated(), 0)
             sftp = self.session.sftp_init()
             self.assertTrue(sftp)
             sftp_file = sftp.open_file("/dev/zero", "r")
