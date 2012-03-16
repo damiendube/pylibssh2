@@ -128,7 +128,7 @@ setup(name='pylibssh2',
       classifiers=classifiers,
       cmdclass={'test': Libssh2TestCommand},
       options={'bdist_rpm': {
-                    'requires': 'python-devel gcc libssh2 libssh2-devel',
+                    'requires': 'gcc libssh2 libssh2-devel',
                     'python': sys.executable,
                     }
                })
