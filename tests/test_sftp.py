@@ -448,6 +448,34 @@ class SFTPTest(unittest.TestCase):
         shutil.rmtree(DIR, ignore_errors=True)
         self.session.sftp_shutdown(sftp)
 
+    def testPermissionFile(self):
+        FILE1 = "/tmp/testPermissionFile"
+        if not os.path.exists(FILE1):
+            os.open(FILE1, os.O_CREAT | os.O_WRONLY | os.O_TRUNC, int("0000", 8))
+        sftp = self.session.sftp_init()
+        try:
+            f = sftp.open_file(FILE1, "r")
+            sftp.close_file(f)
+        except IOError, detail:
+            self.assertEqual(detail.errno, 1)
+        self.session.sftp_shutdown(sftp)
+
+    def testPermissionDir(self):
+        DIR = "/tmp/testPermissionDir"
+        FILE1 = os.path.join(DIR, "file1")
+        if not os.path.exists(DIR):
+            os.mkdir(DIR)
+            if not os.path.exists(FILE1):
+                open(FILE1, "w").close()
+            os.chmod(DIR, int("0000", 8))
+        sftp = self.session.sftp_init()
+        try:
+            f = sftp.open_file(FILE1, "r")
+            sftp.close_file(f)
+        except IOError, detail:
+            self.assertEqual(detail.errno, 2)
+        self.session.sftp_shutdown(sftp)
+
     def tearDown(self):
         self.session.close()
         del self.session
