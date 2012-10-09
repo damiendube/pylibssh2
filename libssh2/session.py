@@ -438,3 +438,15 @@ class Session(object):
                 pass
         except:
             raise
+
+    def mv(self, src, dst):
+        try:
+            channel = self.open_session()
+            channel.execute("mv %s %s" % (" ".join(src), dst))
+            try:
+                #channel.read(-1)
+                self.channel_close(channel)
+            except:
+                pass
+        except:
+            raise
