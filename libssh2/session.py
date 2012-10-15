@@ -442,7 +442,7 @@ class Session(object):
     def mv(self, src, dst):
         try:
             channel = self.open_session()
-            if hasattr(src, "__iter__") and hasattr(src, "next"):
+            if hasattr(src, "__iter__") or hasattr(src, "next"):
                 channel.execute("mv %s %s" % (" ".join(src), dst))
             else:
                 channel.execute("mv %s %s" % (src, dst))
