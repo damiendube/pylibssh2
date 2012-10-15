@@ -106,6 +106,46 @@ class SessionTest(unittest.TestCase):
         #
         session.close()
 
+    def test_mv(self):
+        DIR1 = "/tmp/repo"
+        DIR2 = "/tmp/repo2"
+        FILE1 = os.path.join(DIR1, "file1")
+        FILE2 = os.path.join(DIR1, "file2")
+        FILE3 = os.path.join(DIR1, "file3")
+        OUT_FILE1 = os.path.join(DIR2, "file1")
+        OUT_FILE2 = os.path.join(DIR2, "file2")
+        OUT_FILE3 = os.path.join(DIR2, "file3")
+        try:
+            shutil.rmtree(DIR1)
+            shutil.rmtree(DIR2)
+        except Exception:
+            pass
+        os.mkdir(DIR1)
+        os.mkdir(DIR2)
+        open(FILE1, "w").close()
+        open(FILE2, "w").close()
+        open(FILE3, "w").close()
+        self.assertTrue(os.path.exists(FILE1))
+        self.assertTrue(os.path.exists(FILE2))
+        self.assertTrue(os.path.exists(FILE3))
+        self.assertFalse(os.path.exists(OUT_FILE1))
+        self.assertFalse(os.path.exists(OUT_FILE2))
+        self.assertFalse(os.path.exists(OUT_FILE3))
+        #
+        session = libssh2.Session()
+        session.startup(self.sock)
+        username = pwd.getpwuid(os.getuid())[0]
+        session.userauth_agent(username)
+        self.assertEqual(session.userauth_authenticated(), 1)
+        #
+        session.mv(FILE1, DIR2)
+        session.mv([FILE2, FILE3], DIR2)
+        self.assertTrue(os.path.exists(OUT_FILE1))
+        self.assertTrue(os.path.exists(OUT_FILE2))
+        self.assertTrue(os.path.exists(OUT_FILE3))
+        #
+        session.close()
+    
     def tearDown(self):
         self.sock.close()
 
