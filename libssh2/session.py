@@ -23,7 +23,6 @@ import _libssh2
 import logging
 import os
 import stat
-import types
 
 """
 Abstraction for libssh2 L{Session} object
@@ -443,7 +442,7 @@ class Session(object):
     def mv(self, src, dst):
         try:
             channel = self.open_session()
-            if isinstance(src, types.ListType):
+            if hasattr(src, "__iter__") and hasattr(src, "next"):
                 channel.execute("mv %s %s" % (" ".join(src), dst))
             else:
                 channel.execute("mv %s %s" % (src, dst))
