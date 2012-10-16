@@ -8,17 +8,18 @@
 # Module description:
 # Compile with:
 #
+import errno
+import libssh2
+import os
+import pwd
+import shutil
+import socket
+import stat
+import unittest
 """
 Unit tests for Session
 """
 
-import socket
-import unittest
-import os
-import pwd
-import libssh2
-import shutil
-import stat
 
 
 class SFTPTest(unittest.TestCase):
@@ -131,7 +132,7 @@ class SFTPTest(unittest.TestCase):
         os.symlink(FILE, SYM)
         self.assertEqual(os.readlink(SYM), sftp.readlink(SYM))
         try:
-            sftp.symlink(FAKE_FILE)
+            sftp.readlink(FAKE_FILE)
         except:
             pass
         else:
@@ -473,9 +474,71 @@ class SFTPTest(unittest.TestCase):
             f = sftp.open_file(FILE1, "r")
             sftp.close_file(f)
         except IOError, detail:
-            self.assertEqual(detail.errno, 2)
+            self.assertTrue(detail.errno == errno.ENOENT or detail.errno == errno.EPERM)
         self.session.sftp_shutdown(sftp)
 
+    def testPut(self):
+        # Initialize file that will be used
+        IN_FILE_PATH = "/tmp/test_sftp_put_in"
+        OUT_FILE_PATH = "/tmp/test_sftp_put_out"
+        FILE_CONTENT = "CONTENT"
+        #
+        sftp = self.session.sftp_init()
+        #
+        if os.path.exists(IN_FILE_PATH):
+            os.remove(IN_FILE_PATH)
+        if os.path.exists(OUT_FILE_PATH):
+            os.remove(OUT_FILE_PATH)
+        # Open and write
+        f = open(IN_FILE_PATH, "w")
+        f.write(FILE_CONTENT)
+        f.close()
+        #
+        sftp.put(IN_FILE_PATH, OUT_FILE_PATH)
+        # Testing
+        if os.path.exists(OUT_FILE_PATH):
+            f = open(OUT_FILE_PATH, "r")
+            self.assertEqual(f.read(), "CONTENT")
+            f.close()
+            os.remove(OUT_FILE_PATH)
+        else:
+            self.assertTrue(False, "File was not sent")
+
+        if os.path.exists(IN_FILE_PATH):
+            os.remove(IN_FILE_PATH)
+        self.session.sftp_shutdown(sftp)
+
+    def testGet(self):
+        # Initialize file that will be used
+        IN_FILE_PATH = "/tmp/test_sftp_get_in"
+        OUT_FILE_PATH = "/tmp/test_sftp_get_out"
+        FILE_CONTENT = "CONTENT"
+        #
+        sftp = self.session.sftp_init()
+        # Remove existing test
+        if os.path.exists(IN_FILE_PATH):
+            os.remove(IN_FILE_PATH)
+        if os.path.exists(OUT_FILE_PATH):
+            os.remove(OUT_FILE_PATH)
+        # Open and wrte file
+        f = open(IN_FILE_PATH, "w")
+        f.write(FILE_CONTENT)
+        f.close()
+        # get file
+        sftp.get(IN_FILE_PATH, OUT_FILE_PATH)
+        # Test
+        if os.path.exists(OUT_FILE_PATH):
+            f = open(OUT_FILE_PATH, "r")
+            self.assertEqual(f.read(), "CONTENT")
+            f.close()
+            os.remove(OUT_FILE_PATH)
+        else:
+            self.assertTrue(False, "File was not get")
+
+        if os.path.exists(IN_FILE_PATH):
+            os.remove(IN_FILE_PATH)
+        self.session.sftp_shutdown(sftp)
+            
     def tearDown(self):
         self.session.close()
         del self.session

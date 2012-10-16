@@ -183,3 +183,43 @@ class Sftp(object):
 
         logging.debug("Sftp." + sys._getframe(0).f_code.co_name)
         self._sftp.set_stat(path, attrs)
+
+    def get(self, src, dst):
+        """
+        Helper function that acts like the CLI get command
+        """
+
+        logging.debug("Sftp." + sys._getframe(0).f_code.co_name)
+        BUFFER_SIZE = 4096
+
+        logging.debug("Sftp." + sys._getframe(0).f_code.co_name)
+        # Open Files
+        src_file = self.open_file(src, "r")
+        dst_file = open(dst, "w", 0644)
+        # Send loop
+        read_buffer = src_file.read(BUFFER_SIZE)
+        while read_buffer:
+            dst_file.write(read_buffer)
+            read_buffer = src_file.read(BUFFER_SIZE)
+        # Close Files
+        dst_file.close()
+        self.close_file(src_file)
+
+    def put(self, src, dst):
+        """
+        Helper function that acts like the CLI put command
+        """
+        BUFFER_SIZE = 4096
+
+        logging.debug("Sftp." + sys._getframe(0).f_code.co_name)
+        # Open Files
+        src_file = open(src, "r")
+        dst_file = self.open_file(dst, "w", 0644)
+        # Send loop
+        read_buffer = src_file.read(BUFFER_SIZE)
+        while read_buffer:
+            dst_file.write(read_buffer)
+            read_buffer = src_file.read(BUFFER_SIZE)
+        # Close Files
+        self.close_file(dst_file)
+        src_file.close()
