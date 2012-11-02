@@ -16,6 +16,7 @@ import shutil
 import socket
 import stat
 import unittest
+import time
 """
 Unit tests for Session
 """
@@ -494,6 +495,13 @@ class SFTPTest(unittest.TestCase):
         f.write(FILE_CONTENT)
         f.close()
         #
+        
+        start_time = time.time()
+        for i in range(1, 1000000):
+            sftp.put(IN_FILE_PATH, OUT_FILE_PATH)
+            sftp.put(OUT_FILE_PATH, IN_FILE_PATH)
+        end_time = time.time()
+        print("Took %ssec to to 200 put" % (end_time - start_time))
         sftp.put(IN_FILE_PATH, OUT_FILE_PATH)
         # Testing
         if os.path.exists(OUT_FILE_PATH):
@@ -524,7 +532,13 @@ class SFTPTest(unittest.TestCase):
         f = open(IN_FILE_PATH, "w")
         f.write(FILE_CONTENT)
         f.close()
-        # get file
+        start_time = time.time()
+        for i in range(1, 1000000):
+            sftp.get(IN_FILE_PATH, OUT_FILE_PATH)
+            sftp.get(OUT_FILE_PATH, IN_FILE_PATH)
+        end_time = time.time()
+        print("Took %ssec to to 200 get" % (end_time - start_time))
+        #
         sftp.get(IN_FILE_PATH, OUT_FILE_PATH)
         # Test
         if os.path.exists(OUT_FILE_PATH):
@@ -538,7 +552,7 @@ class SFTPTest(unittest.TestCase):
         if os.path.exists(IN_FILE_PATH):
             os.remove(IN_FILE_PATH)
         self.session.sftp_shutdown(sftp)
-            
+
     def tearDown(self):
         self.session.close()
         del self.session
