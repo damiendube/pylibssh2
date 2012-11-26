@@ -440,20 +440,23 @@ class Session(object):
             raise
 
     def mv(self, src, dst):
-        try:
-            channel = self.open_session()
-            if hasattr(src, "__iter__") or hasattr(src, "next"):
-                while len(src) > 0:
-                    length = min(100, len(src))
-                    batch = src[:length]
-                    channel.execute("mv %s %s" % (" ".join(batch), dst))
-                    src = src[length:]
-            else:
-                channel.execute("mv %s %s" % (src, dst))
+        if hasattr(src, "__iter__") or hasattr(src, "next"):
+            while len(src) > 0:
+                channel = self.open_session()
+                length = min(100, len(src))
+                batch = src[:length]
+                channel.execute("mv %s %s" % (" ".join(batch), dst))
+                src = src[length:]
+                try:
+                    #channel.read(-1)
+                    self.channel_close(channel)
+                except:
+                    pass
+        else:
+            channel.execute("mv %s %s" % (src, dst))
             try:
                 #channel.read(-1)
                 self.channel_close(channel)
             except:
                 pass
-        except:
-            raise
+
