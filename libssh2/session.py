@@ -248,9 +248,10 @@ class Session(object):
         while got < file_size:
             try:
                 buf = channel.read(min(read_len, file_size - got))
-                if len(buf) > 0:
+                l = len(buf)
+                if l > 0:
                     f.write(buf)
-                    got += len(buf)
+                    got += l
                 buf = None
             except Exception, detail:
                 f.close()
